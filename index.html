@@ -548,19 +548,42 @@ button.chip.blank{cursor:pointer}
 @media (max-width:389px){.bartime span:last-child{display:none}}
 /*DESIGN-START*/
 /* 視覺系統：取自記錄台。深藍是球場與版頭，黃色只給「往下走」的主要動作，紅色只給不可逆動作，數字用窄體像計分板。 */
-/* iPhone 頂部。iOS 26 會在跑到狀態列底下的主畫面 App 上蓋一層模糊，約到狀態列下方 40pt，網頁關不掉。
-   現在不再讓 App 跑到狀態列底下；還沒重新加入的舊圖示 inset 大於 0，內容才多往下 40，避開模糊。
-   色帶固定在最上面，捲動的內容不會跑到時間和動態島後面，Safari 也會用它的顏色畫狀態列。 */
-:root{--safe-top:env(safe-area-inset-top,0px)}
-@media (display-mode:standalone){:root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)))}}
-.statusband{position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--brand);z-index:99;pointer-events:none}
-@media print{.statusband{display:none}}
+/* iPhone 上下邊。主畫面 App 有兩種實機狀況：
+   一、從狀態列後面開始畫（上 inset 62）：系統蓋模糊到約 100pt，網頁關不掉，內容要排到模糊下方；開機時 100dvh 少 62，要用 100lvh 才到螢幕底。
+   二、從狀態列下方開始（上 inset 0）：沒有模糊，這時 100lvh 不準，要用 100dvh。下面的 min() 兩種都對。 */
+:root{--safe-top:env(safe-area-inset-top,0px);--vgap:0px;--edge:linear-gradient(90deg,#2F7BD6 0 33.4%,#fff 33.4% 66.7%,#FFD21F 66.7%)}
+.statusband{position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+.footband{display:none}
+@media print{.statusband,.footband{display:none}}
 html{touch-action:manipulation;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 body{overscroll-behavior:none}
 button,label,.bar,.nav,.pc,.ss,.mid,.setbox{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #app{max-width:none;height:100vh;height:100dvh}
-html.iosapp #app{height:var(--app-h)}
-@media (orientation:portrait){html.iosapp .fsin{width:var(--app-h)}}
+.shell.nonav .page{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+@media (display-mode:standalone){
+  :root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)))}
+  html{background:var(--brand)}
+  .statusband{height:max(6px,var(--safe-top))}
+  .statusband::after,.footband::before{content:"";position:absolute;left:0;right:0;height:3px;background:var(--edge)}
+  .statusband::after{bottom:0}
+  .footband::before{top:0}
+}
+@media (display-mode:standalone) and (orientation:portrait){
+  .footband{display:block;position:fixed;left:0;right:0;bottom:calc(0px - var(--vgap));height:env(safe-area-inset-bottom,0px);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+  .shell.nonav .page{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+  .fsin{padding:0 env(safe-area-inset-bottom,0px) 0 max(6px,var(--safe-top))}
+}
+@media (display-mode:standalone) and (orientation:landscape) and (max-height:500px){.statusband{display:none}}
+@supports (height:100lvh){
+  @media (display-mode:standalone){
+    :root{--app-h:min(100lvh,calc(100dvh + env(safe-area-inset-top,0px)*99));--vgap:calc(var(--app-h) - 100dvh)}
+    html,body,#app{height:var(--app-h)}
+    html,body{overflow:visible}
+    #app{overflow:hidden}
+    .rv,.fsv,.help,.scrim,.sheet,.kp{bottom:calc(0px - var(--vgap))!important}
+  }
+  @media (display-mode:standalone) and (orientation:portrait){.fsin{width:var(--app-h)}}
+}
 button{transition:background-color .1s}
 button:active:not(:disabled){filter:brightness(.92)}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #1F5FC4;outline-offset:1px}
@@ -743,7 +766,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 @media (max-width:479px){.sheettabs .lg{display:none}}
 @media (max-width:339px){.sheettabs button{font-size:12px}}
 .sheetfoot{position:sticky;bottom:0;background:var(--bg);padding-top:8px;z-index:3}
-.shell.nonav .page{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
 .wsheet svg,.tallsheet svg{filter:brightness(var(--sheet-dim,1))}
 .fixtimes{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none}
 .fixlist{display:flex;flex-direction:column;gap:6px;flex:none}
@@ -836,10 +858,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   .wplay{gap:4px 10px}
   .pagewide{padding-top:4px;padding-bottom:4px}
 }
+.verbtn{align-self:center;background:none;border:0;min-height:32px;padding:0 8px;color:var(--muted);font-size:12px;font-weight:500}
+.diag{font-size:11px;line-height:1.5;color:var(--muted);text-align:center}
 /*DESIGN-END*/
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
+<div class="footband" aria-hidden="true"></div>
 <div id="app"></div>
 
 <script>
@@ -1107,14 +1132,20 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=reduce(m.events);if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
+var BUILD='1104-2353';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
+function diagText(){
+  function px(v){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;height:'+v;document.body.appendChild(d);var h=Math.round(d.getBoundingClientRect().height);d.remove();return h}
+  var f=document.createElement('div');f.style.cssText='position:fixed;left:0;bottom:0;width:0;height:0;visibility:hidden';document.body.appendChild(f);var fb=f.getBoundingClientRect().bottom;f.remove();
+  return '畫面 '+innerWidth+'×'+innerHeight+'　螢幕 '+screen.width+'×'+screen.height+'　dvh '+px('100dvh')+'　lvh '+px('100lvh')+'　上 '+px('env(safe-area-inset-top,0px)')+'　下 '+px('env(safe-area-inset-bottom,0px)')+'　固定底 '+Math.round(fb)+'　app '+Math.round(document.getElementById('app').getBoundingClientRect().height)+'　'+(isStandalone()?'主畫面 App':'瀏覽器')+'　'+((navigator.userAgent.match(/OS [\d_]+/)||[''])[0]);
+}
 function savePrefs(){try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch(e){}}
 function syncBar(){var m=document.querySelector('meta[name="theme-color"]'),c=getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();if(m&&c)m.setAttribute('content',c)}
 function applyTheme(){var r=document.documentElement;if(prefs.theme==='light'||prefs.theme==='dark')r.setAttribute('data-theme',prefs.theme);else r.removeAttribute('data-theme');syncBar()}
 applyTheme();
-// iPhone 主畫面 App 不跑在狀態列底下時，100vh 會比實際畫面高（WebKit 316008），改用實際高度，免得下方按鈕被切掉
-(function(){if(navigator.standalone!==true)return;var r=document.documentElement;function fit(){r.style.setProperty('--app-h',window.innerHeight+'px')}r.classList.add('iosapp');fit();addEventListener('resize',fit);addEventListener('orientationchange',function(){setTimeout(fit,300)})})();
+// 主畫面 App 剛開時 iOS 回報的高度常少一段，捲一下讓它重新計算
+addEventListener('load',function(){if(isStandalone()){window.scrollTo(0,1);window.scrollTo(0,0)}});
 /* 版面：橫向展開成球場居中；直向平板下方多放記錄表 */
 var MQ_WIDE=window.matchMedia?matchMedia('(orientation:landscape) and (min-width:640px)'):null;
 var MQ_TALL=window.matchMedia?matchMedia('(orientation:portrait) and (min-width:700px)'):null;
@@ -1305,7 +1336,7 @@ function homeHtml(){
   if(g.live.length)body+='<section><h2>進行中</h2><div class="rlist">'+g.live.map(function(x){return resumeRow(x.m,x.s)}).join('')+'</div></section>';
   body+='<section><div class="shead"><h2>歷史紀錄</h2>'+(g.done.length?'<button class="linkbtn" data-act="history">全部 '+g.done.length+' 場</button>':'')+'</div>'+(g.done.length?'<div class="rlist">'+g.done.slice(0,3).map(function(x){return historyRow(x.m,x.s)}).join('')+'</div>':'<p class="muted">打完的比賽會放在這裡，可以隨時打開看記錄表。</p><button class="linkbtn" data-act="history">匯入比賽備份</button>')+'</section>';
   var th=prefs.theme||'auto';
-  body+=inst+storageNote()+'<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>';
+  body+=inst+storageNote()+'<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div><button class="verbtn" data-act="ver">版本 '+BUILD+'</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
   return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herolinks"><button class="linkbtn" data-act="helpopen">看使用教學</button><button class="linkbtn" data-act="sample">用範例比賽試試</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function historyHtml(){
@@ -2101,6 +2132,7 @@ app.addEventListener('click',function(e){
     case 'open': db.currentId=b.getAttribute('data-id'); save(); resetUi(); ui.page=firstPage(reduce(current().events)); ui.from=b.getAttribute('data-from'); view='setup'; break;
     case 'history': db.currentId=null; save(); view='history'; ui.delMatch=null; ui.importMsg=''; break;
     case 'theme': prefs.theme=b.getAttribute('data-v'); savePrefs(); applyTheme(); break;
+    case 'ver': ui.diag=!ui.diag; break;
     case 'install':
       if(installEvt){var ie=installEvt;installEvt=null;ie.prompt();return}
       ui.help={group:'install',i:platform()==='ios'?0:platform()==='android'?3:4}; break;
