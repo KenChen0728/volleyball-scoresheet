@@ -527,6 +527,9 @@ button.chip.blank{cursor:pointer}
 .excinj button{min-height:40px;font-weight:700;padding:0 12px;flex:none}
 .excinj button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .pfbtn{color:var(--danger,#c0392b)}
+.bar{padding-top:max(6px,env(safe-area-inset-top,0px))}
+.fsin{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
+@media (orientation:portrait){.fsin{padding:0 env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}}
 </style>
 
 <div id="app"></div>
