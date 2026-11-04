@@ -1,0 +1,1856 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12324F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="排球記錄表">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>排球電子記錄表</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 版面概念：整頁固定一個畫面不上下滑。手機用底部分頁，平板用側邊分頁，細節用浮動面板。
+   系統字型為刻意選擇：比賽現場可能沒有網路，不能依賴線上字型。 */
+:root{
+  --bg:#EEF3F2; --panel:#FFFFFF; --ink:#12201F; --muted:#566664; --line:#CBD6D4; --soft:#E1E9E7;
+  --t1:#0A5AA8; --t1-soft:#DCEAF7; --t1-on:#FFFFFF; --t2:#B8420B; --t2-soft:#FBE6DA; --t2-on:#FFFFFF;
+  --ok:#14703F; --ok-soft:#DBF1E3; --warn:#9A5B00; --warn-soft:#FBEFD5; --bad:#B3261E; --bad-soft:#FBE4E2;
+  --on-accent:#FFFFFF; --scrim:rgba(10,20,19,.45); --del:#A3211A; --del-on:#FFFFFF;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:8px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1716; --panel:#172322; --ink:#E8F0EE; --muted:#9DB0AD; --line:#2F403E; --soft:#223130;
+  --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
+  --ok:#62D08F; --ok-soft:#143524; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
+  --on-accent:#0B1413; --scrim:rgba(0,0,0,.6); --del:#8E2A24; --del-on:#FFE3E0; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1716; --panel:#172322; --ink:#E8F0EE; --muted:#9DB0AD; --line:#2F403E; --soft:#223130;
+  --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
+  --ok:#62D08F; --ok-soft:#143524; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
+  --on-accent:#0B1413; --scrim:rgba(0,0,0,.6); --del:#8E2A24; --del-on:#FFE3E0; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 var(--font);font-variant-numeric:tabular-nums;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:1200px;margin:0 auto}
+h1,h2,h3,p,ul{margin:0;padding:0}
+h1{font-size:18px}
+h2{font-size:17px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation;border:1px solid var(--line);background:var(--panel);border-radius:var(--r);min-height:46px;padding:0 12px;font-weight:600}
+button:disabled{cursor:not-allowed;opacity:.45}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+input{width:100%;min-height:46px;padding:0 10px;font-size:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+input:disabled{background:var(--soft);color:var(--muted)}
+input[type="date"],input[type="time"]{-webkit-appearance:none;appearance:none;display:flex;align-items:center;height:46px;line-height:44px;padding-top:0;padding-bottom:0;min-width:0;max-width:100%;text-align:left}
+input::-webkit-date-and-time-value{text-align:left;line-height:44px;min-height:44px;margin:0;padding:0}
+.fields>label{overflow:hidden}
+label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--muted);min-width:0}
+.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.go{background:var(--ok);border-color:var(--ok);color:var(--on-accent)}
+.danger,.pad button.back,.bench .chip.blank.clear,.chip.blank.clear,button.danger{background:var(--del);border-color:var(--del);color:var(--del-on)}
+.kphead .go{min-width:64px}
+.ghost{background:transparent}
+.muted{color:var(--muted);font-size:14px}
+.warning{background:var(--warn-soft);color:var(--warn);padding:10px 12px;border-radius:var(--r);font-size:14px}
+.note{background:var(--soft);padding:10px 12px;border-radius:var(--r);font-size:14px}
+.good{background:var(--ok-soft);color:var(--ok);padding:10px 12px;border-radius:var(--r);font-weight:600;font-size:15px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1 1 0;min-width:0}
+
+/* 外框 */
+.bar{flex:none;display:flex;align-items:center;gap:8px;padding-block:6px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.bar h1{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{min-height:38px;font-size:14px}
+.shell{flex:1;min-height:0;display:flex;flex-direction:column}
+.page{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-block:2px 8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav button{border:0;border-radius:0;background:transparent;min-height:58px;padding:4px 2px;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;border-top:3px solid transparent}
+.nav button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav small{font-weight:500;color:var(--muted);font-size:11px}
+.nav small.done{color:var(--ok)}
+.nav button[aria-current="true"]{border-top-color:var(--ink);background:var(--soft)}
+@media (min-width:760px){
+  .shell{flex-direction:row-reverse}
+  .nav{width:128px;display:flex;flex-direction:column;border-top:0;border-right:1px solid var(--line);padding-left:env(safe-area-inset-left,0px)}
+  .nav button{flex:1;max-height:96px;font-size:15px;border-top:0;border-left:4px solid transparent}
+  .nav button[aria-current="true"]{border-left-color:var(--ink)}
+}
+
+/* 比賽列表、資料 */
+.match{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.match .t{min-width:0;flex:1 1 200px}
+.match strong{display:block;overflow-wrap:anywhere}
+.pill{display:inline-block;font-size:13px;font-weight:600;padding:0 7px;border-radius:4px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fields .wide{grid-column:1/-1}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--panel)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* 隊伍頁 */
+.teampage{--c:var(--t1);--s:var(--t1-soft);--o:var(--t1-on)}
+.teampage.t2{--c:var(--t2);--s:var(--t2-soft);--o:var(--t2-on)}
+.nameline{display:flex;gap:6px;align-items:flex-end}
+.nameline>div{flex:1;min-width:0}
+.swatch{padding:0;background:var(--j);border:2px solid var(--line)}
+.nameline button{font-size:14px;padding:0 10px}
+.nameline label{font-size:0;gap:0}
+.split{flex:none;display:flex;flex-direction:column;gap:8px}
+.foot{flex:none;display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.full{width:100%}
+/* 所有號碼格都是同尺寸正方形，不隨畫面拉伸 */
+.rosterbox{display:flex;flex-direction:column;gap:4px;min-width:0}
+.chips,.libs,.pad,.benchrow{display:grid;grid-template-columns:repeat(6,minmax(0,60px));gap:6px;justify-content:start}
+.libs{align-items:center}
+.sec{font-size:13px;font-weight:600;color:var(--muted)}
+.sec.lib{margin-top:8px;color:var(--c)}
+.chip{position:relative;aspect-ratio:1;min-height:0;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--s);color:var(--c);border-color:transparent;min-width:0}
+.chip b{font-size:21px;line-height:1.1}
+.chip small{position:absolute;left:2px;right:2px;bottom:1px;text-align:center;font-size:10px;line-height:1.2;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ul{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:3px}
+.chip.blank{background:transparent;border:1px dashed var(--line);color:var(--muted);cursor:default;font-size:14px;font-weight:600}
+button.chip.blank{cursor:pointer}
+.bench .chip[aria-pressed="true"]:not(.blank){outline:3px solid var(--ok)}
+.chip.lib:not(.blank){background:var(--c);color:var(--o)}
+.chip.lib:not(.blank) small{color:var(--o)}
+.chip.editing{outline:3px solid var(--ink);outline-offset:1px}
+.chip.blank.editing{background:var(--s);border-style:solid;color:var(--c)}
+.chip.lib.blank:not(.editing)::after{content:"L";color:var(--muted);font-weight:600}
+.hint{grid-column:1/-1;height:42px;display:flex;align-items:center;font-size:14px;color:var(--muted)}
+.hint.err{color:var(--bad);font-weight:600}
+.acts{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kp .acts button{height:40px;min-height:0;font-size:14px}
+.kp .acts button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--o)}
+.chip:disabled{opacity:1;cursor:default}
+.chip.off:disabled{opacity:.35}
+.chip[aria-pressed="true"]:not(.blank){outline:3px solid var(--c)}
+.pad button{aspect-ratio:1;min-height:0;font-size:21px;padding:0}
+.pad .add{background:var(--c);border-color:var(--c);color:var(--o);font-size:15px}
+.colors{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.colors button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;padding:2px;font-size:12px}
+.colors i{display:block;width:26px;height:26px;border-radius:6px;background:var(--j);border:1px solid var(--muted)}
+.colors button[aria-pressed="true"]{outline:3px solid var(--ink)}
+.pad .back{font-size:17px}
+.bench .chip.t2{--c:var(--t2);--s:var(--t2-soft)}
+.bench .chip.t1{--c:var(--t1);--s:var(--t1-soft)}
+@media (min-width:760px){.split{flex-direction:row;gap:24px}}
+
+/* 名單：比照紙本，兩隊並列、號碼＋姓名兩欄 */
+.sheetgrid{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:2px solid var(--ink);border-radius:4px;background:var(--panel)}
+.sheetgrid>*{min-width:0}
+.rh.t1,.rr.t1,.ch.t1{border-right:2px solid var(--ink)}
+.rh{--c:var(--t1);display:flex;gap:3px;align-items:center;padding:3px;border-bottom:1px solid var(--ink)}
+.rh.t2{--c:var(--t2)}
+.rh input{min-height:32px;height:32px;padding:0 4px;font-weight:700;color:var(--c);border:0;background:transparent;flex:1;min-width:0}
+.rh .swatch{width:28px;height:28px;min-height:0;border-radius:4px;flex:none}
+.ab{font-weight:700;color:var(--c);padding:0 3px}
+.ch{display:grid;grid-template-columns:42px 1fr;font-size:12px;color:var(--muted);text-align:center;border-bottom:1px solid var(--ink)}
+.rr{--c:var(--t1);--s:var(--t1-soft);display:grid;grid-template-columns:42px minmax(0,1fr);height:26px;border-bottom:1px solid var(--line)}
+.rr.t2{--c:var(--t2);--s:var(--t2-soft)}
+.num{min-height:0;height:100%;padding:0;border:0;border-right:1px solid var(--line);border-radius:0;background:transparent;color:var(--c)}
+.num b{font-size:16px;line-height:1}
+.circ{display:inline-flex;align-items:center;justify-content:center;border:2px solid currentColor;border-radius:50%}
+.num b.circ{width:23px;height:23px;font-size:13px}
+.cell b.circ{width:60px;height:60px;border-width:3px;font-size:30px}
+.chip b.circ{width:38px;height:38px;font-size:17px}
+.mk{font-style:normal;font-weight:800;margin-right:5px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid currentColor;border-radius:4px;font-size:13px}
+.mk.c{border-radius:50%}
+.rr.t1,.lusheet.t1,.bench .chip.t1{--j:var(--t1-j);--jt:var(--t1-jt)}
+.rr.t2,.lusheet.t2,.bench .chip.t2{--j:var(--t2-j);--jt:var(--t2-jt)}
+.num.on{background:var(--s);outline:3px solid var(--ok);outline-offset:-3px}
+.num.fill,.cell.fill,.bench .chip{background:var(--j);color:var(--jt);border-color:var(--line)}
+.num.fill{border-bottom:1px solid var(--line)}
+.num:disabled{opacity:1;cursor:default}
+.rr input{min-height:0;height:100%;padding:0 4px;border:0;border-radius:0;background:transparent;line-height:1}
+.rr input:disabled{background:transparent;color:var(--ink);opacity:1;-webkit-text-fill-color:var(--ink)}
+.band{grid-column:1/-1;text-align:center;font-size:12px;font-weight:700;padding:2px 0;border-bottom:1px solid var(--ink);border-top:1px solid var(--ink)}
+.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;flex:none;margin-top:auto}
+.tool{--c:var(--t1);--s:var(--t1-soft);--o:var(--t1-on);display:flex;flex-direction:column;gap:5px;min-width:0}
+.tool.t2{--c:var(--t2);--s:var(--t2-soft);--o:var(--t2-on)}
+.count{font-size:14px;font-weight:600;color:var(--c)}
+.tool button{min-height:36px;font-size:14px;padding:0 4px}
+.tool .good{padding:6px;text-align:center}
+.tool .foot button{min-height:40px;font-size:14px;width:100%}
+.page.kpopen{padding-bottom:230px}
+.kp{--c:var(--t1);--s:var(--t1-soft);--o:var(--t1-on);position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--panel);border-top:2px solid var(--ink);display:flex;flex-direction:column;gap:6px;align-items:center;padding-block:8px calc(8px + env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.kp.t2{--c:var(--t2);--s:var(--t2-soft);--o:var(--t2-on)}
+.kp>*{width:100%;max-width:396px}
+.kphead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.kphead button{min-height:36px;font-size:14px}
+.kphead .err{color:var(--bad);font-weight:600}
+.kp .subbody{min-height:84px;display:flex;flex-direction:column;gap:6px}
+.kp .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.kp .pad{justify-content:space-between}
+
+/* 比賽：上比分、中球場、下得分鈕 */
+.ptsum{display:flex;flex-direction:column;gap:1px}
+.ptset{display:grid;grid-template-columns:auto 58px minmax(0,1fr) 58px;gap:6px;align-items:end}
+.sw{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sw .seg button{font-size:14px;padding:0 2px;line-height:1.15}
+.ptset strong{padding-bottom:12px}
+.board{display:grid;grid-template-columns:minmax(0,1fr) 46px 88px 46px minmax(0,1fr);align-items:center;gap:4px;flex:none}
+.ss{display:flex;flex-direction:column;align-items:center;min-width:0}
+.ss.t1{--c:var(--t1)}.ss.t2{--c:var(--t2)}
+.ss .tn{font-weight:700;color:var(--c);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss b{font-size:42px;line-height:1.05}
+.mid{text-align:center;font-weight:700;font-size:14px}
+.mid small{font-weight:500;color:var(--muted)}
+.pcourt{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) 5px repeat(2,minmax(0,1fr));grid-auto-rows:52px;gap:3px;width:100%;max-width:400px;align-self:center}
+.net{grid-column:3;grid-row:1/4;background:var(--ink);border-radius:2px}
+.pc{position:relative;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--j);color:var(--jt);border:1px solid var(--line);padding:0;min-height:0}
+.pc:disabled{opacity:1;cursor:default}
+.pc.pk{box-shadow:0 0 0 2px var(--ink)}
+.pc.sel{outline:3px solid var(--ok);outline-offset:-3px}
+.lockline{text-align:center;flex:none}
+.scrim.light{background:transparent}
+.tbar{flex:none;display:flex;align-items:center;gap:8px;padding:3px 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);font-size:14px}
+.tbar span{flex:1;min-width:0}
+.tbar b{font-size:24px;line-height:1}
+.tbar button{min-height:34px;font-size:13px}
+.tpop{position:fixed;left:50%;top:30%;transform:translateX(-50%);z-index:30;width:260px;max-width:calc(100% - 32px);padding:18px 14px;text-align:center;background:var(--panel);border:3px solid #E5281E;border-radius:12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.tpop b{font-size:72px;line-height:1;color:#E5281E}
+.tx{position:absolute;right:6px;top:6px;width:40px;height:40px;min-height:0;padding:0}
+.lmk{position:absolute;right:0;top:0;width:22px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:#F7CE1E;color:#141414;border-radius:0 5px 0 5px}
+.pc.isl{box-shadow:inset 0 0 0 3px #F7CE1E}
+@keyframes flashbad{0%,49%{box-shadow:0 0 0 4px #E5281E,inset 0 0 0 4px #E5281E}50%,100%{box-shadow:0 0 0 4px transparent,inset 0 0 0 3px #F7CE1E}}
+.pc.bad{outline:0;animation:flashbad .7s linear infinite;z-index:1}
+@media (prefers-reduced-motion:reduce){.pc.bad{animation:none;box-shadow:0 0 0 4px #E5281E,inset 0 0 0 4px #E5281E}}
+.strips,.tt{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none;width:100%;max-width:400px;align-self:center}
+.strip{display:flex;justify-content:space-between;gap:6px}
+.ls{display:flex;gap:4px}
+.lc{position:relative;width:46px;height:46px;min-height:0;padding:0;background:var(--j);color:var(--jt);border-color:var(--line)}
+.lc.t1{--j:var(--t1-j);--jt:var(--t1-jt)}.lc.t2{--j:var(--t2-j);--jt:var(--t2-jt)}
+.lc span{position:absolute;right:3px;top:1px;font-size:10px;font-weight:800}
+.lc b{font-size:18px}
+.lc.away{opacity:.35}
+.lc:disabled{cursor:default}
+.lc.sel{outline:3px solid var(--ok)}
+.oc{position:relative;width:46px;height:46px;min-height:0;padding:0;border-style:dashed;background:transparent}
+.oc b{font-size:18px}
+.oc span{position:absolute;left:0;right:0;bottom:1px;font-size:10px;color:var(--muted)}
+.oc:not(:disabled){border-color:var(--ok);border-style:solid}
+.oc:disabled{opacity:1;cursor:default}
+.tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.tg .ex{grid-column:1/-1;font-size:12px;color:var(--muted);text-align:center}
+.penbtn{flex:none;min-height:38px;width:100%;background:var(--del);border-color:var(--del);color:var(--del-on)}
+.irb{display:flex;gap:14px;align-items:center;font-size:14px}
+.irb i{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border:1px solid var(--line);font-style:normal;font-weight:800;color:var(--bad)}
+.logbox{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.rotb{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
+.rotb button{min-height:40px;font-size:14px;padding:0 4px}
+.ghost-file{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid var(--line);border-radius:var(--r);font-weight:600;color:var(--ink);flex-direction:row}
+.ghost-file input{position:absolute;opacity:0;width:1px;height:1px}
+/* 記錄表：一律白底黑字，比照紙本 A4 橫式 */
+.rv{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg)}
+.rvbar{flex:none;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-block:calc(6px + env(safe-area-inset-top,0px)) 6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.rvbar button{min-height:40px;font-size:14px}
+.rvscroll{flex:1;min-height:0;overflow:auto;background:#777;padding:10px}
+.paper{--ink:#000;--line:#000;--muted:#333;--bad:#000;width:277mm;min-height:190mm;background:#fff;color:#000;padding:0;font-size:8pt;line-height:1.15;font-variant-numeric:tabular-nums;margin:0 auto}
+.paper h1{font-size:13pt;text-align:center}
+.paper h3{font-size:8pt;margin:1.2mm 0 .5mm}
+.ph div{display:flex;flex-wrap:wrap;gap:0 5mm;margin:1mm 0;border-bottom:1px solid #000;padding-bottom:1mm}
+.pm{display:grid;grid-template-columns:197mm 79mm;gap:1mm}
+.setb{border:1px solid #000;margin-bottom:1mm}
+.seth{display:flex;gap:5mm;padding:.5mm 1mm;border-bottom:1px solid #000}
+.setg{display:grid;grid-template-columns:1fr 1fr}
+.tb{min-width:0}
+.tb+.tb{border-left:1px solid #000}
+.tbh{padding:.4mm 1mm;border-bottom:1px solid #000;display:flex;gap:1.5mm;align-items:center}
+.tbh .to{margin-left:auto}
+.ci{display:inline-flex;align-items:center;justify-content:center;width:4mm;height:4mm;border:1px solid #000;border-radius:50%;font-size:7pt}
+.tbb{display:grid;grid-template-columns:minmax(0,1fr) auto}
+.paper table{border-collapse:collapse;width:100%}
+.paper th,.paper td{border:.5px solid #000;padding:.3mm .4mm;text-align:center;font-weight:400;color:#000;font-size:7.5pt}
+.lu th{white-space:nowrap;width:9mm;font-size:6.5pt}
+.lu td{width:12.5mm;height:4.6mm}
+.lu .rd td{height:11mm;vertical-align:top;font-size:7pt;word-spacing:1px}
+.xm{font-weight:700}
+.endc{display:inline-block;border:1px solid #000;border-radius:50%;padding:0 .6mm}
+.pts{display:grid;grid-auto-flow:column;grid-auto-columns:3.6mm;font-size:5.5pt;border-left:.5px solid #000;height:100%;min-height:42mm}
+.pt{display:flex;align-items:center;justify-content:center;position:relative;border-bottom:.2px solid #bbb}
+.pt.on::after{content:"";position:absolute;left:0;right:0;top:50%;border-top:.8px solid #000;transform:rotate(-40deg)}
+.pt.pen{border-radius:50%;outline:.6px solid #000}
+.pt.last{font-weight:800;border-bottom:1.2px solid #000}
+.pt.off{color:#999}
+.ros{display:grid;grid-template-columns:1fr 1fr;gap:.6mm}
+.ro td:first-child{width:7mm}
+.ro td,.ro th{height:3.6mm;font-size:6.5pt}
+.ro .sg{height:6mm}
+.ca{display:inline-flex;align-items:center;justify-content:center;min-width:3.6mm;border:.7px solid #000;border-radius:50%}
+.paper .res th,.paper .res td{font-size:6.5pt;padding:.3mm}
+.paper .res b{font-weight:700}
+.paper .irb{gap:3mm;font-size:7pt;margin-bottom:.5mm}
+.paper .irb i{width:3.6mm;height:3.6mm;border-color:#000;color:#000}
+.ts{display:flex;justify-content:space-between;margin-top:.5mm;font-size:7pt}
+.nt{border:.5px solid #000;min-height:8mm;padding:.5mm;font-size:6.5pt}
+.sgn th{width:12mm}.sgn td{height:6mm}
+@media print{
+  @page{size:A4 landscape;margin:8mm 10mm}
+  html,body{height:auto;overflow:visible;background:#fff}
+  #app{display:block;height:auto;max-width:none}
+  #app>:not(.rv){display:none!important}
+  .rv{position:static;display:block;background:#fff}
+  .rvbar{display:none}
+  .rvscroll{overflow:visible;padding:0;background:#fff}
+  .paper{margin:0;zoom:.97}
+}
+.rtabs{display:flex;flex-wrap:wrap;gap:4px;flex:none}
+.rtabs button{flex:1 1 auto;min-height:38px;font-size:13px;padding:0 6px}
+.rtabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rt{--c:var(--t1)}.rt.t2{--c:var(--t2)}
+.rth{display:flex;gap:10px;align-items:baseline;font-size:13px;flex-wrap:wrap;margin-bottom:2px}
+.rth b{color:var(--c);font-size:15px}
+.paper .rl,.rl{table-layout:fixed}
+.rl th{font-size:12px;width:38px;font-weight:600}
+.rl .sm th,.rl .sm td{padding:2px 1px}
+.rl td{font-size:14px;min-width:0}
+.rl small{font-size:11px;color:var(--muted)}
+.rl .rr2 td{vertical-align:top;line-height:1.3}
+.rend{display:inline-block;border:1.5px solid currentColor;border-radius:50%;padding:0 4px}
+.notes{padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.pk3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.pk3.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pk3.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pk3 button:disabled{background:var(--soft);border-color:var(--line);color:var(--muted);opacity:1}
+.pbtns{flex:none;display:grid;grid-template-columns:.8fr 1.45fr .8fr .8fr 1fr;gap:4px}
+.pbtns button{padding:0 2px;font-size:13px;white-space:nowrap}
+.injbtn{min-height:38px;font-size:13px;padding:0 2px}
+.pk3 button{font-size:13px;padding:0 3px;min-height:44px}
+.ic{display:flex;justify-content:center;height:24px;align-items:center}
+.cd{display:block;width:15px;height:21px;border-radius:2px;box-shadow:0 0 0 1px rgba(127,127,127,.6)}
+.cy{background:#F7CE1E}.cr{background:#D3122F}
+.ic.same .cd:first-child{transform:rotate(-8deg)}
+.ic.same .cd:last-child{margin-left:-7px;transform:rotate(6deg)}
+.ic.apart{gap:16px}
+.pk3 button{min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15}
+.pk3 small{font-size:11px;color:var(--muted);font-weight:500}
+.stf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stf button{font-size:13px;padding:0 2px}
+.excbtn{border-color:var(--warn);color:var(--warn)}
+.tg button{min-height:36px;font-size:12px;padding:0 2px}
+.sv{width:100%;min-height:64px;font-size:22px;background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rp{min-height:0;font-size:15px;padding:0 4px}
+.warnbtn{min-height:32px;font-size:13px;background:var(--warn-soft);color:var(--warn);border-color:var(--warn);flex:none}
+.pc.t1{--j:var(--t1-j);--jt:var(--t1-jt)}.pc.t2{--j:var(--t2-j);--jt:var(--t2-jt)}
+.pc b{font-size:24px;line-height:1}
+.pc b.circ{width:36px;height:36px;font-size:18px}
+.pc .pos{position:absolute;top:1px;left:4px;font-size:11px;opacity:.75}
+.pc .ball{position:absolute;right:2px;bottom:2px;width:20px;height:20px;filter:none;opacity:1}
+.pc.srv{outline:3px solid var(--ok);outline-offset:-1px}
+.srvline{text-align:center;flex:none}
+.sbs{display:grid;grid-template-columns:1fr 60px 1fr;gap:6px;flex:none}
+.sb{min-height:64px;font-size:16px;line-height:1.2;background:var(--j);color:var(--jt);border-color:var(--line);overflow-wrap:anywhere}
+.sb.t1{--j:var(--t1-j);--jt:var(--t1-jt)}.sb.t2{--j:var(--t2-j);--jt:var(--t2-jt)}
+.bigscore{font-size:44px;font-weight:800;text-align:center}
+.res{width:100%;border-collapse:collapse;font-size:14px;table-layout:auto}
+.res .sm th{font-size:11px;font-weight:600;padding:3px 1px}
+.res .tot td{font-weight:700}
+.times{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:14px}
+.cfr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf{--c:var(--t1);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.cf.t2{--c:var(--t2)}
+.cf strong{color:var(--c);overflow-wrap:anywhere;text-align:center}
+.cf small{color:var(--c)}
+.cf .ball{width:52px;height:52px}
+.res th,.res td{border:1px solid var(--line);padding:6px 2px;text-align:center}
+
+/* 挑邊：坐在記錄台看出去，兩隊左右對放 */
+.toss{display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);gap:6px;align-items:center;max-width:480px;width:100%;align-self:center}
+.side{--c:var(--t1);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;min-height:0;position:relative;min-width:0;border:2px solid var(--line)}
+.side.t2{--c:var(--t2)}
+.side.on{border-color:var(--c)}
+.side:disabled{opacity:1;cursor:default}
+.side strong{color:var(--c);font-size:17px;overflow-wrap:anywhere;text-align:center}
+.side small{font-size:13px;color:var(--c);min-height:18px}
+.ltr{font-size:15px;font-weight:700;color:var(--muted)}
+.ball{transition:filter .15s,opacity .15s}
+.side:not(.on) .ball{filter:grayscale(1);opacity:.4}
+.swap{width:52px;height:52px;padding:0;font-size:22px;min-height:0}
+.scorer{align-self:center;font-size:13px;color:var(--muted);border-top:2px solid var(--line);padding:3px 28px 0}
+.ask{display:flex;flex-direction:column;gap:6px}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick button{min-height:72px;font-size:17px;overflow-wrap:anywhere;padding:4px 8px}
+.pick button.t1[aria-pressed="true"]{background:var(--t1);border-color:var(--t1);color:var(--t1-on)}
+.pick button.t2[aria-pressed="true"]{background:var(--t2);border-color:var(--t2);color:var(--t2-on)}
+
+/* 陣容單：比照紙本，前排 IV III II，後排 V VI I */
+.lutabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lutabs button{font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lutabs button.t1[aria-pressed="true"]{background:var(--t1-j);border-color:var(--ok);color:var(--t1-jt)}
+.lutabs button.t2[aria-pressed="true"]{background:var(--t2-j);border-color:var(--ok);color:var(--t2-jt)}
+.lusheet{--c:var(--t1);--s:var(--t1-soft);flex:none;width:292px;max-width:100%;align-self:center;border:2px solid var(--ink);border-radius:4px;background:var(--panel)}
+.lusheet.t2{--c:var(--t2);--s:var(--t2-soft)}
+.lusheet header{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.lusheet header span{font-size:14px;color:var(--muted);min-width:0}
+.sheetnet{text-align:center;font-size:12px;letter-spacing:.4em;color:var(--muted);border-bottom:1px dashed var(--line);padding:1px 0}
+.lugrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.cell{--c:inherit;position:relative;padding:0;aspect-ratio:1;min-height:0;border:0;border-radius:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:transparent;color:var(--c);display:flex;align-items:center;justify-content:center}
+.cell:nth-child(3n){border-right:0}
+.cell:nth-child(n+4){border-bottom:0}
+.cell b{font-size:34px;line-height:1}
+.cell .pos{position:absolute;top:3px;left:7px;font-size:13px;font-weight:700;color:var(--muted)}
+.cell.sel{background:var(--s);outline:4px solid var(--ok);outline-offset:-4px}
+.cell.fill.sel{background:var(--j)}
+.cell:disabled{opacity:1;cursor:default}
+.bench{display:flex;flex-direction:column;gap:6px;flex:none}
+
+/* 浮動面板：手機從下方出現，平板靠右 */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--panel);border-radius:12px 12px 0 0;max-height:84%;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+@media (min-width:760px){.sheet{left:auto;top:0;width:360px;max-height:none;border-radius:12px 0 0 12px;padding-top:calc(14px + env(safe-area-inset-top,0px))}}
+.sheet .imp{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left}
+.sheet .imp small{font-weight:500;color:var(--muted);white-space:nowrap}
+.flag[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+.sheettabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+.sheettabs button{flex:0 0 auto;padding:0 10px}
+.sv-wrap{flex:none;width:100%;background:#fff;border-radius:2px;overflow:hidden}
+.sv-wrap svg{display:block;width:100%;height:auto}
+.rotate-tip{text-align:center}
+.ppr{flex:none;background:#fff;color:#000;border:3px solid #000;width:100%;max-width:560px;margin:0 auto;--pi:#1616c8}
+.ppr h3{margin:0;padding:8px;text-align:center;font-size:20px;font-weight:800;color:#000;border-bottom:2px solid #000}
+.ppr table{width:100%;border-collapse:collapse;table-layout:fixed;background:#fff}
+.ppr th,.ppr td{border:1px solid #000;text-align:center;padding:5px 2px;color:var(--pi);font-size:16px;height:36px;background:#fff;font-weight:400}
+.ppr th,.ppr .ph th{color:#000;font-size:12px;font-weight:700}
+.ppr .pset{width:24%;color:var(--pi)}
+.ppr th.pset{color:#000}
+.ppr .pset small{color:#000;font-size:10px}
+.ptot td{border-top:2px solid #000}
+.pvs{display:grid;grid-template-columns:1fr auto auto 1fr;gap:6px;align-items:center;padding:6px;border-bottom:2px solid #000}
+.pvs b{color:var(--pi);text-align:center;font-size:15px;overflow-wrap:anywhere}
+.pvs i,.pteams i{font-style:normal;font-weight:800;border:2px solid #000;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;color:#000}
+.ptm{display:grid;grid-template-columns:1fr 1fr 1.4fr;border-top:2px solid #000}
+.ptm div{padding:4px;text-align:center;color:var(--pi);font-size:15px;min-height:46px;border-left:1px solid #000}
+.ptm div:first-child{border-left:0}
+.ptm small{display:block;color:#000;font-size:11px}
+.pwin{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:8px 12px;border-top:3px solid #000}
+.pwin span{font-weight:800;color:#000;font-size:18px}
+.pwin b{color:var(--pi);font-size:18px;text-align:center}
+.psh{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #000}
+.psh h3{border:0;border-right:2px solid #000}
+.psh div{text-align:center;padding:4px;color:#000}
+.psh small{display:block;font-size:12px;font-weight:700}
+.psh i{font-style:normal;display:inline-block;min-width:14px;color:var(--pi);font-weight:800}
+.psan table{border-bottom:2px solid #000}
+.psan td{height:30px}
+.psan p{margin:0;padding:6px 8px;font-size:12px;color:#000;line-height:1.5}
+.prem ul{margin:0;padding:6px 12px 6px 28px;color:var(--pi);font-size:15px;line-height:1.7;border-bottom:1px solid #000}
+.prem textarea,.psign input{width:100%;border:0;background:#fff;color:var(--pi);font:inherit;font-size:16px;min-height:0;border-radius:0;padding:6px}
+.prem textarea{display:block;line-height:32px;resize:vertical;padding:0 10px;background-image:repeating-linear-gradient(#fff 0 31px,#888 31px 32px);background-attachment:local}
+.prem textarea::placeholder{color:#777}
+.psign th:first-child{width:24%}
+.psign .psig{width:32%}
+.psign td{padding:0 2px}
+.pauto{font-size:14px!important}
+.pname{padding:8px 10px;border-bottom:2px solid #000;color:#000}
+.pname span{font-weight:800;font-size:13px;display:block}
+.pname b{color:var(--pi);font-size:20px;font-weight:500}
+.pgrid{display:grid;grid-template-columns:1fr 1fr}
+.pf{padding:6px 10px;border-bottom:1px solid #000;border-right:1px solid #000;min-height:52px;color:#000}
+.pf:nth-child(2n){border-right:0}
+.pf span{display:block;font-size:12px;font-weight:700}
+.pf b{color:var(--pi);font-weight:400;font-size:16px}
+.pteams{display:grid;grid-template-columns:auto 1fr auto 1fr auto;gap:8px;align-items:center;padding:12px 10px}
+.pteams b{color:var(--pi);text-align:center;font-size:17px;overflow-wrap:anywhere}
+.pteams em{font-style:normal;color:#000;font-weight:800}
+.proster table{border-top:2px solid #000}
+.proster .pno{width:13%}
+.proster td{height:30px}
+.proster .pnm{text-align:left;padding-left:6px;font-size:15px;overflow-wrap:anywhere}
+.pcap{display:inline-grid;place-items:center;width:26px;height:26px;border:2px solid var(--pi);border-radius:50%}
+.proster .psec th{font-size:14px;height:28px}
+.proster .pol{width:24%}
+.sheetback{flex:none;width:100%}
+.srvmark{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;color:var(--t1);--ball:30px}
+.srvmark.t2{color:var(--t2)}
+.srvmark i{font-style:normal;font-size:20px;line-height:1}
+.srvmark span{width:var(--ball);height:var(--ball);display:block;flex:none}
+.srvmark span svg,.srvmark span img{display:block;width:100%;height:100%;opacity:1;filter:none}
+.srvmark b{font-size:26px;line-height:1;font-weight:800}
+.tbar.t1{background:var(--t1-j);color:var(--t1-jt);border-color:var(--t1-j)}
+.tbar.t2{background:var(--t2-j);color:var(--t2-jt);border-color:var(--t2-j)}
+.tbar b{color:inherit}
+.tbar span{font-weight:800}
+.tbar button{background:#fff;color:#141414;border-color:#fff}
+.setbox{display:flex;flex-direction:column;align-items:center;border:2px solid var(--line);border-radius:var(--r);padding:2px 0;background:var(--panel)}
+.setbox.t1{border-color:var(--t1)}.setbox.t2{border-color:var(--t2)}
+.setbox small{font-size:11px;color:var(--muted);line-height:1.2}
+.setbox b{font-size:26px;line-height:1.1}
+.teampick{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
+.teampick button{min-height:50px;font-weight:800;font-size:16px;border:3px solid var(--line);padding:0 6px}
+.teampick .t1{background:var(--t1-j);color:var(--t1-jt)}
+.teampick .t2{background:var(--t2-j);color:var(--t2-jt)}
+.teampick.picked button{opacity:.4}
+.teampick.picked button[aria-pressed="true"]{opacity:1;border-color:var(--ink);box-shadow:0 0 0 2px var(--bg) inset}
+.bartime{flex:none;display:flex;gap:9px;font-size:11px;line-height:1.2;color:var(--muted);white-space:nowrap;text-align:right}
+.bartime b{color:var(--ink);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.bar h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subhint{font-size:18px;font-weight:800;line-height:1.3}
+.kp.t1 .subhint{color:var(--t1)}.kp.t2 .subhint{color:var(--t2)}
+.fixpos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:none}
+.fixpos button{min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px}
+.fixpos small{font-size:12px;color:var(--muted)}
+.fixpos b{font-size:26px;line-height:1.1}
+.fsbtn{flex:none;align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700}
+.fsv{position:fixed;inset:0;z-index:90;background:#fff}
+.fsin{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+.fssheet{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px}
+.fssheet .sv-wrap{width:100%;height:100%}
+.fssheet svg{width:100%;height:100%}
+.fsclose{flex:none;min-height:40px;margin:0 4px 4px;background:#141414;color:#fff;border-color:#141414;font-size:15px;font-weight:700}
+@media (orientation:portrait){
+.fsin{inset:auto;top:50%;left:50%;width:100vh;height:100vw;width:100dvh;transform:translate(-50%,-50%) rotate(90deg)}
+}
+.breakt{font-size:13px}
+.breakt b{font-size:22px}
+.lucopy{flex:none;width:100%;min-height:44px;font-weight:700}
+.toask{flex:none;padding:10px;border-radius:var(--r);text-align:center;font-size:18px;font-weight:800}
+.toask.t1{background:var(--t1-j);color:var(--t1-jt)}
+.toask.t2{background:var(--t2-j);color:var(--t2-jt)}
+.fixrow{flex:none;width:100%;display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;align-items:center;text-align:left;min-height:48px;padding:0 12px;font-size:15px}
+.fixrow.t1 span{color:var(--t1)}.fixrow.t2 span{color:var(--t2)}
+.fixrow span{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fixrow em{font-style:normal;color:var(--muted)}
+.irrow{display:inline-flex;align-items:center;gap:5px;font-size:14px}
+.ircl{display:block}
+.excinj{display:flex;align-items:center;gap:10px;flex:none}
+.excinj button{min-height:40px;font-weight:700;padding:0 12px;flex:none}
+.excinj button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pfbtn{color:var(--danger,#c0392b)}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+'use strict';
+/* ========== 資料層：所有變動都是事件，畫面狀態一律由 reduce() 從事件推算 ========== */
+var KEY='nanshe-scoresheet-v1';
+var DEVICE='scorer-table';   // 日後連線同步時用來分辨事件來源
+var MAX_PLAYERS=12, MAX_LIBEROS=2, MIN_ON_COURT=6;
+var memoryOnly=false;
+
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){var d=JSON.parse(raw); if(d&&Array.isArray(d.matches)) return d;}
+    localStorage.setItem(KEY+'-test','1'); localStorage.removeItem(KEY+'-test');
+  }catch(e){memoryOnly=true}
+  return {matches:[],currentId:null};
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(db)); memoryOnly=false}
+  catch(e){memoryOnly=true}
+}
+var db=load();
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function emptyTeam(){return {name:'',players:[],captain:null,liberos:[],staff:{coach:'',execCoach:'',teacher:'',leader:''},locked:false,color:null,liberoColor:null}}
+
+function other(k){return k==='t1'?'t2':k==='t2'?'t1':null}
+function emptySet(){return {left:null,serve:null,lineups:{t1:[null,null,null,null,null,null],t2:[null,null,null,null,null,null]},gameCaptain:{t1:null,t2:null},locked:{t1:false,t2:false},started:false,score:{t1:0,t2:0},serving:null,rot:{t1:0,t2:0},swapped:false,ended:false,winner:null,startAt:null,endAt:null,firstServeAt:null,
+  cur:{t1:null,t2:null},rally:0,live:false,replayLock:false,timeouts:{t1:[],t2:[]},subCount:{t1:0,t2:0},subs:{t1:[],t2:[]},
+  subPos:{t1:[{},{},{},{},{},{}],t2:[{},{},{},{},{},{}]},out:{t1:[],t2:[]},libOut:{t1:null,t2:null},libRally:{t1:null,t2:null},subRally:{t1:null,t2:null},expelled:{t1:[],t2:[]},rounds:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},subRows:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},toRows:{t1:[],t2:[]},penPts:{t1:[],t2:[]},swapScore:null,swapSnap:null,libRows:{t1:[],t2:[]}}}
+function applyPoint(c,k){
+  var lo=other(k);
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
+}
+function dropFromLineup(s,k,no){
+  var c=s.sets[1],lu=c.lineups[k],i=lu.indexOf(no);
+  if(i>=0){lu[i]=null;c.locked[k]=false}
+  if(c.gameCaptain[k]===no)c.gameCaptain[k]=null;
+}
+function reduce(events){
+  var s={info:{},teams:{t1:emptyTeam(),t2:emptyTeam()},setNo:1,matchOut:{t1:[],t2:[]},sanctions:[],injuries:[],sets:{1:emptySet(),2:emptySet(),3:emptySet()}};
+  /* 復原：UNDO 事件指向被取消的事件，事件本身不刪，日後同步才對得起來 */
+  var dead={};
+  events.forEach(function(ev){if(ev.type==='UNDO')dead[ev.data.target]=1});
+  var patch={};
+  s.log=[];s.amends=[];
+  events.forEach(function(ev){
+    if(ev.type!=='AMEND'||dead[ev.id])return;
+    s.amends.push(ev.data.note);
+    if(ev.data.del)dead[ev.data.target]=1;
+    else patch[ev.data.target]=Object.assign(patch[ev.data.target]||{},ev.data.patch);
+  });
+  events.filter(function(ev){return !dead[ev.id]&&ev.type!=='UNDO'&&ev.type!=='AMEND'}).forEach(function(ev){
+    var d=patch[ev.id]?Object.assign({},ev.data,patch[ev.id]):ev.data, t=d.team?s.teams[d.team]:null;
+    switch(ev.type){
+      case 'MATCH_CREATED': s.info=Object.assign({},d.info); break;
+      case 'INFO_SET': s.info[d.field]=d.value; break;
+      case 'TEAM_NAME_SET': t.name=d.value; break;
+      case 'PLAYER_ADDED': t.players.push({no:d.no,name:''}); break;
+      case 'PLAYER_NAME_SET': t.players.forEach(function(p){if(p.no===d.no)p.name=d.name}); break;
+      case 'PLAYER_NUMBER_CHANGED':
+        t.players.forEach(function(p){if(p.no===d.from)p.no=d.to});
+        if(t.captain===d.from)t.captain=d.to;
+        s.sets[1].lineups[d.team]=s.sets[1].lineups[d.team].map(function(n){return n===d.from?d.to:n});
+        if(s.sets[1].gameCaptain[d.team]===d.from)s.sets[1].gameCaptain[d.team]=d.to;
+        t.liberos=t.liberos.map(function(n){return n===d.from?d.to:n});
+        break;
+      case 'PLAYER_REMOVED':
+        t.players=t.players.filter(function(p){return p.no!==d.no});
+        dropFromLineup(s,d.team,d.no);
+        if(t.captain===d.no)t.captain=null;
+        t.liberos=t.liberos.filter(function(n){return n!==d.no});
+        break;
+      case 'CAPTAIN_SET': t.captain=d.no; break;
+      case 'LIBERO_SET':
+        t.liberos=t.liberos.filter(function(n){return n!==d.no});
+        if(d.on){t.liberos.push(d.no);dropFromLineup(s,d.team,d.no)}
+        break;
+      case 'STAFF_SET': t.staff[d.field]=d.value; break;
+      case 'TEAM_COLOR_SET': t.color=d.color; break;
+      case 'LIBERO_COLOR_SET': t.liberoColor=d.color; break;
+      case 'TEAM_IMPORTED':
+        var snap=JSON.parse(JSON.stringify(d.snapshot));
+        snap.locked=false; s.teams[d.team]=snap;
+        s.sets[1].lineups[d.team]=[null,null,null,null,null,null]; s.sets[1].locked[d.team]=false; s.sets[1].gameCaptain[d.team]=null;
+        break;
+      case 'TOSS_SET': var ss=s.sets[d.set]; if(d.left!==undefined)ss.left=d.left; if(d.serve!==undefined)ss.serve=d.serve; break;
+      case 'LINEUP_SET':
+        var lu=s.sets[d.set].lineups[d.team], was=lu.indexOf(d.no);
+        if(d.no!==null&&was>=0)lu[was]=lu[d.pos];
+        lu[d.pos]=d.no;
+        break;
+      case 'LINEUP_COPIED': s.sets[d.set].lineups[d.team]=s.sets[d.set-1].lineups[d.team].map(function(n){return s.matchOut[d.team].indexOf(n)<0?n:null}); break;
+      case 'LINEUP_ROTATED':
+        var lr=s.sets[d.set].lineups[d.team],st2=d.dir==='cw'?1:5;
+        s.sets[d.set].lineups[d.team]=lr.map(function(_,i){return lr[(i+st2)%6]});
+        break;
+      case 'GAME_CAPTAIN_SET': s.sets[d.set].gameCaptain[d.team]=d.no; break;
+      case 'LINEUP_CORRECTED':
+        var fc=s.sets[d.set],fl=fc.lineups[d.team],fa=fl[d.pos],fo2=fl.indexOf(d.no),fcur=fc.cur[d.team],flo=fc.libOut;
+        var fix=function(i,a,b){if(fcur[i]===a)fcur[i]=b;if(flo[d.team]&&flo[d.team].idx===i&&flo[d.team].no===a)flo[d.team].no=b};
+        fl[d.pos]=d.no;fix(d.pos,fa,d.no);
+        if(fo2>=0){fl[fo2]=fa;fix(fo2,d.no,fa)}
+        (s.corrections=s.corrections||[]).push({set:d.set,team:d.team,score:fc.score[d.team]+':'+fc.score[other(d.team)],pos:d.pos,from:fa,to:d.no,other:fo2});
+        break;
+      case 'LINEUP_LOCKED': s.sets[d.set].locked[d.team]=true; break;
+      case 'LINEUP_UNLOCKED': s.sets[d.set].locked[d.team]=false; break;
+      case 'SET_STARTED':
+        var st=s.sets[d.set]; st.started=true; st.serving=st.serve; st.startAt=ev.at; st.cur={t1:st.lineups.t1.slice(),t2:st.lineups.t2.slice()};
+        if(d.set===1){s.teams.t1.locked=true;s.teams.t2.locked=true}
+        break;
+      case 'POINT':
+        applyPoint(s.sets[d.set],d.team);
+        break;
+      case 'SANCTION':
+        var sn=s.sets[d.set],ot=other(d.team);
+        s.sanctions.push({set:d.set,team:d.team,kind:d.kind,who:d.who,score:sn.score[d.team]+':'+sn.score[ot]});
+        if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot])}
+        if(d.kind==='E'&&typeof d.who==='number')sn.expelled[d.team].push(d.who);
+        if(d.kind==='D'&&typeof d.who==='number')s.matchOut[d.team].push(d.who);
+        break;
+      case 'INJURY': var ij=s.sets[d.set]; s.injuries.push({team:d.team,no:d.no,set:d.set,raw:{t1:ij.score.t1,t2:ij.score.t2}}); break;
+      case 'INCOMPLETE':
+        var ic=s.sets[d.set],op=other(d.team);
+        s.incomplete={team:d.team,scope:d.scope,set:d.set,raw:{t1:ic.score.t1,t2:ic.score.t2}};
+        ic.score[op]=Math.max(target(s,d.set),ic.score[d.team]+2);
+        ic.started=true; ic.ended=true; ic.winner=op; ic.endAt=ev.at; ic.live=false;
+        if(d.scope==='match'){
+          for(var mn=d.set+1;mn<=3&&setsWon(s)[op]<2;mn++){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=op;mc.score[op]=target(s,mn);mc.endAt=ev.at;mc.left=mc.left||ic.left;s.setNo=mn}
+        }
+        break;
+      case 'PRE_FORFEIT':
+        var pw=d.winner,pl2=other(pw);
+        s.sets[1].left=pw;s.sets[2].left=pl2;
+        [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=pw;mc.score[pw]=25});
+        s.setNo=2;s.preForfeit={winner:pw,reason:d.reason};
+        s.teams.t1.locked=true;s.teams.t2.locked=true;
+        break;
+      case 'FORFEIT':
+        var fo=other(d.team);
+        [1,2,3].forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
+        [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
+        if(!s.sets[1].left)s.sets[1].left='t1';
+        s.setNo=2;s.forfeit=d.team;
+        break;
+      case 'SERVE': s.sets[d.set].live=true; if(!s.sets[d.set].firstServeAt)s.sets[d.set].firstServeAt=ev.at; break;
+      case 'REPLAY': s.sets[d.set].live=false; s.sets[d.set].replayLock=true; break;
+      case 'TIMEOUT': var to=s.sets[d.set]; s.log.push({id:ev.id,set:d.set,kind:'T',team:d.team,score:to.score[d.team]+':'+to.score[other(d.team)]}); to.timeouts[d.team].push(to.score.t1+':'+to.score.t2); to.toRows[d.team].push(to.score[d.team]+':'+to.score[other(d.team)]); break;
+      case 'SUB':
+        var sb=s.sets[d.set],ps=sb.subPos[d.team][d.idx];
+        s.log.push({id:ev.id,set:d.set,kind:'S',team:d.team,idx:d.idx,out:d.out,in:d.in,exc:!!d.exc,ret:!d.exc&&ps.sub!=null,score:sb.score[d.team]+':'+sb.score[other(d.team)]});
+        if(!d.exc)sb.subRally[d.team]=sb.rally;
+        sb.cur[d.team][d.idx]=d.in;
+        sb.subRows[d.team][d.idx].push({in:d.in,score:sb.score[d.team]+':'+sb.score[other(d.team)],exc:!!d.exc});
+        sb.subs[d.team].push({out:d.out,in:d.in,score:sb.score.t1+':'+sb.score.t2,exc:!!d.exc,injury:!!d.injury});
+        if(d.exc)s.matchOut[d.team].push(d.out);
+        else{sb.subCount[d.team]++; if(ps.sub==null)ps.sub=d.in; else ps.done=true}
+        break;
+      case 'LIBERO_IN': s.log.push({id:ev.id,set:d.set,kind:'L',team:d.team,idx:d.idx}); var li=s.sets[d.set]; li.libOut[d.team]={no:li.cur[d.team][d.idx],idx:d.idx}; li.libRows[d.team].push({lib:d.lib,rep:li.cur[d.team][d.idx],enter:'L',score:li.score[d.team]+':'+li.score[other(d.team)]}); li.cur[d.team][d.idx]=d.lib; li.libRally[d.team]=li.rally; break;
+      case 'LIBERO_OUT': var lo=s.sets[d.set],b=lo.libOut[d.team]; lo.libRows[d.team].push({lib:lo.cur[d.team][b.idx],rep:b.no,enter:'R',score:lo.score[d.team]+':'+lo.score[other(d.team)]}); lo.cur[d.team][b.idx]=b.no; lo.libOut[d.team]=null; lo.libRally[d.team]=lo.rally; break;
+      case 'LIBERO_SWAP': var ls=s.sets[d.set]; ls.libRows[d.team].push({lib:d.lib,rep:null,enter:'L',score:ls.score[d.team]+':'+ls.score[other(d.team)]}); ls.cur[d.team][ls.libOut[d.team].idx]=d.lib; ls.libRally[d.team]=ls.rally; break;
+      case 'SIDES_SWAPPED': var sw=s.sets[d.set]; sw.left=other(sw.left); sw.swapped=true; sw.swapScore=sw.score[sw.left]+':'+sw.score[other(sw.left)]; sw.swapSnap=JSON.parse(JSON.stringify({rounds:sw.rounds,subRows:sw.subRows,toRows:sw.toRows,score:sw.score,libN:{t1:sw.libRows.t1.length,t2:sw.libRows.t2.length}})); break;
+      case 'SET_ENDED': var en=s.sets[d.set]; en.ended=true; en.winner=d.winner; en.endAt=ev.at; break;
+      case 'SET_ADVANCED':
+        var n=s.setNo+1, prev=s.sets[s.setNo]; s.setNo=n;
+        if(n===2){s.sets[2].left=other(prev.left); s.sets[2].serve=other(prev.serve)}
+        if(!d.blank)['t1','t2'].forEach(function(x){s.sets[n].lineups[x]=prev.lineups[x].map(function(no){return s.matchOut[x].indexOf(no)<0?no:null})});
+        break;
+    }
+    if(t&&s.teams[d.team]===t&&t.players)t.players.sort(function(a,b){return a.no-b.no});
+  });
+  return s;
+}
+
+function current(){return db.matches.filter(function(m){return m.id===db.currentId})[0]||null}
+function dispatch(type,data,match){
+  var m=match||current();
+  m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:DEVICE,type:type,data:data});
+  save();
+}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function createMatch(info){
+  var m={id:uid(),createdAt:new Date().toISOString(),events:[]};
+  db.matches.unshift(m);
+  dispatch('MATCH_CREATED',{info:info},m);
+  return m;
+}
+function defaultInfo(){
+  var last=db.matches[0]?reduce(db.matches[0].events).info:{};
+  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||''};
+}
+/* 先前比賽的隊伍：不另外建隊伍庫，直接從歷次比賽抓，同隊名取最新一場 */
+function pastTeams(excludeId){
+  var seen={},list=[];
+  db.matches.forEach(function(m){
+    if(m.id===excludeId)return;
+    var s=reduce(m.events);
+    ['t1','t2'].forEach(function(k){
+      var t=s.teams[k], key=t.name.trim();
+      if(!key||!t.players.length||seen[key])return;
+      seen[key]=1;
+      list.push({name:key,team:t,date:s.info.date||''});
+    });
+  });
+  return list;
+}
+function capOf(s,n){return Number(s.info['c'+n])||0}
+function capText(s){
+  var c=[capOf(s,1),capOf(s,2),capOf(s,3)];
+  if(!c[0]&&!c[1]&&!c[2])return 'Deuce 無上限';
+  return c.map(function(v,i){return v?'第 '+(i+1)+' 局搶 '+v:'第 '+(i+1)+' 局 Deuce'}).join('・');
+}
+function target(s,n){return Number(s.info['p'+n])||(n===3?15:25)}
+function setsWon(s){var w={t1:0,t2:0};[1,2,3].forEach(function(n){if(s.sets[n].winner)w[s.sets[n].winner]++});return w}
+function matchOver(s){var w=setsWon(s);return w.t1>=2||w.t2>=2}
+function setWinner(s){
+  var n=s.setNo,c=s.sets[n],a=c.score.t1,b=c.score.t2,tg=target(s,n);
+  if(c.ended||!c.started)return null;
+  var cap=capOf(s,n);
+  if(cap&&Math.max(a,b)>=cap)return a>b?'t1':'t2';
+  if(Math.max(a,b)>=tg&&Math.abs(a-b)>=2)return a>b?'t1':'t2';
+  return null;
+}
+function needSwap(s){
+  var n=s.setNo,c=s.sets[n];
+  return n===3&&c.started&&!c.ended&&!c.swapped&&Math.max(c.score.t1,c.score.t2)>=Math.ceil(target(s,3)/2);
+}
+function courtIdx(c,k,pos){return (pos+c.rot[k])%6}
+function courtPlayer(c,k,pos){return (c.cur[k]||c.lineups[k])[courtIdx(c,k,pos)]}
+function canPause(c){return !c.live&&!c.replayLock}
+function canLib(c,k){return canPause(c)&&(c.libRally[k]===null||c.libRally[k]<c.rally)}
+function actingCap(c,t,k){var u=c.cur[k]||c.lineups[k];if(u.indexOf(t.captain)>=0)return t.captain;return u.indexOf(c.gameCaptain[k])>=0?c.gameCaptain[k]:null}
+function subOptions(s,k,idx,exc){
+  var c=s.sets[s.setNo],t=s.teams[k],now=c.cur[k][idx],ps=c.subPos[k][idx];
+  if(t.liberos.indexOf(now)>=0)return {err:'自由球員要先換回原本的球員'};
+  var free=t.players.map(function(p){return p.no}).filter(function(n){
+    return c.expelled[k].indexOf(n)<0&&t.liberos.indexOf(n)<0&&c.cur[k].indexOf(n)<0&&s.matchOut[k].indexOf(n)<0&&!(c.libOut[k]&&c.libOut[k].no===n)});
+  if(exc)return {nos:free};
+  if(c.subCount[k]>=6)return {err:'這局 6 次換人已用完'};
+  if(ps.done)return {err:'這個位置已換回，不能再換'};
+  if(ps.sub!=null){var st0=c.lineups[k][idx];return (c.expelled[k].indexOf(st0)>=0||s.matchOut[k].indexOf(st0)>=0)?{err:'原先發不能上場，請用例外替補'}:{nos:[st0]}}
+  var used=[];c.subPos[k].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
+  return {nos:free.filter(function(n){return c.lineups[k].indexOf(n)<0&&used.indexOf(n)<0})};
+}
+function regularCount(t){return t.players.length-t.liberos.length}
+function validate(t){
+  var regular=t.players.length-t.liberos.length;
+  return [
+    {ok:!!t.name.trim(),short:'隊名'},
+    {ok:regular>=MIN_ON_COURT,short:'球員 '+regular+'/'+MIN_ON_COURT},
+    {ok:t.captain!==null,short:'隊長'}
+  ];
+}
+
+/* ========== 介面狀態（不存檔、不算事件） ========== */
+var view=current()?'setup':'home';
+var ui={};
+function resetUi(){ui={page:'info',entry:{t1:'',t2:''},slot:{t1:null,t2:null},msg:{t1:'',t2:''},sheet:null,pending:null,delMatch:null,sel:null,luTeam:null,lib:null,sub:null,timer:null,cs:false,notice:null,pen:null,report:false,ackL:{t1:null,t2:null}}}
+resetUi();
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var app=document.getElementById('app');
+var TEAM_LABEL={t1:'隊伍一',t2:'隊伍二'};
+/* 球衣色：j 是色票，c／s 是畫面用的字色與底色（淺色、深色主題各一組） */
+var JERSEY=[
+ {id:'red',n:'紅',j:'#D3122F',l:['#C8102E','#FBDDE1'],d:['#FF8A95','#4A1A20']},
+ {id:'orange',n:'橘',j:'#F07A1A',l:['#B8420B','#FBE6DA'],d:['#F59A63','#44260F']},
+ {id:'yellow',n:'黃',j:'#F7CE1E',l:['#8A6D00','#FBF0BF'],d:['#F2D04A','#3D330A']},
+ {id:'green',n:'綠',j:'#1C9A57',l:['#12713F','#D9F0E2'],d:['#6FD79B','#143524']},
+ {id:'blue',n:'藍',j:'#1E7BD6',l:['#0A5AA8','#DCEAF7'],d:['#6FB3F2','#17324B']},
+ {id:'navy',n:'深藍',j:'#16245E',l:['#1B2A6B','#DDE1F3'],d:['#9FB0F0','#1E2748']},
+ {id:'purple',n:'紫',j:'#6F2DB0',l:['#6A2BA8','#EADFF6'],d:['#C39BF2','#2F1E48']},
+ {id:'pink',n:'粉',j:'#EE5FA7',l:['#C2187A','#FADCEC'],d:['#F590C8','#47203A']},
+ {id:'black',n:'黑',j:'#141414',l:['#1C1C1C','#D8DBDB'],d:['#EDEDED','#3A3A3A']},
+ {id:'gray',n:'灰',j:'#8C9493',l:['#5A6362','#E3E6E5'],d:['#BFC7C5','#333B3A']},
+ {id:'white',n:'白',j:'#FFFFFF',l:['#3A3F3E','#FFFFFF'],d:['#FFFFFF','#4E5655']}
+];
+var JERSEY_DEFAULT={t1:'blue',t2:'orange'};
+function jerseyText(hex){var h=parseInt(hex.slice(1),16);return (0.299*(h>>16)+0.587*((h>>8)&255)+0.114*(h&255))>150?'#141414':'#FFFFFF'}
+function jersey(id){return JERSEY.filter(function(x){return x.id===id})[0]}
+function isDark(){
+  var a=document.documentElement.getAttribute('data-theme');
+  if(a)return a==='dark';
+  return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyColors(s){
+  var dark=isDark(),st=document.documentElement.style;
+  ['t1','t2'].forEach(function(k){
+    var j=jersey((s&&s.teams[k].color)||JERSEY_DEFAULT[k]),p=dark?j.d:j.l;
+    st.setProperty('--'+k,p[0]); st.setProperty('--'+k+'-soft',p[1]); st.setProperty('--'+k+'-on',dark?'#101414':'#FFFFFF');
+    st.setProperty('--'+k+'-j',j.j); st.setProperty('--'+k+'-jt',jerseyText(j.j));
+  });
+}
+if(window.matchMedia){try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){render()})}catch(e){}}
+var ROMAN=['I','II','III','IV','V','VI'];
+var STAFF=[['coach','教練'],['execCoach','執行教練'],['teacher','隨隊教師'],['leader','領隊']];
+
+function tName(s,k){return s.teams[k].name||TEAM_LABEL[k]}
+function setDone(s){var c=s.sets[s.setNo];return !!(c.left&&c.serve)}
+function lineupIssues(s,k){
+  var c=s.sets[s.setNo],lu=c.lineups[k],t=s.teams[k],out=[];
+  if(lu.indexOf(null)>=0)out.push('六個位置');
+  return out;
+}
+function render(){
+  if(view==='home'){app.innerHTML=homeHtml();return}
+  var m=current(),s=reduce(m.events);
+  applyColors(s);
+  var old=app.querySelector('.page'),top=old?old.scrollTop:0,oldTabs=app.querySelector('.sheettabs'),tabX=oldTabs?oldTabs.scrollLeft:0;
+  var body=pageHtml(s,m),kp=kpHtml(s)+subHtml(s);
+  app.innerHTML=barHtml(s)+'<div class="shell"><main class="page'+(kp?' kpopen':'')+'">'+body+'</main>'+navHtml(s)+'</div>'+kp+sheetHtml(s,m)+modalHtml(s)+penHtml(s)+timerPop(s)+(ui.report?reportHtml(s,m):'');
+  var pg=app.querySelector('.page');pg.scrollTop=top;
+  var newTabs=app.querySelector('.sheettabs');if(newTabs)newTabs.scrollLeft=tabX;
+  var on=app.querySelector('.num.on'),box=app.querySelector('.kp');
+  if(on&&box){var lim=box.getBoundingClientRect().top-8,rb=on.getBoundingClientRect();if(rb.bottom>lim)pg.scrollTop+=rb.bottom-lim;if(on.getBoundingClientRect().top<pg.getBoundingClientRect().top)pg.scrollTop-=pg.getBoundingClientRect().top-on.getBoundingClientRect().top}
+}
+function storageNote(){return memoryOnly?'<div class="warning">這個瀏覽器目前無法存資料，關閉頁面後內容會消失。請改用一般瀏覽模式開啟。</div>':''}
+function barTime(s){
+  var c=s.sets[s.setNo],pv=s.sets[s.setNo-1];
+  if(matchOver(s)){
+    var mst=s.info.actual||'',men=hm([3,2,1].map(function(n){return s.sets[n].endAt}).filter(Boolean)[0]),md=hmDiff(mst,men);
+    return '<div class="bartime"><span>開始 <b>'+esc(mst||'—')+'</b></span><span>全場 <b>'+(md==null?'—':(md>=60?Math.floor(md/60)+' 時 ':'')+(md%60)+' 分')+'</b></span><span>結束 <b>'+(men||'—')+'</b></span></div>';
+  }
+  if(!c.started){
+    if(!pv||!pv.endAt)return '';
+    var dl=new Date(pv.endAt).getTime()+180000;
+    return '<div class="bartime breakt"><span>局間休息 <b data-cd="'+dl+'">'+cdText(dl)+'</b></span></div>';
+  }
+  return '<div class="bartime"><span>開始 <b>'+esc(setStartHM(s,s.setNo)||'—')+'</b></span><span>經過 <b'+(c.firstServeAt&&!c.endAt?' data-el="'+esc(c.firstServeAt)+'"':'')+'>'+elapsed(c.firstServeAt,c.endAt)+'</b></span><span>結束 <b>'+(c.endAt?hm(c.endAt):'—')+'</b></span></div>';
+}
+function cdText(dl){var n=Math.max(0,Math.ceil((dl-Date.now())/1000));return Math.floor(n/60)+':'+('0'+n%60).slice(-2)}
+function elapsed(from,to){
+  if(!from)return '0:00';
+  var n=Math.max(0,Math.floor(((to?new Date(to):new Date())-new Date(from))/1000));
+  return Math.floor(n/60)+':'+('0'+n%60).slice(-2);
+}
+setInterval(function(){var c=document.querySelectorAll('[data-cd]');for(var j=0;j<c.length;j++)c[j].textContent=cdText(Number(c[j].getAttribute('data-cd')));var a=document.querySelectorAll('[data-el]');for(var i=0;i<a.length;i++)a[i].textContent=elapsed(a[i].getAttribute('data-el'))},1000);
+function barHtml(s){
+  return '<header class="bar"><h1>'+(matchOver(s)?'比賽結束':'第 '+s.setNo+' 局')+(s.sets[s.setNo].started?'':'・'+esc(tName(s,'t1'))+' 對 '+esc(tName(s,'t2')))+'</h1>'+barTime(s)+(ui.page==='play'&&!matchOver(s)&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'')+(s.sets[1].started&&!matchOver(s)?'':'<button data-act="home">列表</button>')+'</header>';
+}
+function rosterStat(s){
+  var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
+  return '<small id="nav-rstat" class="'+(ok?'done':'')+'">'+(ok?'已完成':'未完成')+'</small>';
+}
+function navHtml(s){
+  var a=s.teams.t1,b=s.teams.t2,c=s.sets[s.setNo],tossed=setDone(s);
+  function st(ok,txt){return '<small class="'+(ok?'done':'')+'" >'+txt+'</small>'}
+  var items=[
+    ['info','比賽資料',st(false,''),false],
+    ['roster','名單',rosterStat(s),false],
+    ['toss','挑邊',st(tossed,tossed?'已完成':'未完成'),false],
+    ['lineup','陣容',st(c.started,c.started?'已開局':(c.locked.t1&&c.locked.t2?'已確認':'未完成')),!tossed],
+    ['play','比賽',st(false,c.started?c.score[c.left]+':'+c.score[other(c.left)]:''),!s.sets[1].started]
+  ];
+  return '<nav class="nav" aria-label="賽前步驟">'+items.map(function(i){
+    return '<button data-act="page" data-v="'+i[0]+'" aria-current="'+(ui.page===i[0])+'"'+(i[3]?' disabled':'')+'><span id="nav-'+i[0]+'">'+esc(i[1])+'</span>'+i[2]+'</button>';
+  }).join('')+'</nav>';
+}
+function pageHtml(s,m){
+  if(ui.page==='info')return infoHtml(s);
+  if(ui.page==='toss')return tossHtml(s);
+  if(ui.page==='lineup')return lineupHtml(s);
+  if(ui.page==='play')return playHtml(s);
+  return rosterHtml(s,m);
+}
+function homeHtml(){
+  var rows=db.matches.map(function(m){
+    var s=reduce(m.events),a=s.teams.t1,b=s.teams.t2,both=matchOver(s),going=s.sets[1].started;
+    var meta=[s.info.date,s.info.division,s.info.game?'第 '+s.info.game+' 場':''].filter(Boolean).join('　');
+    var actions=ui.delMatch===m.id
+      ?'<button class="danger" data-act="del-yes" data-id="'+m.id+'">確定刪除</button><button data-act="del-no">取消</button>'
+      :'<button data-act="open" data-id="'+m.id+'">開啟</button><button class="danger" data-act="del-ask" data-id="'+m.id+'" aria-label="刪除這場比賽">刪除</button>';
+    return '<div class="match"><div class="t"><strong>'+esc(a.name||'未填隊名')+' 對 '+esc(b.name||'未填隊名')+'</strong><span class="muted">'+esc(meta||'未填比賽資料')+'</span> <span class="pill'+(both?' ok':'')+'">'+(both?'已結束':going?'進行中':'準備中')+'</span></div><div class="row" style="flex:none">'+actions+'</div></div>';
+  }).join('');
+  return '<header class="bar"><h1>排球電子記錄表</h1></header><main class="page">'+storageNote()+
+    '<button class="primary full" data-act="new">新增比賽</button>'+
+    (rows||'<p class="note">還沒有比賽。按「新增比賽」開始輸入兩隊名單，打完第一場後，之後的比賽可以直接載入先前的隊伍。</p>')+
+    '<button class="ghost full" data-act="sample">載入一場範例比賽（測試用）</button><label class="ghost-file">匯入比賽備份<input id="import-file" type="file" accept=".json,application/json"></label><div id="import-msg" class="muted"></div></main>';
+}
+function field(id,label,val,dis,x){x=x||{};
+  return '<label for="'+id+'"'+(x.wide?' class="wide"':'')+'>'+label+
+    '<input id="'+id+'" type="'+(x.type||'text')+'" value="'+esc(val)+'"'+(x.ph?' placeholder="'+x.ph+'"':'')+(dis?' disabled':'')+' data-field="'+(x.field||'')+'" data-kind="'+(x.kind||'')+'" data-team="'+(x.team||'')+'" data-no="'+(x.no==null?'':x.no)+'"></label>';
+}
+function infoHtml(s){
+  var i=s.info,lk=s.sets[1].started,going=lk&&!matchOver(s);
+  var div=['男子組','女子組'].map(function(x){return '<button data-act="div" data-v="'+x+'" aria-pressed="'+(i.division===x)+'"'+(lk?' disabled':'')+'>'+x+'</button>'}).join('');
+  return storageNote()+'<div class="fields">'+
+    field('i-name','比賽名稱',i.name,lk,{wide:true,field:'name',kind:'info',ph:'輸入比賽名稱'})+
+    '<div class="wide seg">'+div+'</div>'+
+    field('i-game','場次',i.game,lk,{field:'game',kind:'info'})+
+    field('i-court','場地',i.court,lk,{field:'court',kind:'info'})+
+    field('i-date','日期',i.date,lk,{field:'date',kind:'info',type:'date'})+
+    field('i-time','時間',i.time,lk,{field:'time',kind:'info',type:'time'})+
+    field('i-place','地點',i.place,lk,{wide:true,field:'place',kind:'info'})+
+    '<div class="wide ptsum"><strong>三局兩勝　'+target(s,1)+'、'+target(s,2)+'、'+target(s,3)+'</strong><span class="muted">'+capText(s)+'</span></div>'+
+    '<button class="wide" data-act="sheet" data-v="points">每局分數設定</button>'+
+    '</div>'+(lk?'':'<button class="primary full" data-act="page" data-v="roster">下一步：名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="home">回比賽列表</button>');
+}
+function autoSlot(t){
+  var reg=regularCount(t);
+  return reg<MAX_PLAYERS?{kind:'reg',no:null,idx:reg}:null;
+}
+function rowHtml(k,t,kind,p,idx){
+  var sl=t.locked?null:ui.slot[k], e=ui.entry[k];
+  var on=!!sl&&sl.kind===kind&&(p?sl.no===p.no:(sl.no===null&&sl.idx===idx));
+  var txt=on&&e!==''?e:(p?p.no:'');
+  var cap=!!p&&t.captain===p.no&&!(on&&e!=='');
+  var lj=(kind==='lib'&&p&&t.liberoColor)?jersey(t.liberoColor).j:null;
+  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 列'+(p?' '+p.no+' 號':'空')+'"'+(t.locked?' disabled':'')+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button>'+
+    '<input id="pn-'+k+'-'+kind+idx+'" aria-label="姓名" value="'+esc(p?p.name:'')+'" data-kind="pname" data-team="'+k+'" data-no="'+(p?p.no:'')+'"'+(p&&!t.locked?'':' disabled')+'></div>';
+}
+function rosterHtml(s,m){
+  var a=s.teams.t1,b=s.teams.t2,A=s.sets[1].left,h='';
+  var regs={},libs={};
+  ['t1','t2'].forEach(function(k){
+    var t=s.teams[k];
+    regs[k]=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0});
+    libs[k]=t.players.filter(function(p){return t.liberos.indexOf(p.no)>=0});
+    h+='<div class="rh '+k+'">'+(A?'<span class="ab">'+(A===k?'A':'B')+'</span>':'')+'<input id="n-'+k+'" aria-label="隊名" placeholder="'+TEAM_LABEL[k]+'隊名" value="'+esc(t.name)+'" data-kind="teamname" data-team="'+k+'"'+(t.locked?' disabled':'')+'><button class="swatch" style="--j:'+jersey(t.color||JERSEY_DEFAULT[k]).j+'" data-act="sheet" data-v="color" data-team="'+k+'" aria-label="選球衣顏色"></button></div>';
+  });
+  h+='<div class="ch t1"><span>號碼</span><span>姓名</span></div><div class="ch"><span>號碼</span><span>姓名</span></div>';
+  for(var i=0;i<MAX_PLAYERS;i++)['t1','t2'].forEach(function(k){h+=rowHtml(k,s.teams[k],'reg',regs[k][i],i)});
+  h+='<div class="band">自由球員（L）</div>';
+  for(i=0;i<MAX_LIBEROS;i++)['t1','t2'].forEach(function(k){h+=rowHtml(k,s.teams[k],'lib',libs[k][i],i)});
+  var tools=['t1','t2'].map(function(k){
+    var t=s.teams[k],oth=s.teams[other(k)];
+    var past=pastTeams(m.id).filter(function(p){return p.name!==oth.name.trim()}).length>0;
+    return '<div class="tool '+k+'"><div class="count">登錄人數：'+t.players.length+' 人</div><div class="row"><button data-act="sheet" data-v="staff" data-team="'+k+'">職員</button>'+(past&&!t.locked?'<button data-act="sheet" data-v="import" data-team="'+k+'">載入</button>':'')+'</div><div id="foot-'+k+'" class="foot">'+footHtml(k,t,s)+'</div></div>';
+  }).join('');
+  return storageNote()+'<div class="sheetgrid">'+h+'</div><div class="tools">'+tools+'</div>';
+}
+function subHtml(s){
+  if(!ui.sub||ui.page!=='play')return '';
+  var k=ui.sub.team,c=s.sets[s.setNo],h;
+  if(ui.sub.idx==null)h='<div class="subhint">點球場上要換下的球員</div>';
+  else{
+    var o=subOptions(s,k,ui.sub.idx,ui.sub.exc),now=c.cur[k][ui.sub.idx];
+    if(o.err)h='<div class="kphead"><span class="err">'+esc(o.err)+'</span></div>';
+    else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>';
+    else h='<div class="subhint">'+now+' 號換下，上場：</div><div class="benchrow">'+o.nos.map(function(n){return '<button class="chip '+k+'" data-act="subin" data-team="'+k+'" data-no="'+n+'"><b>'+n+'</b></button>'}).join('')+'</div>';
+  }
+  return '<div class="kp bench '+k+'"><div class="kphead"><span>'+esc(tName(s,k))+(ui.sub.exc?' 例外替補':' 替補 '+c.subCount[k])+'</span><span class="row" style="flex:none"><button class="danger" data-act="subcancel">取消</button><button class="go" data-act="subclose">完成</button></span></div><div class="subbody">'+h+'</div>'+(ui.sub.exc?'<div class="excinj"><button data-act="subinj" aria-pressed="'+!!ui.sub.inj+'">'+(ui.sub.inj?'☑':'☐')+' 宣告受傷</button><span class="muted">換下的人本場不能再上。</span></div>':'')+(ui.sub.forced?'<div class="row">'+(ui.sub.exc?'':'<button data-act="forceexc">改用例外替補</button>')+'<button class="danger" data-act="penkind" data-v="INC" data-team="'+k+'">陣容不完整</button></div>':'')+'</div>';
+}
+function kpHtml(s){
+  var k=ui.slot.t1?'t1':ui.slot.t2?'t2':null; if(!k||ui.page!=='roster')return '';
+  var t=s.teams[k],sl=ui.slot[k],m=ui.msg[k],hint;
+  function key(n){return '<button data-act="key" data-team="'+k+'" data-v="'+n+'">'+n+'</button>'}
+  if(m)hint='<span class="err" role="status">'+esc(m)+'</span>';
+  else hint='<span>'+esc(tName(s,k))+'・'+(sl.kind==='lib'?'自由球員':'一般球員')+(sl.no!==null?' '+sl.no+' 號':'')+'</span>';
+  var acts=sl.no!==null?'<div class="acts"><button data-act="cap" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.captain===sl.no)+'"><i class="mk c">C</i>隊長</button><button data-act="lib" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.liberos.indexOf(sl.no)>=0)+'"><i class="mk">L</i>自由</button><button class="danger" data-act="rm" data-team="'+k+'" data-no="'+sl.no+'">移除</button></div>':'';
+  return '<div class="kp '+k+'"><div class="kphead">'+hint+'<button class="go" data-act="kpclose" data-team="'+k+'">完成</button></div>'+acts+'<div class="pad">'+[1,2,3,4,5].map(key).join('')+
+    '<button class="back" data-act="back" data-team="'+k+'" aria-label="刪除一碼">⌫</button>'+[6,7,8,9,0].map(key).join('')+
+    '<button class="add" data-act="add" data-team="'+k+'">'+(sl.no===null&&sl.kind==='reg'?'下一格':'確定')+'</button></div></div>';
+}
+function footHtml(k,t,s){
+  if(t.locked)return '<div class="muted">已開局，名單不能再改</div>';
+  var miss=validate(t).filter(function(c){return !c.ok});
+  return '<div class="muted">'+(miss.length?'開局前還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
+}
+var BALL='<svg class="ball" viewBox="0 0 64 64" width="76" height="76" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#5B8FDD"/><g fill="#F4C95D" stroke="#667085" stroke-width="2" stroke-linejoin="round"><path d="M20 28C22 17 33 10 46 8L53.5 14.7C44 17 36 23 32 32C28 32 24 30 20 28Z"/><path d="M7 20C14 26 22 31 32 32C35 36 36 40 36 45C24 46 12 41 4 33C4 28 5 24 7 20Z"/><path d="M32 32C35 28 38 24 42 21C48 30 51 42 49.5 54C45 57 40 59 34 60C37 50 38 40 32 32Z"/><path d="M8 18C10 14 13 11 17 8C13 12 11 16 10 21Z"/><path d="M54 15C57 20 60 26 60 34C58 27 55 21 51 16Z"/><path d="M17 56C22 59 28 61 33 61L34 59C28 59 22 58 17 56Z"/></g><circle cx="32" cy="32" r="29" fill="none" stroke="#667085" stroke-width="3"/></svg>';
+function sideLeft(s){
+  var n=s.setNo,c=s.sets[n];
+  return c.left||(n===3?s.sets[2].left:null)||'t1';
+}
+function tossCard(s,k,isA,fixed){
+  var c=s.sets[s.setNo],on=c.serve===k;
+  return '<button class="side '+k+(on?' on':'')+'" data-act="ball" data-team="'+k+'" aria-pressed="'+on+'" aria-label="'+esc(tName(s,k))+'先發球"'+(fixed?' disabled':'')+'><span class="ltr">'+(isA?'A':'B')+'</span><strong>'+esc(tName(s,k))+'</strong>'+BALL+'<small>'+(on?'先發球':'&nbsp;')+'</small></button>';
+}
+function tossHtml(s){
+  var n=s.setNo,c=s.sets[n],L=sideLeft(s),R=other(L),fixed=n===2||c.started;
+  var A=n===1?L:s.sets[1].left;
+  var h='<h2>第 '+n+' 局 挑邊</h2><p class="muted">'+(n===1?'點發球隊的排球，球會亮起來。左邊的隊伍是 A 隊，要換邊按中間的按鈕。':n===2?'第 2 局自動換邊，同一端發球，不用挑邊。':'第 3 局重新挑邊，A、B 隊維持賽前挑邊的結果。')+'</p>';
+  h+='<div class="toss">'+tossCard(s,L,L===A,fixed)+'<button class="swap" data-act="swap" aria-label="兩隊換邊"'+(fixed?' disabled':'')+'>⇄</button>'+tossCard(s,R,R===A,fixed)+'</div>';
+  h+='<div class="scorer">記錄台</div>';
+  if(c.started)return h+'<div class="note">已開局，挑邊不能再修改。</div><button class="go full" data-act="page" data-v="play">回到比賽</button>';
+  return h+(setDone(s)?'<button class="primary full" data-act="page" data-v="lineup">下一步：陣容</button>':'')+(n===1?'<button class="ghost full pfbtn" data-act="sheet" data-v="pf">賽前沒收</button>':'');
+}
+function cellHtml(s,k,idx){
+  var c=s.sets[s.setNo],no=c.lineups[k][idx],t=s.teams[k];
+  var sel=ui.sel&&ui.sel.team===k&&ui.sel.pos===idx;
+  var gc=c.gameCaptain[k],isCap=no!==null&&(no===t.captain||(c.lineups[k].indexOf(t.captain)<0&&no===gc));
+  return '<button class="cell '+k+(no!==null?' fill':'')+(sel?' sel':'')+'" data-act="cell" data-team="'+k+'" data-v="'+idx+'" aria-label="位置 '+ROMAN[idx]+(no===null?' 空':' '+no+' 號')+'"'+(c.locked[k]?' disabled':'')+'><span class="pos">'+ROMAN[idx]+'</span>'+(no===null?'':'<b'+(isCap?' class="circ"':'')+'>'+no+'</b>')+'</button>';
+}
+function autoSelect(s){
+  var c=s.sets[s.setNo],k=ui.luTeam;
+  ui.sel=null;
+  if(!k||c.locked[k])return;
+  var p=c.lineups[k].indexOf(null);
+  if(p>=0)ui.sel={team:k,pos:p};
+}
+function lineupHtml(s){
+  var n=s.setNo,c=s.sets[n],A=s.sets[1].left,L=c.left;
+  if(!ui.luTeam)ui.luTeam=c.locked[L]?other(L):L;
+  var k=ui.luTeam;
+  if(!ui.sel&&!c.started)autoSelect(s);
+  var tabs='<div class="lutabs">'+[L,other(L)].map(function(x){
+    return '<button class="'+x+'" data-act="lutab" data-team="'+x+'" aria-pressed="'+(k===x)+'">'+(x===A?'A':'B')+'　'+esc(tName(s,x))+(c.locked[x]?' ✓':'')+'</button>';
+  }).join('')+'</div>';
+  var form='<section class="lusheet '+k+'"><header><strong>第 '+n+' 局陣容單</strong><span>'+esc(tName(s,k))+(c.serve===k?'・本局先發球':'・本局接發球')+'</span></header>'+
+    '<div class="sheetnet">網</div><div class="lugrid">'+[3,2,1,4,5,0].map(function(i){return cellHtml(s,k,i)}).join('')+'</div></section>';
+  var rotb=c.locked[k]||c.started?'':'<div class="rotb"><button data-act="lurot" data-team="'+k+'" data-v="ccw">↺ 逆時針轉一格</button><button data-act="lurot" data-team="'+k+'" data-v="cw">↻ 順時針轉一格</button></div>';
+  var copyb=n>1&&!c.locked[k]&&!c.started?'<button class="lucopy" data-act="lu-copy" data-team="'+k+'">複製第 '+(n-1)+' 局陣容</button>':'';
+  return tabs+form+copyb+rotb+'<div class="bench">'+benchHtml(s)+'</div><div class="foot">'+lineupFoot(s)+'</div>';
+}
+function gcapHtml(s,k){
+  var c=s.sets[s.setNo],t=s.teams[k],lu=c.lineups[k];
+  if(lu.indexOf(null)>=0||lu.indexOf(t.captain)>=0)return '';
+  var none=c.gameCaptain[k]===null;
+  return '<div class="muted">'+(none?'隊長不在先發，場上隊長可以現在選，也可以等二裁核對時再選：':'場上隊長（再點一次取消）：')+'</div><div class="benchrow">'+lu.map(function(no){
+    var on=c.gameCaptain[k]===no;
+    return '<button class="chip '+k+'" data-act="gcap" data-team="'+k+'" data-no="'+no+'" aria-pressed="'+on+'"><b'+(on?' class="circ"':'')+'>'+no+'</b></button>'}).join('')+'</div>';
+}
+function benchHtml(s){
+  var c=s.sets[s.setNo],n=s.setNo,k=ui.luTeam,t=s.teams[k],lu=c.lineups[k],h='';
+  if(c.started)return '<div class="note">已開局。記錄台輸入錯誤時，用下方的修正陣容。</div>';
+  if(c.locked[k])return '<div class="good">這張陣容單已確認</div>'+gcapHtml(s,k);
+  if(ui.sel){
+    var pool=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0&&lu.indexOf(p.no)<0&&s.matchOut[k].indexOf(p.no)<0});
+    h+='<div class="subhint">位置 '+ROMAN[ui.sel.pos]+(ui.sel.pos===0?'（第一位發球）':'')+'：點背號</div><div class="benchrow">'+pool.map(function(p){
+      return '<button class="chip '+k+'" data-act="fill" data-no="'+p.no+'"><b>'+p.no+'</b></button>'}).join('')+(lu[ui.sel.pos]!==null?'<button class="chip blank clear" data-act="clearpos">清空</button>':'')+'</div>';
+    if(n>1&&lu.join()===',,,,,')h+='<button class="ghost" data-act="copy" data-team="'+k+'">沿用上一局陣容</button>';
+  }
+  return h+gcapHtml(s,k);
+}
+function lineupFoot(s){
+  var n=s.setNo,c=s.sets[n],k=ui.luTeam;
+  if(c.started)return '<div class="row"><button class="danger" data-act="fixopen" data-team="'+k+'">修正 '+esc(tName(s,k))+' 陣容</button><button class="go" data-act="page" data-v="play">回到比賽</button></div>';
+  if(c.locked.t1&&c.locked.t2){
+    var gap=[];
+    if(n===1)['t1','t2'].forEach(function(x){var ms=validate(s.teams[x]).filter(function(v){return !v.ok});if(ms.length)gap.push(tName(s,x)+'缺'+ms.map(function(v){return v.short}).join('、'))});
+    return (gap.length?'<div class="warning">'+esc(gap.join('；'))+'，請回名單補齊</div>':'')+'<div class="row"><button class="ghost" style="flex:none" data-act="lu-unlock" data-team="'+k+'">修改</button><button class="go" data-act="start"'+(gap.length?' disabled':'')+'>開始第 '+n+' 局</button></div>';
+  }
+  if(c.locked[k])return '<button class="ghost full" data-act="lu-unlock" data-team="'+k+'">修改這張陣容單</button>';
+  var miss=lineupIssues(s,k);
+  return '<button class="primary full" data-act="lu-lock" data-team="'+k+'"'+(miss.length?' disabled':'')+'>'+(miss.length?'還缺：'+miss[0]:'確認這張陣容單')+'</button>';
+}
+var LEFT_CELLS=[[4,3],[5,2],[0,1]], RIGHT_CELLS=[[1,0],[2,5],[3,4]];
+function playCell(s,k,pos){
+  var c=s.sets[s.setNo],no=courtPlayer(c,k,pos),t=s.teams[k],idx=courtIdx(c,k,pos);
+  var isL=t.liberos.indexOf(no)>=0,cap=actingCap(c,t,k)===no,srv=pos===0&&c.serving===k;
+  var bad=isL&&(pos===3||pos===2||pos===1||(pos===0&&c.serving===k));
+  var pick=false;
+  if(ui.lib&&ui.lib.team===k&&((pos===0&&c.serving!==k)||pos===4||pos===5)&&!isL)pick=true;
+  if(ui.lib&&ui.lib.team===k&&isL&&c.libOut[k])pick=true;
+  if(ui.sub&&ui.sub.team===k)pick=true;
+  var on=ui.sub&&ui.sub.team===k&&ui.sub.idx===idx;
+  var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null;
+  return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="pc '+k+(isL?' isl':'')+(srv?' srv':'')+(pick?' pk':'')+(on?' sel':'')+(bad?' bad':'')+'" data-act="pcell" data-team="'+k+'" data-v="'+idx+'" data-pos="'+pos+'"'+(pick?'':' disabled')+'><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(srv?BALL:'')+'</button>';
+}
+function sideScore(s,k){
+  var c=s.sets[s.setNo],w=setsWon(s),A=s.sets[1].left;
+  return '<div class="ss '+k+'"><span class="tn">'+(A===k?'A ':'B ')+esc(tName(s,k))+'</span><b>'+c.score[k]+'</b></div>';
+}
+function setBox(s,k){return '<div class="setbox '+k+'"><small>局數</small><b>'+setsWon(s)[k]+'</b></div>'}
+function libStrip(s,k){
+  var c=s.sets[s.setNo],t=s.teams[k],out=c.libOut[k],can=canLib(c,k),h='';
+  t.liberos.forEach(function(no){
+    var inCourt=c.cur[k].indexOf(no)>=0,lj=t.liberoColor?jersey(t.liberoColor).j:null,on=ui.lib&&ui.lib.team===k&&ui.lib.no===no;
+    h+='<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+(inCourt?' away':'')+(on?' sel':'')+'" data-act="libcell" data-team="'+k+'" data-no="'+no+'"'+(inCourt||!can?' disabled':'')+'><b>'+no+'</b><span>L</span></button>';
+  });
+  return '<div class="strip '+k+'"><div class="ls">'+h+'</div><button class="oc" data-act="libout" data-team="'+k+'"'+(out&&can?'':' disabled')+'>'+(out?'<b>'+out.no+'</b>':'')+'<span>換下</span></button></div>';
+}
+function teamTools(s,k){
+  var c=s.sets[s.setNo],ok=canPause(c);
+  return '<button data-act="timeout" data-team="'+k+'"'+(ok&&c.timeouts[k].length<2?'':' disabled')+'>暫停 '+c.timeouts[k].length+'</button><button data-act="subopen" data-team="'+k+'"'+(ok&&c.subRally[k]!==c.rally?'':' disabled')+'>替補 '+c.subCount[k]+'</button><button class="excbtn" data-act="subopen" data-m="exc" data-team="'+k+'"'+(c.live?' disabled':'')+'>例外</button><div class="ex">例外替補 '+(c.subs[k].length-c.subCount[k])+' 次</div>';
+}
+function hm(iso){if(!iso)return '';var d=new Date(iso);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+function setMin(c,endIso){
+  if(!c.firstServeAt)return 0;
+  return Math.max(0,Math.round((new Date(endIso||c.endAt||Date.now())-new Date(c.firstServeAt))/60000));
+}
+function statRow(c,n,A,B,win,endIso,single){
+  function side(k){return {to:c.timeouts[k].length,su:c.subs[k].length,w:win===k?1:0,pt:c.score[k]}}
+  var a=side(A),b=side(B);
+  return '<tr><td>'+a.to+'</td><td>'+a.su+'</td><td>'+a.w+'</td><td><b>'+a.pt+'</b></td><td>'+(single?setMin(c,endIso)+' 分':n+'（'+setMin(c,endIso)+'）')+'</td><td><b>'+b.pt+'</b></td><td>'+b.w+'</td><td>'+b.su+'</td><td>'+b.to+'</td></tr>';
+}
+function statTable(s,rows,foot,top){
+  var A=s.sets[1].left,B=other(A);
+  return '<table class="res"><tr><th colspan="4">A '+esc(tName(s,A))+'</th><th>'+(top||'')+'</th><th colspan="4">B '+esc(tName(s,B))+'</th></tr><tr class="sm"><th>暫停</th><th>替補</th><th>勝負</th><th>得分</th><th>'+(top?'時間':'局（分鐘）')+'</th><th>得分</th><th>勝負</th><th>替補</th><th>暫停</th></tr>'+rows+(foot||'')+'</table>';
+}
+function notesList(s,A,B){
+  var notes=[],late=hmDiff(s.info.time,s.info.actual);
+  if(late&&late<720)notes.push('本場比賽開賽時間為 '+s.info.actual+'（延後 '+late+' 分鐘）');
+  else if(late>=720)notes.push('本場比賽提前 '+(1440-late)+' 分鐘，開始於 '+s.info.actual);
+  function ab(r){return r?'A:B='+(A==='t1'?r.t1+':'+r.t2:r.t2+':'+r.t1)+'，':''}
+  function tag(k){return tName(s,k)+'（'+(k===A?'A':'B')+' 隊）'}
+  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push('第 '+n+' 局 '+ab({t1:p[0],t2:p[1]})+tag(k)+'球員 '+x.out+(x.injury?' 宣告為受傷且被':' 被')+'球員 '+x.in+' 例外替補')}})})});
+  s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+x.no+' 號傷停')});
+  if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score,wn=setsWon(s);
+    notes.push(ii.scope==='match'?'在第 '+ii.set+' 局後，由於'+tag(il)+'球員未完整，'+tag(iw)+'贏得本場比賽 '+wn[iw]+':'+wn[il]:'第 '+ii.set+' 局 '+ab(ii.raw).replace('，','')+'，由於'+tag(il)+'球員不完整，'+tag(iw)+'贏得本局 '+isc[iw]+':'+isc[il]);}
+  if(s.preForfeit)notes.push('因 B 隊「'+tName(s,other(s.preForfeit.winner))+'」'+s.preForfeit.reason+'，由 A 隊「'+tName(s,s.preForfeit.winner)+'」以 2:0 (25:0 25:0) 獲勝');
+  if(s.forfeit)notes.push(tName(s,s.forfeit)+' 棄權');
+  return notes;
+}
+/* ========== 記錄表（版面對照 AVC eScoresheet）：一律由事件推算，白底藍字，不隨深淺主題改變 ========== */
+var INK='#1616c8';
+function svL(a,b,c,d,w,col){return '<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" stroke="'+(col||'#000')+'" stroke-width="'+(w||1)+'"/>'}
+function svR(x,y,w,h,sw,fill){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+(fill||'none')+'" stroke="#000" stroke-width="'+(sw==null?1:sw)+'"/>'}
+function svT(x,y,t,fs,col,wt,anc){return '<text x="'+x+'" y="'+y+'" font-size="'+fs+'" fill="'+(col||'#000')+'" font-weight="'+(wt||400)+'" text-anchor="'+(anc||'middle')+'" dominant-baseline="central">'+esc(t)+'</text>'}
+function svC(x,y,r,col,w,fill){return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+(fill||'none')+'" stroke="'+(col||'#000')+'" stroke-width="'+(w||1.5)+'"/>'}
+function svFit(t,w,max){var u=0;String(t).split('').forEach(function(ch){u+=ch.charCodeAt(0)>255?1:.58});return Math.min(max,w/Math.max(u,1))}
+function svWrap(w,h,body,label){return '<div class="sv-wrap"><svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(label)+'" font-family="-apple-system,\'PingFang TC\',\'Noto Sans TC\',\'Microsoft JhengHei\',Arial,sans-serif"><rect width="'+w+'" height="'+h+'" fill="#fff"/>'+body+svR(1.5,1.5,w-3,h-3,3)+'</svg></div>'}
+function sheetTeams(s,n){var A=s.sets[1].left||'t1',B=other(A),c=s.sets[3],L=n===2?B:A;if(n===3&&c.left)L=c.swapped?other(c.left):c.left;return {A:A,B:B,L:L,R:other(L)}}
+function hmMin(t){var p=String(t||'').split(':');return p.length===2?p[0]*60+ +p[1]:null}
+function hmDiff(a,b){var x=hmMin(a),y=hmMin(b);return x==null||y==null?null:(y-x+1440)%1440}
+function setMins(s,n){var c=s.sets[n];if(!c.endAt)return null;return hmDiff(setStartHM(s,n),hm(c.endAt))}
+function svEntries(c,k,i,d){
+  var a=d.rounds[k][i].slice();
+  if(i===0&&c.serve&&c.serve!==k)a.unshift('X');
+  if(d===c&&c.ended&&c.serving===k&&i===c.rot[k])a.push(c.score[k]);
+  return a;
+}
+function svBlock(s,n,x,k,o){
+  var c=s.sets[n],d=o.data,T=sheetTeams(s,n),cw=o.cw,hr=o.hr||44,h0=62,y0=h0,bw=cw*6,px=x+bw,h='',rots=o.rots,letter=k===T.A?'A':'B',i,r;
+  /* 表頭 */
+  var tw=o.tw,tx=o.mirror?x+bw-tw:x,sm=rots===3,lr=sm?16:22,ad=sm?43:61,ax=o.mirror?x+ad:x+bw-ad,sx=o.mirror?x+(sm?11:13):x+bw-(sm?11:13),sr=sm?9:10;
+  if(o.time){var tv=o.time==='end'?(c.endAt?hm(c.endAt):''):(setStartHM(s,n)||'');
+    h+=svT(tx+tw*.17,h0/2-11,o.time==='end'?'結束':'開始',o.fs||15,'#000',700)+svT(tx+tw*.17,h0/2+11,'時間',o.fs||15,'#000',700)+svR(tx+tw*.36,10,tw*.56,h0-20)+svT(tx+tw*.64,h0/2,tv,tw*.56/3.2,INK,500)}
+  else if(o.change!=null||o.changeBox){h+=svT(tx+tw*.17,h0/2-11,'換場',o.fs||14,'#000',700)+svT(tx+tw*.17,h0/2+11,'比分',o.fs||14,'#000',700)+svR(tx+tw*.36,10,tw*.56,h0-20)+svT(tx+tw*.64,h0/2,o.change==null?'':o.change,26,INK,500)}
+  var nx=o.mirror?x+(sm?62:88):x+tw+4,nw=bw-tw-(sm?68:92);
+  h+=svR(nx,12,nw,h0-24)+svT(nx+nw/2,h0/2,tName(s,k),svFit(tName(s,k),nw-8,24),INK,600);
+  h+=svC(ax,h0/2,lr,'#000',2)+svT(ax,h0/2,letter,sm?21:28,'#000',500);
+  [['發',h0/2-14,c.serve===k],['接',h0/2+14,!!c.serve&&c.serve!==k]].forEach(function(q){h+=svC(sx,q[1],sr,'#000',1.2)+svT(sx,q[1],q[0],sm?11:12);if(q[2])h+=svL(sx-sr,q[1]-sr,sx+sr,q[1]+sr,2,INK)+svL(sx-sr,q[1]+sr,sx+sr,q[1]-sr,2,INK)});
+  /* 輪次與替補 */
+  for(i=0;i<6;i++){
+    var cx=x+cw*i,mid=cx+cw/2,lu=c.lineups[k][i],sr=d.subRows[k][i],a=sr[0],b=sr[1];
+    h+=svT(mid,y0+hr/2,ROMAN[i],o.rfs||30,'#000',500);
+    if(lu!=null)h+=svT(mid,y0+hr*1.5,lu,o.nfs||30,INK);
+    if(a){h+=svT(mid,y0+hr*2.5,a.in+(a.exc?'*':''),o.nfs||30,INK);if(b&&b.in===lu)h+=svC(mid,y0+hr*2.5,o.nfs?15:19,INK,2)}
+    h+=svT(mid,y0+hr*3.5,a?a.score:':',o.tfs||21,a?INK:'#000');
+    h+=svT(mid,y0+hr*4.5,b?b.score:':',o.tfs||21,b?INK:'#000');
+    /* 發球格 */
+    var es=svEntries(c,k,i,d),boxW=cw/2,yr=y0+hr*5;
+    for(r=0;r<rots;r++){h+=svL(cx+boxW,yr+r*hr,cx+boxW,yr+(r+1)*hr,.6,'#777');
+      [0,1].forEach(function(hf){var b0=hf*rots+r;h+=svT(cx+boxW*(hf+1)-3,yr+r*hr+7,b0+1,9,'#000',400,'end')})}
+    es.forEach(function(v,b0){
+      var r0=b0%rots,hf=Math.floor(b0/rots);if(hf>1)return;
+      var bx=cx+boxW*hf,by=yr+r0*hr,fs=cw<50?(String(v).length>1?15:19):(String(v).length>1?19:22);
+      if(v!=='X')h+=svT(bx+5,by+7,'✓',11,INK);
+      h+=svT(bx+boxW/2,by+hr/2+2,v,fs,INK);
+      if(c.ended&&d===c&&i===c.rot[k]&&b0===es.length-1&&v===c.score[k])h+=svC(bx+boxW/2,by+hr/2+2,cw<50?11:15,INK,1.8);
+    });
+    if(d===c&&c.started&&!c.ended&&c.serving===k&&i===c.rot[k]&&es.length<rots*2){var b1=es.length;h+=svT(cx+boxW*Math.floor(b1/rots)+5,yr+(b1%rots)*hr+7,'✓',11,INK)}
+  }
+  for(i=1;i<6;i++)h+=svL(x+cw*i,y0,x+cw*i,y0+hr*(5+rots),1.2);
+  h+=svL(x,y0,x+bw,y0,1.6);
+  for(i=0;i<=rots+4;i++){h+=svL(x,y0+hr*(i+1),x+bw,y0+hr*(i+1),i===0?3:1.2)}
+  /* 得分欄 */
+  var pw=o.pw,pH=hr*(rots===3?5:6),cols=o.cols,per=cols.reduce(function(m,q){return Math.max(m,q[1]-q[0]+1)},0),rh=pH/per,colW=pw/cols.length;
+  h+=svT(px+pw/2,h0/2,'得分',o.pfs||26,'#000',700);h+=svL(px,y0,px+pw,y0,1.6);
+  cols.forEach(function(q,ci){
+    var cl=px+colW*ci;
+    for(var v=q[0];v<=q[1];v++){var y=y0+rh*(v-q[0]),cyy=y+rh/2;
+      h+=svT(cl+colW/2,cyy,v,Math.min(13,rh*.72),'#000');
+      if(o.m&&v>=o.m[0]&&v<=o.m[1]){h+=svL(cl+colW/2-7,cyy+7,cl+colW/2+7,cyy-7,1.6,INK);if(c.penPts[k].indexOf(v)>=0)h+=svC(cl+colW/2,cyy,8,INK,1.3)}}
+    if(o.hg&&c.ended){var from=Math.max(q[0],(o.m?o.m[1]:0)+1);if(from<=q[1]){var ya=y0+rh*(from-q[0])+1,yb=y0+rh*(q[1]-q[0]+1)-1,xa=cl+3,xb=cl+colW-3;h+='<path d="M'+xa+' '+ya+'L'+xb+' '+ya+'L'+xa+' '+yb+'L'+xb+' '+yb+'Z" fill="none" stroke="'+INK+'" stroke-width="1.4"/>'}}
+    if(o.hg&&c.ended&&o.m&&o.m[1]>=q[0]&&o.m[1]<=q[1]&&o.m[1]>=o.m[0]){var yl=y0+rh*(o.m[1]-q[0]+1)-2;h+=svL(cl+1,yl,cl+colW-1,yl,2.6,INK)}
+    if(ci)h+=svL(cl,y0,cl,y0+pH,.8);
+  });
+  /* 暫停 */
+  h+=svL(px,y0+pH,px+pw,y0+pH,1.5);
+  var ty=y0+pH,th=(y0+hr*(5+rots)-ty)/3;
+  h+=svT(px+pw/2,ty+th/2,'暫停',o.pfs?16:20,'#000',700)+svL(px,ty+th,px+pw,ty+th,1)+svL(px,ty+th*2,px+pw,ty+th*2,1);
+  [0,1].forEach(function(q){var v=d.toRows[k][q];h+=svT(px+pw/2,ty+th*(q+1.5),v||':',v?(pw<90?20:27):20,v?INK:'#000')});
+  h+=svL(px,0,px,y0+hr*(5+rots),2.4)+svL(px+pw,0,px+pw,y0+hr*(5+rots),2.4);
+  return h;
+}
+function svBlank(){return {rounds:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},subRows:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},toRows:{t1:[],t2:[]}}}
+function setSvg(s,n){
+  var c=s.sets[n],T=sheetTeams(s,n),lab=46,h='',W,H;
+  function label(hh){var q=hh/4;return svT(lab/2,q*.8,'第',30,'#000',700)+svT(lab/2,hh/2,n,44,'#000',700)+svT(lab/2,hh-q*.8,'局',30,'#000',700)+svL(lab,0,lab,hh,2.4)}
+  if(n<3){
+    var per=Math.max(12,Math.ceil(Math.max(48,c.score.t1,c.score.t2)/4)),cols=[0,1,2,3].map(function(i){return [i*per+1,(i+1)*per]}),cw=71,pw=112;
+    H=62+44*9;W=lab+2*(cw*6+pw);
+    [[T.L,lab,false,'start'],[T.R,lab+cw*6+pw,true,'end']].forEach(function(q){
+      h+=svBlock(s,n,q[1],q[0],{data:c,cw:cw,pw:pw,tw:128,rots:4,time:q[3],mirror:q[2],cols:cols,m:[1,c.score[q[0]]],hg:true});
+    });
+    return svWrap(W,H,label(H)+h,'第 '+n+' 局記錄表');
+  }
+  /* 決勝局：左 A、中 B，換場後 A 接到右邊繼續記 */
+  var A=T.L,B=T.R,tg=target(s,n),half=Math.ceil(tg/2),sw=c.swapSnap,max=Math.max(30,c.score.t1,c.score.t2),p3=Math.ceil(max/3),cols3=[0,1,2].map(function(i){return [i*p3+half*0+1+i*p3*0,(i+1)*p3]}),cw3=44;
+  cols3=[0,1,2].map(function(i){return [i*p3+1,(i+1)*p3]});
+  var cA=sw?sw.score[A]:c.score[A],b1=lab,bw=cw3*6,b2=b1+bw+70,b3=b2+bw+92,cg=30,b4=b3+bw*0,base={cw:cw3,hr:40,tw:104,rots:3,fs:12,rfs:22,nfs:23,tfs:15,pfs:17};
+  var x3=b2+bw+92+cg;
+  H=62+40*8;W=x3+bw+92;
+  h+=svBlock(s,n,b1,A,Object.assign({},base,{data:sw?{rounds:sw.rounds,subRows:sw.subRows,toRows:sw.toRows}:c,pw:70,time:'start',cols:[[1,half]],m:[1,cA]}));
+  h+=svBlock(s,n,b2,B,Object.assign({},base,{data:c,pw:92,time:'end',mirror:true,cols:cols3,m:[1,c.score[B]],hg:true}));
+  h+=svBlock(s,n,x3,A,Object.assign({},base,{data:sw?c:svBlank(),pw:92,change:sw?sw.score[A]:null,changeBox:true,cols:cols3,m:sw?[sw.score[A]+1,c.score[A]]:null,hg:!!sw}));
+  h+=svL(x3-cg,0,x3-cg,H,2.4);h+=svL(x3,0,x3,H,2.4);
+  '換場'.split('').forEach(function(ch,i){h+=svT(x3-cg/2,H/2-30+i*60,ch,20,'#000',700)});
+  return svWrap(W,H,label(H)+h,'第 3 局記錄表');
+}
+function r6Svg(s){
+  var T=sheetTeams(s,1),w=[48,48,84],bw=180,rowH=21,head=74,maxRows=24,W=bw*7+6,blocks=[],x=3;
+  [1,2,3].forEach(function(n){
+    var c=s.sets[n],t=sheetTeams(s,n),sw=c.swapSnap;
+    if(n<3){blocks.push({n:n,k:t.L,rows:c.libRows[t.L]});blocks.push({n:n,k:t.R,rows:c.libRows[t.R]})}
+    else{var cut=sw?sw.libN[t.L]:c.libRows[t.L].length;blocks.push({n:n,k:t.L,rows:c.libRows[t.L].slice(0,cut)});blocks.push({n:n,k:t.R,rows:c.libRows[t.R]});blocks.push({n:n,k:t.L,rows:c.libRows[t.L].slice(cut)})}
+  });
+  blocks.forEach(function(b){maxRows=Math.max(maxRows,b.rows.length)});
+  var H=head+rowH*maxRows+4,h='',A=T.A;
+  blocks.forEach(function(b,i){
+    var bx=x+bw*i,t=s.teams[b.k],l=t.liberos,c1=bx+w[0],c2=c1+w[1],letter=b.k===A?'A':'B';
+    if(i===0||i===2||i===4){var sw2=i===4?bw*3:bw*2;h+=svT(bx+sw2/2,16,'第 '+b.n+' 局',19,'#000',800)+svL(bx,3,bx,H,2.4)}else h+=svL(bx,30,bx,H,1.4);
+    h+=svT(bx+36,44,'№ '+(l[0]==null?'':l[0]),13,INK)+svC(bx+bw/2,44,11,'#000',1.3)+svT(bx+bw/2,44,letter,15)+svT(bx+bw-36,44,'№ '+(l[1]==null?'':l[1]),13,INK);
+    h+=svT(bx+w[0]/2,63,'自由',12,'#000',700)+svT(c1+w[1]/2,63,'被換',12,'#000',700)+svT(c2+w[2]/2,63,'比分',12,'#000',700);
+    for(var r=0;r<maxRows;r++){var y=head+r*rowH,v=b.rows[r];
+      if(v){if(v.enter==='L')h+='<rect x="'+bx+'" y="'+y+'" width="'+w[0]+'" height="'+rowH+'" fill="#cfcfcf"/>';
+        else h+='<rect x="'+c1+'" y="'+y+'" width="'+w[1]+'" height="'+rowH+'" fill="#cfcfcf"/>';
+        h+=svT(bx+w[0]/2,y+rowH/2,v.lib,14,INK);if(v.rep!=null)h+=svT(c1+w[1]/2,y+rowH/2,v.rep,14,INK);h+=svT(c2+w[2]/2,y+rowH/2,v.score,14,INK)}
+      else h+=svT(c2+w[2]/2,y+rowH/2,':',13);
+      h+=svL(bx,y+rowH,bx+bw,y+rowH,.5,'#888')}
+    h+=svL(c1,52,c1,H,.6,'#555')+svL(c2,52,c2,H,.6,'#555');
+  });
+  h+=svL(3,30,W-3,30,1.6)+svL(3,52,W-3,52,1)+svL(3,head,W-3,head,1.6);
+  return svWrap(W,H,h,'R6 自由球員管控表');
+}
+function ppResult(s){
+  var T=sheetTeams(s,1),A=T.A,B=T.B,sum={},last=null,rows='',mins=0,w=setsWon(s),win=w.t1>w.t2?'t1':'t2';
+  [A,B].forEach(function(k){sum[k]={to:0,su:0,w:0,pt:0}});
+  [1,2,3].forEach(function(n){
+    var c=s.sets[n],on=c.ended;
+    function cells(k){var o={to:c.timeouts[k].length,su:c.subs[k].length,w:c.winner===k?1:0,pt:c.score[k]};if(on){var q=sum[k];q.to+=o.to;q.su+=o.su;q.w+=o.w;q.pt+=o.pt}return o}
+    var a=cells(A),b=cells(B),m=on?setMins(s,n):null;
+    if(on){mins+=m||0;last=c.endAt}
+    rows+=on?'<tr><td>'+a.to+'</td><td>'+a.su+'</td><td>'+a.w+'</td><td>'+a.pt+'</td><td class="pset">'+n+'（'+(m==null?'':m)+'）</td><td>'+b.pt+'</td><td>'+b.w+'</td><td>'+b.su+'</td><td>'+b.to+'</td></tr>':'<tr><td></td><td></td><td></td><td></td><td class="pset">'+n+'（　）</td><td></td><td></td><td></td><td></td></tr>';
+  });
+  var st=s.info.actual||'',en=hm(last),d=hmDiff(st,en);
+  var total=d==null?'':('0'+Math.floor(d/60)).slice(-2)+' 時 '+('0'+d%60).slice(-2)+' 分';
+  var a=sum[A],b=sum[B];
+  return '<div class="ppr pres"><h3>比賽結果</h3><div class="pvs"><b>'+esc(tName(s,A))+'</b><i>A</i><i>B</i><b>'+esc(tName(s,B))+'</b></div><table><tr class="ph"><th>暫停</th><th>替補</th><th>勝</th><th>得分</th><th class="pset">局（分鐘）</th><th>得分</th><th>勝</th><th>替補</th><th>暫停</th></tr>'+rows+'<tr class="ptot"><td>'+a.to+'</td><td>'+a.su+'</td><td>'+a.w+'</td><td>'+a.pt+'</td><td class="pset"><small>各局加總</small><br>'+mins+' 分</td><td>'+b.pt+'</td><td>'+b.w+'</td><td>'+b.su+'</td><td>'+b.to+'</td></tr></table><div class="ptm"><div><small>開始</small>'+esc(st)+'</div><div><small>結束</small>'+esc(en)+'</div><div><small>全場時間</small>'+total+'</div></div><div class="pwin"><span>勝隊</span><b>'+(matchOver(s)?esc(tName(s,win)):'')+'</b><b>'+(matchOver(s)?w[win]+' : '+w[other(win)]:'')+'</b></div></div>';
+}
+function ppSanctions(s){
+  var A=sheetTeams(s,1).A,ir=s.sanctions.filter(function(x){return x.kind==='IR'}),list=s.sanctions.filter(function(x){return x.kind!=='IR'}),rows='',i;
+  for(i=0;i<Math.max(11,list.length);i++){var x=list[i];
+    if(!x){rows+='<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>:</td></tr>';continue}
+    var v=(x.kind==='DW'||x.kind==='DP')?'D':x.who,col=x.kind==='DW'||x.kind==='W'?0:x.kind==='DP'||x.kind==='P'?1:x.kind==='E'?2:3;
+    rows+='<tr>'+[0,1,2,3].map(function(q){return '<td>'+(q===col?esc(v):'')+'</td>'}).join('')+'<td>'+(x.team===A?'A':'B')+'</td><td>'+x.set+'</td><td>'+esc(x.score)+'</td></tr>'}
+  function irm(k,l){var on=ir.some(function(q){return q.team===k});return '<svg class="ircl" viewBox="0 0 28 28" width="28" height="28" role="img" aria-label="'+l+' 隊'+(on?'不當請求':'')+'"><circle cx="14" cy="14" r="12" fill="none" stroke="#000" stroke-width="1.6"/><text x="14" y="15" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#000">'+l+'</text>'+(on?'<path d="M4 4L24 24M24 4L4 24" stroke="#1616c8" stroke-width="2.4"/>':'')+'</svg>'}
+  return '<div class="ppr psan"><div class="psh"><h3>判罰</h3><div><small>不當請求</small><span class="irrow">隊伍 '+irm(A,'A')+' ： 隊伍 '+irm(other(A),'B')+'</span></div></div><table><tr class="ph"><th>警告<br>W</th><th>懲罰<br>P</th><th>出局<br>E</th><th>出場<br>D</th><th>隊</th><th>局</th><th>比分</th></tr>'+rows+'</table><p>欄內填球員背號，或 C 教練、AC 助理教練、T 防護員、M 隊醫，延誤判罰填 D。比分以受罰隊在前。</p></div>';
+}
+function ppRemarks(s){
+  var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),rows=nt.map(function(x){return '<li>'+esc(x)+'</li>'}).join('');
+  return '<div class="ppr prem"><h3>記事欄</h3>'+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
+}
+function pendingHtml(s,win){
+  var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];
+  c.ended=true;c.winner=win;c.endAt=new Date().toISOString();
+  return resultHtml(v,win);
+}
+function fixList(s){
+  var n=ui.fixSet||s.setNo,seg='<div class="seg" style="grid-template-columns:repeat(3,1fr);flex:none">'+[1,2,3].map(function(i){return '<button data-act="fixset" data-v="'+i+'" aria-pressed="'+(n===i)+'">第 '+i+' 局</button>'}).join('')+'</div>';
+  var rows=s.log.filter(function(x){return x.set===n&&x.kind!=='L'}).map(function(x){
+    return '<button class="fixrow '+x.team+'" data-act="amendopen" data-v="'+x.id+'"><span>'+esc(tName(s,x.team))+'</span><b>'+(x.kind==='T'?'暫停':(x.exc?'例外替補 ':'替補 ')+x.out+' 換 '+x.in)+'</b><em>'+x.score+'</em></button>'});
+  return seg+'<p class="subhint">點按錯的那一筆</p>'+(rows.length?rows.join(''):'<p class="note">這局沒有暫停或替補。</p>')+'<p class="muted">更正後分數和輪轉不變。</p>';
+}
+function resultHtml(s,pv){
+  var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',over=matchOver(s)&&!pv;
+  var tabs=[['s1','第1局'],['s2','第2局'],['s3','第3局'],['res','結果'],['pen','判罰'],['r6','R6 自由'],['note','記事欄'],['fix','更正']];
+  var tab=ui.rtab||'res';
+  var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>':'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+(pv?'<div class="row sheetback"><button data-act="undo">↶ 復原上一步</button><button class="go" data-act="endset" data-team="'+pv+'">確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div>':'');
+  var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>全螢幕</button>':'';
+  function fs(svg){return ui.fs?'<div class="fsv" role="dialog" aria-label="全螢幕記錄表"><div class="fsin"><div class="fssheet">'+svg+'</div><button class="fsclose" data-act="fsclose">✕ 關閉全螢幕</button></div></div>':''}
+  var back=pv||over?'':'<div class="foot"><button class="sv" data-act="sheetclose">返回比賽</button></div>';
+  if(tab==='pen')return head+ppSanctions(s)+back;
+  if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
+  if(tab==='note')return head+ppRemarks(s)+back;
+  if(tab==='fix')return head+fixList(s)+back;
+  if(tab==='s1'||tab==='s2'||tab==='s3')return head+setSvg(s,Number(tab.slice(1)))+wide+back+fs(setSvg(s,Number(tab.slice(1))));
+  if(!over)return head+ppResult(s)+back;
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+ppResult(s)+'<div class="muted">比賽已自動存在這台手機，從比賽列表可以再打開。</div><div class="row"><button data-act="rpjson">下載備份</button><button data-act="rpcsv">下載 CSV</button></div><div id="rvmsg" class="muted"></div>';
+}
+function playHtml(s){
+  if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
+  if(matchOver(s)||ui.liveSheet)return resultHtml(s);
+  var n=s.setNo,c=s.sets[n];
+  if(!c.started)return '<p class="note">第 '+n+' 局還沒開局，請先完成挑邊和陣容。</p><button class="sheetbtn" data-act="sheetopen">記錄表</button>';
+  var L=c.left,R=other(L),cells='';
+  for(var i=0;i<3;i++){
+    cells+=playCell(s,L,LEFT_CELLS[i][0])+playCell(s,L,LEFT_CELLS[i][1]);
+    if(i===0)cells+='<div class="net" aria-hidden="true"></div>';
+    cells+=playCell(s,R,RIGHT_CELLS[i][0])+playCell(s,R,RIGHT_CELLS[i][1]);
+  }
+  var srv=courtPlayer(c,c.serving,0),main,warn='';
+  if(!c.live)main='<button class="sv" data-act="serve">發球'+(c.replayLock?'（公正重發）':'')+'</button>';
+  else main='<div class="sbs"><button class="sb '+L+'" data-act="point" data-team="'+L+'">'+esc(tName(s,L))+'<br>得分</button><button class="rp" data-act="replay">公正</button><button class="sb '+R+'" data-act="point" data-team="'+R+'">'+esc(tName(s,R))+'<br>得分</button></div>';
+  [L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
+  return '<div class="board">'+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局<br><small>'+target(s,n)+' 分'+(capOf(s,n)?'・搶 '+capOf(s,n):'')+'</small><br><div class="srvmark '+(c.serving===L?'lf':'rt')+' '+c.serving+'" aria-label="'+esc(tName(s,c.serving))+' 發球 '+srv+' 號"><i>'+(c.serving===L?'◀':'')+'</i><span>'+BALL+'</span><b>'+srv+'</b><i>'+(c.serving===L?'':'▶')+'</i></div></div>'+setBox(s,R)+sideScore(s,R)+'</div>'+
+    '<div class="pcourt" role="group" aria-label="球場，記錄台在下方">'+cells+'</div>'+
+    '<div class="strips">'+libStrip(s,L)+libStrip(s,R)+'</div>'+
+    '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+'<div class="pbtns"><button class="injbtn" data-act="injopen" data-v="INJ">傷停</button><button class="injbtn" data-act="injopen" data-v="INC">陣容不完整</button><button class="injbtn" data-act="injopen" data-v="FF">棄權</button><button class="penbtn" data-act="penopen">處罰</button><button class="sheetbtn" data-act="sheetopen">記錄表</button></div>'+warn+timerBar(s)+(c.live||c.replayLock?'<div class="muted lockline">'+(c.live?'球在進行中':'公正重發')+'，得分後才能暫停、替補、換自由球員</div>':'')+'<div class="foot">'+main+'</div>';
+}
+function timerLeft(){return ui.timer?Math.max(0,Math.ceil((ui.timer.end-Date.now())/1000)):0}
+function timerText(){var n=timerLeft();return ui.timer&&ui.timer.label?Math.floor(n/60)+':'+('0'+(n%60)).slice(-2):n}
+function timerBar(s){
+  if(!ui.timer)return '';
+  return '<div class="tbar '+ui.timer.team+'"><span>'+esc(tName(s,ui.timer.team))+' '+(ui.timer.label||'暫停')+'</span><b data-tm>'+timerText()+'</b><button data-act="tmend">'+(ui.timer.label?'恢復':'結束')+'</button></div>';
+}
+function timerPop(s){
+  var t=ui.timer;
+  if(!t||!t.shown||t.closed)return '';
+  return '<div class="tpop" role="alertdialog"><button class="tx" data-act="tmclose" aria-label="關閉">✕</button><div>'+esc(tName(s,t.team))+' 暫停剩下</div><b data-tm>'+timerLeft()+'</b></div>';
+}
+setInterval(function(){
+  var t=ui.timer; if(!t)return;
+  var left=timerLeft();
+  if(left<=0){ui.timer=null;render();return}
+  if(left<=5&&!t.shown){t.shown=true;render();return}
+  var els=document.querySelectorAll('[data-tm]');
+  for(var i=0;i<els.length;i++)els[i].textContent=timerText();
+},200);
+function lastUndoable(m){
+  var dead={},live=[];
+  m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
+  m.events.forEach(function(e){if(!dead[e.id]&&e.type!=='UNDO')live.push(e)});
+  var e=live[live.length-1];
+  return e&&['AMEND','SET_STARTED','LINEUP_CORRECTED','POINT','SIDES_SWAPPED','SERVE','REPLAY','TIMEOUT','SUB','LIBERO_IN','LIBERO_OUT','LIBERO_SWAP','GAME_CAPTAIN_SET','SANCTION','INJURY'].indexOf(e.type)>=0?e:null;
+}
+function nowHM(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+function startConfirm(s){
+  var n=s.setNo,c=s.sets[n],L=c.left,R=other(L),A=s.sets[1].left;
+  function side(k){return '<div class="cf '+k+'"><span class="ltr">'+(A===k?'A':'B')+'</span><strong>'+esc(tName(s,k))+'</strong><span class="'+(c.serve===k?'side on':'side')+'" style="border:0;padding:0;background:none">'+BALL+'</span><small>'+(c.serve===k?'先發球':'&nbsp;')+'</small></div>'}
+  var time=n===1?'<label for="cs-time">實際比賽開始時間<input id="cs-time" type="time" value="'+esc(s.info.actual||nowHM())+'"></label>':'';
+  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><h2>第 '+n+' 局開始前確認</h2><div class="cfr">'+side(L)+side(R)+'</div><div class="scorer">記錄台</div>'+time+'<div class="row"><button data-act="cs-no">返回修改</button><button class="go" data-act="cs-yes">確認無誤</button></div></div>';
+}
+function noticeHtml(){
+  if(!ui.notice)return '';
+  return '<div class="scrim"></div><div class="sheet" role="alertdialog"><h2>'+esc(ui.notice)+'</h2><p class="muted">請用手勢告知第二裁判。</p><button class="go" data-act="nclose">知道了</button></div>';
+}
+var PERSON={W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'};
+var STAFFWHO=[['C','教練'],['AC','助理教練'],['T','防護員'],['M','隊醫']];
+function penHtml(s){
+  var p=ui.pen; if(!p)return '';
+  var n=s.setNo,c=s.sets[n],k=p.team,t=k?s.teams[k]:null,A=s.sets[1].left,h;
+  var teams='<div class="teampick'+(k?' picked':'')+'">'+[c.left||A,other(c.left||A)].map(function(x){return '<button class="'+x+'" data-act="penteam" data-team="'+x+'" aria-pressed="'+(k===x)+'">'+esc(tName(s,x))+'</button>'}).join('')+'</div>';
+  if(p.ok){
+    var okn={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[p.ok.kind],okw=p.ok.who==='隊'?'':(typeof p.ok.who==='number'?p.ok.who+' 號 ':STAFFWHO.filter(function(q){return q[0]===p.ok.who})[0][1]+' ');
+    var oke={DP:esc(tName(s,other(k)))+' 得 1 分。',P:esc(tName(s,other(k)))+' 得 1 分。',E:'本局不能再上場。',D:'本場不能再上場。'}[p.ok.kind]||'';
+    h='<div class="toask '+k+'">'+esc(tName(s,k))+'</div><h2>'+okw+okn+'？</h2><p class="muted">第 '+n+' 局 '+c.score[k]+':'+c.score[other(k)]+(oke?'，'+oke:'')+'</p><div class="row"><button data-act="penno">取消</button><button class="go" data-act="penyes">確定</button></div>';
+  }else if(!k){
+    h='<h2>'+({INJ:'傷停',INC:'陣容不完整',FF:'棄權'}[p.kind]||'處罰')+'</h2><p class="subhint">先選隊伍</p>'+teams+'<button data-act="penclose">關閉</button>';
+  }else if(p.kind==='INJ'){
+    var used=s.injuries.filter(function(i){return i.team===k}).map(function(i){return i.no});
+    var free=(subOptions(s,k,c.cur[k].findIndex(function(n){return t.liberos.indexOf(n)<0}),true).nos)||[];
+    h='<h2>傷停</h2>'+teams+'<p class="muted">'+(free.length?'場邊還有 '+free.length+' 人可以換上場，要先替補，不能傷停。':'無法合法替補也無法例外替補時才用，同一球員整場一次，3 分鐘。')+'</p><div class="bench"><div class="benchrow">'+c.cur[k].map(function(no){var u=used.indexOf(no)>=0;return '<button class="chip '+k+(u||free.length?' off':'')+'" data-act="injpick" data-team="'+k+'" data-no="'+no+'"'+(u||free.length?' disabled':'')+'><b>'+no+'</b>'+(u?'<small>已傷停</small>':'')+'</button>'}).join('')+'</div></div><button data-act="penclose">關閉</button>';
+  }else if(p.kind==='LOG'){
+    h='<h2>判罰紀錄</h2><div class="logbox">'+recordsHtml(s)+'</div><button class="primary" data-act="penback">返回</button>';
+  }else if(p.kind==='INC'){
+    h='<h2>陣容不完整</h2>'+(p.resume?'':teams)+'<p class="muted">規則 6.4.3：輸掉該局或該場，對方補足分數，這隊保留已得分數和局數。</p><div class="row"><button class="danger" data-act="inc" data-team="'+k+'" data-v="set">'+esc(tName(s,k))+' 輸本局</button><button class="danger" data-act="inc" data-team="'+k+'" data-v="match">'+esc(tName(s,k))+' 輸整場</button></div><button data-act="penclose">關閉</button>';
+  }else if(p.kind==='FF'){
+    h='<h2>棄權</h2>'+teams+'<p class="muted">規則 6.4.1：比賽判對方獲勝，每局 25:0。</p><div class="row"><button class="danger" data-act="forfeit" data-team="'+k+'">'+esc(tName(s,k))+' 確定棄權</button><button data-act="penclose">關閉</button></div>';
+  }else if(p.kind){
+    var pl=t.players.map(function(q){return '<button class="chip '+k+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"><b>'+q.no+'</b></button>'}).join('');
+    var st=STAFFWHO.map(function(x){return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('');
+    h='<h2>'+esc(tName(s,k))+' '+PERSON[p.kind]+'：選對象</h2><div class="bench"><div class="benchrow">'+pl+'</div></div><div class="stf">'+st+'</div><button data-act="penback">返回</button>';
+  }else{
+    function cnt(q){return s.sanctions.filter(function(x){return x.team===k&&x.kind===q}).length}
+    var ir=cnt('IR'),dw=cnt('DW'),yw=cnt('W');
+    h='<h2>處罰</h2>'+teams+'<div class="muted">球隊</div><div class="pk3"><button data-act="pendo" data-team="'+k+'" data-v="IR"'+(ir?' disabled':'')+'>不當請求'+(ir?'（已用）':'')+'</button><button class="yl" data-act="pendo" data-team="'+k+'" data-v="DW"'+(dw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>延誤警告'+(dw?'（已用）':'')+'</button><button class="rd" data-act="pendo" data-team="'+k+'" data-v="DP"><span class="ic"><i class="cd cr"></i></span>延誤懲罰</button></div>'+
+      '<div class="muted">個人</div><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>同手</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>分開</small></button></div>'+
+      '<div class="row"><button data-act="penkind" data-team="'+k+'" data-v="LOG">判罰紀錄（'+s.sanctions.length+'）</button><button class="primary" data-act="penclose">關閉</button></div>';
+  }
+  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+}
+function recordsHtml(s){
+  var A=s.sets[1].left,ir=s.sanctions.filter(function(x){return x.kind==='IR'});
+  var rows=s.sanctions.filter(function(x){return x.kind!=='IR'}).map(function(x){
+    var v=(x.kind==='DW'||x.kind==='DP')?'D':x.who;
+    var col=x.kind==='DW'||x.kind==='W'?0:x.kind==='DP'||x.kind==='P'?1:x.kind==='E'?2:3;
+    return '<tr>'+[0,1,2,3].map(function(i){return '<td>'+(i===col?esc(v):'')+'</td>'}).join('')+'<td>'+(x.team===A?'A':'B')+'</td><td>'+x.set+'</td><td>'+x.score+'</td></tr>'}).join('');
+  function irm(k){return ir.some(function(x){return x.team===k})?'✕':'　'}
+  return '<div class="irb"><span>不當請求</span><span>A <i>'+irm(A)+'</i></span><span>B <i>'+irm(other(A))+'</i></span></div>'+(rows?'<table class="res"><tr class="sm"><th>W</th><th>P</th><th>E</th><th>D</th><th>隊</th><th>局</th><th>比數</th></tr>'+rows+'</table>':'');
+}
+function fname(s,ext){return ('排球記錄表_'+tName(s,'t1')+'對'+tName(s,'t2')+'_'+(s.info.date||'')).replace(/[\\/:*?"<>|\s]/g,'')+'.'+ext}
+function setStartHM(s,n){
+  if(n===1)return s.info.actual||'';
+  var e=s.sets[n-1].endAt;if(!e)return '';
+  return hm(new Date(new Date(e).getTime()+180000).toISOString());
+}
+function pointsGrid(c,k,tg,win){
+  var max=Math.max(tg<=15?30:48,c.score[k]),cols=[],per=tg<=15?10:12,h='',pts=c.score[k];
+  for(var i=1;i<=max;i++){
+    var cls=i<=pts?(c.penPts[k].indexOf(i)>=0?'pt on pen':'pt on'):(c.ended?'pt off':'pt');
+    if(i===pts)cls+=' last';
+    h+='<span class="'+cls+'">'+i+'</span>';
+  }
+  return '<div class="pts" style="grid-template-rows:repeat('+per+',1fr)">'+h+'</div>';
+}
+function teamBlock(s,n,k,first){
+  var c=s.sets[n],A=s.sets[1].left,t=s.teams[k],rot='一二三四五六'.split(''),lu=c.lineups[k];
+  function row(lbl,fn,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+lbl+'</th>'+[0,1,2,3,4,5].map(function(i){return '<td>'+fn(i)+'</td>'}).join('')+'</tr>'}
+  var last=c.ended&&c.serving===k?c.rot[k]:-1;
+  return '<div class="tb"><div class="tbh"><b class="ci">'+(k===A?'A':'B')+'</b> <b>'+esc(tName(s,k))+'</b>'+(c.serve===k?'　<span class="ci">發</span>':(c.serve?'　<span class="ci">接</span>':''))+'<span class="to">暫停 '+(c.toRows[k].join('　')||'—')+'</span></div><div class="tbb"><table class="lu">'+
+    row('發球次序',function(i){return rot[i]},'hd')+
+    row('先發',function(i){return '<b>'+(lu[i]==null?'':lu[i])+'</b>'})+
+    row('替補',function(i){var v=c.subRows[k][i][0];return v?v.in+(v.exc?'*':''):''})+
+    row('比分',function(i){var v=c.subRows[k][i][0];return v?v.score:''})+
+    row('換回',function(i){var v=c.subRows[k][i][1];return v?v.in+(v.exc?'*':'')+'<br>'+v.score:''})+
+    row('發球輪轉',function(i){
+      var a=c.rounds[k][i].slice();
+      var h=(i===0&&c.serve&&c.serve!==k)?'<span class="xm">V</span> ':(i===0&&c.serve===k?'<span class="xm">X</span> ':'');
+      h+=a.join(' ');
+      if(i===last)h+=' <span class="endc">'+c.score[k]+'</span>';
+      return h},'rd')+
+    '</table>'+pointsGrid(c,k,target(s,n))+'</div></div>';
+}
+function reportHtml(s,m){
+  var A=s.sets[1].left||'t1',B=other(A),i=s.info,h='';
+  [1,2,3].forEach(function(n){
+    var c=s.sets[n],L=n<3?A:(c.left||A),R=other(L);
+    if(n===3&&c.swapped)L=other(c.left),R=c.left;
+    h+='<section class="setb"><div class="seth"><b>第 '+n+' 局</b><span>開始 '+esc(c.started?setStartHM(s,n):'')+'</span><span>結束 '+(c.endAt?hm(c.endAt):'')+'</span><span>時間 '+(c.ended?setMin(c)+' 分':'')+'</span>'+(n===3?'<span>換場比分 '+esc(c.swapScore||'')+'</span>':'')+'<span>比分 '+(c.started?c.score[L]+' : '+c.score[R]:'')+'</span></div><div class="setg">'+teamBlock(s,n,L)+teamBlock(s,n,R)+'</div></section>';
+  });
+  function rost(k){
+    var t=s.teams[k],rows='',regs=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0}),libs=t.players.filter(function(p){return t.liberos.indexOf(p.no)>=0});
+    function line(p){var cap=p&&t.captain===p.no;return '<tr><td>'+(p?(cap?'<span class="ca">'+p.no+'</span>':p.no):'')+'</td><td>'+(p?esc(p.name):'')+'</td></tr>'}
+    for(var j=0;j<12;j++)rows+=line(regs[j]);
+    rows+='<tr><th colspan="2">自由球員 L</th></tr>'+line(libs[0])+line(libs[1]);
+    return '<table class="ro"><tr><th colspan="2">'+(k===A?'A ':'B ')+esc(tName(s,k))+'</th></tr><tr><th>號碼</th><th>姓名</th></tr>'+rows+
+      STAFF.map(function(f){return '<tr><th>'+f[1]+'</th><td>'+esc(t.staff[f[0]])+'</td></tr>'}).join('')+'<tr><th>隊長簽名</th><td class="sg"></td></tr><tr><th>教練簽名</th><td class="sg"></td></tr></table>';
+  }
+  var sum={};['A','B'].forEach(function(x){sum[x]={to:0,su:0,w:0,pt:0}});
+  var res=[1,2,3].filter(function(n){return s.sets[n].ended}).map(function(n){var c=s.sets[n];
+    [['A',A],['B',B]].forEach(function(p){var o=sum[p[0]],k=p[1];o.to+=c.timeouts[k].length;o.su+=c.subs[k].length;o.w+=c.winner===k?1:0;o.pt+=c.score[k]});
+    return statRow(c,n,A,B,c.winner)}).join('');
+  var mins=[1,2,3].reduce(function(a,n){return a+(s.sets[n].ended?setMin(s.sets[n]):0)},0);
+  var foot='<tr><td>'+sum.A.to+'</td><td>'+sum.A.su+'</td><td>'+sum.A.w+'</td><td>'+sum.A.pt+'</td><td>合計（'+mins+'）</td><td>'+sum.B.pt+'</td><td>'+sum.B.w+'</td><td>'+sum.B.su+'</td><td>'+sum.B.to+'</td></tr>';
+  var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',over=matchOver(s),lastEnd=[3,2,1].map(function(n){return s.sets[n].endAt}).filter(Boolean)[0];
+  var notes=[];
+  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc)notes.push('第 '+n+' 局 '+tName(s,k)+' 例外替補 '+x.out+' 換 '+x.in+'（'+x.score+'）')})})});
+  s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+tName(s,x.team)+' '+x.no+' 號傷停')});
+  if(s.forfeit)notes.push(tName(s,s.forfeit)+' 棄權');
+  return '<div class="rv"><div class="rvbar"><button data-act="rpclose">關閉</button><button class="go" data-act="rpprint">列印／存 PDF</button><button data-act="rpcsv">下載 CSV</button><button data-act="rpjson">下載備份</button><button data-act="rpcopy">複製 CSV</button><span id="rvmsg" class="muted"></span></div><div class="rvscroll"><article class="paper"><header class="ph"><h1>排球比賽記錄表</h1><div><span>比賽名稱：'+esc(i.name)+'</span><span>地點：'+esc(i.place)+'</span><span>場地：'+esc(i.court)+'</span><span>組別：'+esc(i.division)+'</span><span>場次：'+esc(i.game)+'</span><span>日期：'+esc(i.date)+'</span><span>表定時間：'+esc(i.time)+'</span></div></header><div class="pm"><div class="pl">'+h+'</div><aside class="pr"><div class="ros">'+rost(A)+rost(B)+'</div><h3>比賽成績</h3>'+statTable(s,res,foot)+'<div class="ts"><span>開始 '+esc(i.actual||'')+'</span><span>結束 '+(lastEnd?hm(lastEnd):'')+'</span><span>勝隊：'+(over?esc(tName(s,win))+' '+w[win]+':'+w[other(win)]:'')+'</span></div><h3>制裁</h3>'+recordsHtml(s)+'<h3>記事欄</h3><div class="nt">'+esc(notes.join('；'))+'</div><h3>證明</h3><table class="sgn"><tr><th>第一裁判</th><td></td><th>第二裁判</th><td></td></tr><tr><th>記錄員</th><td></td><th>助理記錄</th><td></td></tr><tr><th>隊長 A</th><td></td><th>隊長 B</th><td></td></tr></table></aside></div></article></div></div>';
+}
+function csvText(m,s){
+  var A=s.sets[1].left||'t1',B=other(A),nm={t1:tName(s,'t1'),t2:tName(s,'t2')},dead={},lines=[];
+  m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
+  var pt={};m.events.forEach(function(e){if(e.type!=='AMEND'||dead[e.id])return;if(e.data.del)dead[e.data.target]=1;else pt[e.data.target]=Object.assign(pt[e.data.target]||{},e.data.patch)});
+  function q(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+  lines.push(['比賽',s.info.name,'組別',s.info.division,'場次',s.info.game,'日期',s.info.date,'開始',s.info.actual].map(q).join(','));
+  lines.push(['A',nm[A],'B',nm[B]].map(q).join(','));
+  lines.push('局,A得分,B得分,勝隊,分鐘,A暫停,B暫停,A替補,B替補');
+  [1,2,3].forEach(function(n){var c=s.sets[n];if(!c.started)return;lines.push([n,c.score[A],c.score[B],c.winner?nm[c.winner]:'',setMin(c),c.timeouts[A].length,c.timeouts[B].length,c.subs[A].length,c.subs[B].length].map(q).join(','))});
+  lines.push('');lines.push('時間,局,事件,隊伍,內容,A分,B分');
+  var map={POINT:'得分',SERVE:'發球',REPLAY:'公正',TIMEOUT:'暫停',SUB:'替補',LIBERO_IN:'自由球員上場',LIBERO_OUT:'自由球員下場',LIBERO_SWAP:'自由球員互換',SANCTION:'判罰',INJURY:'傷停',INCOMPLETE:'陣容不完整',FORFEIT:'棄權',SIDES_SWAPPED:'換場',SET_STARTED:'開局',SET_ENDED:'局結束'};
+  var KIND={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'};
+  var seen=[];
+  m.events.forEach(function(e0){
+    var e=pt[e0.id]?Object.assign({},e0,{data:Object.assign({},e0.data,pt[e0.id])}):e0;
+    if(dead[e.id]||e.type==='UNDO')return;seen.push(e);
+    if(!map[e.type])return;
+    var st=reduce(seen),d=e.data,n=d.set||st.setNo,c=st.sets[n];
+    var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SANCTION'?KIND[d.kind]+' '+d.who:(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
+    lines.push([hm(e.at),n,map[e.type],d.team?nm[d.team]:'',txt,c.score[A],c.score[B]].map(q).join(','));
+  });
+  return '﻿'+lines.join('\r\n');
+}
+function saveFile(name,text,type){
+  var msg=document.getElementById('rvmsg');
+  try{
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+    if(msg)msg.textContent='已送出下載；手機上沒反應時，請用下載的 HTML 檔開啟';
+  }catch(e){if(msg)msg.textContent='這裡不能下載，請用下載的 HTML 檔開啟'}
+}
+function modalHtml(s){
+  if(ui.toAsk){
+    var tk=ui.toAsk,tn=s.sets[s.setNo].timeouts[tk].length+1;
+    return '<div class="scrim"></div><div class="sheet" role="alertdialog"><div class="toask '+tk+'">'+esc(tName(s,tk))+'</div><h2>第 '+tn+' 次暫停？</h2>'+(tn>=2?'<p class="muted">確定後請用手勢告知第二裁判。</p>':'')+'<div class="row"><button data-act="tono">取消</button><button class="go" data-act="toyes">確定</button></div></div>';
+  }
+  if(ui.cs)return startConfirm(s);
+  if(ui.notice)return noticeHtml();
+  if(ui.page!=='play'||matchOver(s))return '';
+  var n=s.setNo,c=s.sets[n],win=setWinner(s),h='';
+  if(win)return '';
+  if(needSwap(s)){
+    h='<h2>換場</h2><p class="muted">一隊先到 '+Math.ceil(target(s,3)/2)+' 分，兩隊交換場區，分數和輪轉不變。</p><div class="row"><button data-act="undo">↶ 復原上一步</button><button class="go" data-act="swap8">確定換場</button></div>';
+  }else{
+    var who=null;
+    ['t1','t2'].forEach(function(k){
+      var t=s.teams[k],k2=c.rally+'-'+c.rot[k];
+      if(who||ui.ackL[k]===k2||!c.libOut[k])return;
+      var fr=[1,2,3].filter(function(p){return t.liberos.indexOf(courtPlayer(c,k,p))>=0}).length>0;
+      var sv=c.serving===k&&t.liberos.indexOf(courtPlayer(c,k,0))>=0;
+      if(fr||sv)who={k:k,sv:sv&&!fr,key:k2};
+    });
+    if(!who)return '';
+    var ou=c.libOut[who.k];
+    h='<h2>'+esc(tName(s,who.k))+' 自由球員'+(who.sv?'輪到發球':'到前排')+'</h2><p class="muted">自由球員'+(who.sv?'不能發球':'不能到前排')+'，請換回 '+ou.no+' 號。</p><div class="row"><button data-act="undo">↶ 復原上一步</button><button class="go" data-act="libout" data-team="'+who.k+'">換回 '+ou.no+' 號</button></div>';
+  }
+  return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+}
+function sheetHtml(s,m){
+  var x=ui.sheet; if(!x)return '';
+  var k=x.team,t=s.teams[k],h='';
+  if(x.type==='points'){
+    h='<h2>每局分數設定</h2><p class="muted">Deuce 無上限：先領先 2 分的贏。搶分：先到設定分數的贏。</p><div class="ptset">'+[1,2,3].map(function(n){
+      var dis=s.sets[n].started,cap=capOf(s,n),d=dis?' disabled':'';
+      return '<strong>第 '+n+' 局</strong>'+field('i-p'+n,'局分',target(s,n),dis,{field:'p'+n,kind:'info',type:'number'})+
+        '<div class="sw"><span class="muted">Deuce 上限</span><div class="seg"><button data-act="capmode" data-v="'+n+'" data-m="off" aria-pressed="'+!cap+'"'+d+'>無上限</button><button data-act="capmode" data-v="'+n+'" data-m="on" aria-pressed="'+!!cap+'"'+d+'>搶分</button></div></div>'+
+        (cap?field('i-c'+n,'搶到',cap,dis,{field:'c'+n,kind:'info',type:'number'}):'<span></span>');
+    }).join('')+'</div><button class="primary" data-act="close">完成</button>';
+  }else if(x.type==='leave'){
+    h='<h2>離開這場比賽？</h2><p class="muted">比賽還沒打完。紀錄會保留，之後從比賽列表按「開啟」可以繼續。</p><div class="row"><button data-act="close">取消</button><button class="danger" data-act="home">確定離開</button></div>';
+  }else if(x.type==='pf'){
+    var pn=s.teams.t1.name.trim()&&s.teams.t2.name.trim();
+    if(!pn)h='<h2>賽前沒收</h2><p class="subhint">請先到名單填好兩隊隊名</p><button data-act="close">關閉</button>';
+    else{
+      h='<h2>賽前沒收</h2><p class="subhint">沒收原因</p><div class="seg" style="flex:none">'+['逾時未出賽','陣容不完整'].map(function(r){return '<button data-act="pfreason" data-v="'+r+'" aria-pressed="'+(x.reason===r)+'">'+r+'</button>'}).join('')+'</div><p class="subhint">獲勝隊伍</p><div class="teampick'+(x.win?' picked':'')+'">'+['t1','t2'].map(function(q){return '<button class="'+q+'" data-act="pfwin" data-team="'+q+'" aria-pressed="'+(x.win===q)+'">'+esc(tName(s,q))+'</button>'}).join('')+'</div>';
+      if(x.reason&&x.win)h+='<p class="muted">因 B 隊「'+esc(tName(s,other(x.win)))+'」'+x.reason+'，由 A 隊「'+esc(tName(s,x.win))+'」以 2:0 (25:0 25:0) 獲勝。確定後比賽直接結束。</p>';
+      h+='<div class="row"><button data-act="close">取消</button><button class="danger" data-act="pfdo"'+(x.reason&&x.win?'':' disabled')+'>確定沒收</button></div>';
+    }
+  }else if(x.type==='amend'){
+    var e=s.log.filter(function(q){return q.id===x.id})[0];
+    if(!e){h='<button data-act="close">關閉</button>'}
+    else{
+      var ec=s.sets[e.set],et=s.teams[e.team],eo=other(e.team),hd='第 '+e.set+' 局 '+esc(tName(s,e.team))+' '+e.score;
+      if(x.del){
+        h='<h2>確定刪除？</h2><p class="subhint">'+hd+' '+(e.kind==='T'?'暫停':e.out+' 換 '+e.in)+'</p><div class="row"><button data-act="amendback">返回</button><button class="danger" data-act="amenddel">確定刪除</button></div>';
+      }else if(e.kind==='T'){
+        var full=ec.timeouts[eo].length>=2;
+        h='<h2>'+hd+' 暫停</h2>'+(full?'<p class="muted">'+esc(tName(s,eo))+' 這局已經 2 次暫停，不能改過去。</p>':'')+'<button class="primary" data-act="amendto"'+(full?' disabled':'')+'>改成 '+esc(tName(s,eo))+' 暫停</button><button class="danger" data-act="amendask">刪除這筆</button><button data-act="close">取消</button>';
+      }else{
+        var later=s.log.slice(s.log.indexOf(e)+1).some(function(q){return q.set===e.set&&q.team===e.team&&q.idx===e.idx&&q.kind!=='T'});
+        h='<h2>'+hd+' '+e.out+' 換 '+e.in+'</h2>';
+        if(later)h+='<p class="muted">這個位置後面還有換人或自由球員，要先處理後面那筆才能改。</p><button data-act="close">關閉</button>';
+        else{
+          if(!e.ret){
+            var used=[];ec.subPos[e.team].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
+            var ins=et.players.map(function(p){return p.no}).filter(function(no){return et.liberos.indexOf(no)<0&&ec.cur[e.team].indexOf(no)<0&&ec.lineups[e.team].indexOf(no)<0&&used.indexOf(no)<0&&ec.expelled[e.team].indexOf(no)<0&&s.matchOut[e.team].indexOf(no)<0});
+            var ous=[0,1,2,3,4,5].filter(function(i){return i!==e.idx&&!s.log.some(function(q){return q.set===e.set&&q.team===e.team&&q.idx===i&&q.kind!=='T'})});
+            h+='<p class="subhint">上場的人改成</p><div class="bench"><div class="benchrow">'+(ins.map(function(no){return '<button class="chip '+e.team+'" data-act="amendin" data-v="'+no+'"><b>'+no+'</b></button>'}).join('')||'<span class="muted">沒有其他可選的人</span>')+'</div></div>';
+            h+='<p class="subhint">換下的人改成</p><div class="bench"><div class="benchrow">'+(ous.map(function(i){return '<button class="chip '+e.team+'" data-act="amendout" data-v="'+i+'"><b>'+ec.lineups[e.team][i]+'</b></button>'}).join('')||'<span class="muted">沒有其他可選的人</span>')+'</div></div>';
+          }
+          h+='<div class="row"><button class="danger" data-act="amendask">刪除這筆</button><button data-act="close">取消</button></div>';
+        }
+      }
+    }
+  }else if(x.type==='fix'){
+    var fc=s.sets[s.setNo],fl=fc.lineups[k];
+    if(x.pos==null){
+      h='<h2>修正 '+esc(tName(s,k))+' 陣容</h2><p class="subhint">點輸入錯誤的位置</p><div class="fixpos">'+[3,2,1,4,5,0].map(function(i){return '<button data-act="fixpos" data-v="'+i+'"><small>'+ROMAN[i]+'</small><b>'+fl[i]+'</b></button>'}).join('')+'</div><p class="muted">用於記錄台輸入錯誤，比分和輪轉不會改變。</p><button data-act="close">取消</button>';
+    }else if(x.no==null){
+      var used=[];fc.subPos[k].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
+      var nos=t.players.map(function(p){return p.no}).filter(function(no){return no!==fl[x.pos]&&t.liberos.indexOf(no)<0&&used.indexOf(no)<0&&fc.expelled[k].indexOf(no)<0&&s.matchOut[k].indexOf(no)<0});
+      h='<h2>'+ROMAN[x.pos]+' 位原本是 '+fl[x.pos]+' 號</h2><p class="subhint">點正確的背號</p><div class="bench"><div class="benchrow">'+nos.map(function(no){return '<button class="chip '+k+'" data-act="fixno" data-v="'+no+'"><b>'+no+'</b></button>'}).join('')+'</div></div><button data-act="fixback">返回</button>';
+    }else{
+      var oi=fl.indexOf(x.no);
+      h='<h2>確定修正？</h2><p class="subhint">'+(oi>=0?ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號與 '+ROMAN[oi]+' 位 '+x.no+' 號互換':ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號改為 '+x.no+' 號')+'</p><p class="muted">比分和輪轉不變。</p><div class="row"><button data-act="fixback">返回</button><button class="go" data-act="fixdo">確定修正</button></div>';
+    }
+  }else if(x.type==='gcap'){
+    var cu=s.sets[s.setNo].cur[k],gc=s.sets[s.setNo].gameCaptain[k];
+    h='<h2>'+esc(tName(s,k))+' 場上隊長</h2><div class="bench"><div class="benchrow">'+cu.map(function(n){return '<button class="chip '+k+'" data-act="gcset" data-team="'+k+'" data-no="'+n+'" aria-pressed="'+(gc===n)+'"><b>'+n+'</b></button>'}).join('')+'</div></div><button data-act="close">稍後再選</button>';
+  }else if(x.type==='staff'){
+    h='<h2>職員（全部選填）</h2><div class="fields">'+STAFF.map(function(f){return field('s-'+f[0],f[1],t.staff[f[0]],t.locked,{kind:'staff',team:k,field:f[0]})}).join('')+'</div><button class="primary" data-act="close">完成</button>';
+  }else if(x.type==='color'){
+    var cur=t.color||JERSEY_DEFAULT[k],lc=t.liberoColor;
+    function grid(act,val){return '<div class="colors">'+JERSEY.map(function(j){
+      return '<button style="--j:'+j.j+'" data-act="'+act+'" data-team="'+k+'" data-v="'+j.id+'" aria-pressed="'+(val===j.id)+'" aria-label="'+j.n+'"><i></i>'+j.n+'</button>'}).join('')+'</div>'}
+    h='<h2>'+esc(tName(s,k))+' 球衣顏色</h2>'+grid('color',cur)+'<h2>自由球員球衣</h2>'+grid('lcolor',lc)+'<button class="ghost" data-act="lcolor" data-team="'+k+'" data-v=""'+(lc?'':' disabled')+'>自由球員和隊上同色</button><button class="primary" data-act="close">完成</button>';
+  }else if(x.type==='import'){
+    var list=pastTeams(m.id).filter(function(p){return p.name!==s.teams[other(k)].name.trim()});
+    h='<h2>載入先前隊伍</h2>'+list.map(function(p,i){
+      if(ui.pending===p.name)return '<div class="warning">載入「'+esc(p.name)+'」會取代目前的 '+t.players.length+' 人名單。<div class="row" style="margin-top:8px"><button class="danger" data-act="import-yes" data-team="'+k+'" data-i="'+i+'">取代</button><button data-act="import-cancel">取消</button></div></div>';
+      return '<button class="imp" data-act="import-pick" data-team="'+k+'" data-i="'+i+'"><span>'+esc(p.name)+'</span><small>'+p.team.players.length+' 人'+(p.date?'・'+esc(p.date.slice(5)):'')+'</small></button>';
+    }).join('')+'<button class="ghost" data-act="close">關閉</button>';
+  }
+  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+}
+/* 文字欄位改完只更新狀態，不重畫整頁，避免手指同時按下的按鈕被換掉 */
+function refreshStatus(){
+  var m=current(); if(!m)return;
+  var s=reduce(m.events);
+  var rs=document.getElementById('nav-rstat');if(rs)rs.outerHTML=rosterStat(s);
+  ['t1','t2'].forEach(function(k){
+    var a=document.getElementById('nav-'+k),c=document.getElementById('foot-'+k);
+    if(a)a.textContent=tName(s,k);
+    if(c)c.innerHTML=footHtml(k,s.teams[k],s);
+  });
+}
+app.addEventListener('change',function(e){
+  if(e.target.id==='import-file'){
+    var fl=e.target.files[0],out=document.getElementById('import-msg');if(!fl)return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var o=JSON.parse(rd.result),im=o&&o.match;
+        if(!im||!im.id||!Array.isArray(im.events))throw 0;
+        if(db.matches.some(function(x){return x.id===im.id})){out.textContent='這場比賽已經在列表裡';return}
+        db.matches.unshift(im);save();render();
+      }catch(err){out.textContent='讀不出這個檔案，請選下載的備份檔'}
+    };
+    rd.readAsText(fl);return;
+  }
+  var el=e.target,kind=el.getAttribute('data-kind'),k=el.getAttribute('data-team'),val=el.value.trim();
+  if(!kind||!current())return;
+  if(kind==='info')dispatch('INFO_SET',{field:el.getAttribute('data-field'),value:val});
+  else if(kind==='teamname')dispatch('TEAM_NAME_SET',{team:k,value:val});
+  else if(kind==='staff')dispatch('STAFF_SET',{team:k,field:el.getAttribute('data-field'),value:val});
+  else if(kind==='pname'&&el.getAttribute('data-no')!=='')dispatch('PLAYER_NAME_SET',{team:k,no:Number(el.getAttribute('data-no')),name:val});
+  refreshStatus();
+});
+function firstPage(s){
+  return s.sets[1].started?(s.sets[s.setNo].started?'play':'toss'):'roster';
+}
+app.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]'); if(!b)return;
+  var act=b.getAttribute('data-act'),k=b.getAttribute('data-team'),noAttr=b.getAttribute('data-no'),no=(noAttr===null||noAttr==='')?null:Number(noAttr);
+  var m=current(),s=m?reduce(m.events):null,t=(s&&k)?s.teams[k]:null,n=s?s.setNo:1,c=s?s.sets[n]:null;
+  switch(act){
+    case 'new': var nm=createMatch(defaultInfo()); db.currentId=nm.id; save(); resetUi(); view='setup'; break;
+    case 'open': db.currentId=b.getAttribute('data-id'); save(); resetUi(); ui.page=firstPage(reduce(current().events)); view='setup'; break;
+    case 'home': view='home'; ui.delMatch=null; break;
+    case 'del-ask': ui.delMatch=b.getAttribute('data-id'); break;
+    case 'del-no': ui.delMatch=null; break;
+    case 'del-yes':
+      var id=b.getAttribute('data-id');
+      db.matches=db.matches.filter(function(x){return x.id!==id});
+      if(db.currentId===id)db.currentId=null;
+      ui.delMatch=null; save(); break;
+    case 'sample': makeSample(); break;
+    case 'page': ui.page=b.getAttribute('data-v'); ui.liveSheet=false; ui.rtab=null; ui.sel=null; ui.luTeam=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; break;
+    case 'div': dispatch('INFO_SET',{field:'division',value:s.info.division===b.getAttribute('data-v')?'':b.getAttribute('data-v')}); break;
+    case 'key':
+      ui.msg[k]='';
+      ui.entry[k]+=b.getAttribute('data-v');
+      if(ui.entry[k].length>=2)commitNumber(k,t);
+      break;
+    case 'back': ui.msg[k]=''; ui.entry[k]=ui.entry[k].slice(0,-1); break;
+    case 'add': commitNumber(k,t); break;
+    case 'lutab': ui.luTeam=k; ui.sel=null; break;
+    case 'slot':
+      ['t1','t2'].forEach(function(x){if(ui.slot[x]&&ui.entry[x]!==''){commitNumber(x,s.teams[x])}ui.slot[x]=null;ui.entry[x]='';ui.msg[x]=''});
+      var kind=b.getAttribute('data-kind'),t3=reduce(m.events).teams[k];
+      if(no!==null&&!t3.players.some(function(p){return p.no===no}))break;
+      if(no===null)ui.slot[k]={kind:kind,no:null,idx:kind==='lib'?t3.liberos.length:regularCount(t3)};
+      else ui.slot[k]={kind:kind,no:no,idx:Number(b.getAttribute('data-i'))};
+      ui.msg[k]='';
+      break;
+    case 'kpclose': commitNumber(k,t); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
+    case 'sheet': ui.sheet={type:b.getAttribute('data-v'),team:k}; ui.pending=null; break;
+    case 'pfreason': ui.sheet.reason=b.getAttribute('data-v'); break;
+    case 'pfwin': ui.sheet.win=k; break;
+    case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;
+    case 'fixset': ui.fixSet=Number(b.getAttribute('data-v')); break;
+    case 'amendopen': ui.sheet={type:'amend',id:b.getAttribute('data-v')}; break;
+    case 'amendask': ui.sheet.del=true; break;
+    case 'amendback': ui.sheet.del=false; break;
+    case 'amenddel': case 'amendto': case 'amendin': case 'amendout':
+      var ae=s.log.filter(function(q){return q.id===ui.sheet.id})[0],av=Number(b.getAttribute('data-v')),ah='第 '+ae.set+' 局 '+ae.score+' '+tName(s,ae.team)+' ';
+      if(act==='amenddel')dispatch('AMEND',{target:ae.id,del:true,note:ah+'刪除'+(ae.kind==='T'?'暫停':'替補 '+ae.out+' 換 '+ae.in)});
+      else if(act==='amendto')dispatch('AMEND',{target:ae.id,patch:{team:other(ae.team)},note:ah+'暫停改為 '+tName(s,other(ae.team))});
+      else if(act==='amendin')dispatch('AMEND',{target:ae.id,patch:{in:av},note:ah+'替補更正：'+ae.out+' 換 '+ae.in+' 改為 '+ae.out+' 換 '+av});
+      else{var ano=s.sets[ae.set].lineups[ae.team][av];dispatch('AMEND',{target:ae.id,patch:{idx:av,out:ano},note:ah+'替補更正：'+ae.out+' 換 '+ae.in+' 改為 '+ano+' 換 '+ae.in})}
+      ui.sheet=null; break;
+    case 'fixopen': ui.sheet={type:'fix',team:k}; break;
+    case 'fixpos': ui.sheet.pos=Number(b.getAttribute('data-v')); break;
+    case 'fixno': ui.sheet.no=Number(b.getAttribute('data-v')); break;
+    case 'fixback': if(ui.sheet.no!=null)ui.sheet.no=null; else ui.sheet.pos=null; break;
+    case 'fixdo': dispatch('LINEUP_CORRECTED',{set:s.setNo,team:ui.sheet.team,pos:ui.sheet.pos,no:ui.sheet.no}); ui.sheet=null; break;
+    case 'close': if(document.activeElement)document.activeElement.blur(); ui.sheet=null; ui.pending=null; break;
+    case 'rm': dispatch('PLAYER_REMOVED',{team:k,no:no}); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
+    case 'color': dispatch('TEAM_COLOR_SET',{team:k,color:b.getAttribute('data-v')}); break;
+    case 'lcolor': dispatch('LIBERO_COLOR_SET',{team:k,color:b.getAttribute('data-v')||null}); break;
+    case 'cap': dispatch('CAPTAIN_SET',{team:k,no:t.captain===no?null:no}); break;
+    case 'lib':
+      var on=t.liberos.indexOf(no)<0;
+      if(on&&t.liberos.length>=MAX_LIBEROS){ui.msg[k]='自由球員最多 '+MAX_LIBEROS+' 名';break}
+      if(!on&&regularCount(t)>=MAX_PLAYERS){ui.msg[k]='一般球員已滿 '+MAX_PLAYERS+' 人';break}
+      ui.msg[k]=''; dispatch('LIBERO_SET',{team:k,no:no,on:on}); ui.slot[k]=null; break;
+    case 'import-cancel': ui.pending=null; break;
+    case 'import-pick':
+    case 'import-yes':
+      var list=pastTeams(m.id).filter(function(p){return p.name!==s.teams[other(k)].name.trim()});
+      var pick=list[Number(b.getAttribute('data-i'))];
+      if(!pick)break;
+      if(act==='import-pick'&&t.players.length){ui.pending=pick.name;break}
+      dispatch('TEAM_IMPORTED',{team:k,snapshot:pick.team,fromName:pick.name});
+      ui.sheet=null; ui.pending=null; ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]='';
+      break;
+    case 'toss':
+      break;
+    case 'ball': dispatch('TOSS_SET',{set:n,left:sideLeft(s),serve:k}); break;
+    case 'swap': dispatch('TOSS_SET',{set:n,left:other(sideLeft(s))}); break;
+    case 'cell': ui.sel={team:k,pos:Number(b.getAttribute('data-v'))}; break;
+    case 'fill':
+      dispatch('LINEUP_SET',{set:n,team:ui.sel.team,pos:ui.sel.pos,no:no});
+      ui.sel=null; autoSelect(reduce(m.events)); break;
+    case 'clearpos': dispatch('LINEUP_SET',{set:n,team:ui.sel.team,pos:ui.sel.pos,no:null}); break;
+    case 'copy': dispatch('LINEUP_COPIED',{set:n,team:k}); ui.sel=null; autoSelect(reduce(m.events)); break;
+    case 'gcap': dispatch('GAME_CAPTAIN_SET',{set:n,team:k,no:c.gameCaptain[k]===no?null:no}); break;
+    case 'lu-lock': dispatch('LINEUP_LOCKED',{set:n,team:k}); var ls=reduce(m.events); if(!ls.sets[n].locked[other(k)])ui.luTeam=other(k); ui.sel=null; autoSelect(ls); break;
+    case 'lu-copy': dispatch('LINEUP_COPIED',{set:n,team:k}); ui.sel=null; autoSelect(reduce(m.events)); break;
+    case 'lu-unlock': dispatch('LINEUP_UNLOCKED',{set:n,team:k}); ui.sel=null; autoSelect(reduce(m.events)); break;
+    case 'start': if(n===2){dispatch('SET_STARTED',{set:n}); ui.sel=null; ui.page='play'}else ui.cs=true; break;
+    case 'cs-no': ui.cs=false; break;
+    case 'cs-yes':
+      var ti=document.getElementById('cs-time');
+      if(ti){if(!ti.value)break;dispatch('INFO_SET',{field:'actual',value:ti.value})}
+      ui.cs=false; dispatch('SET_STARTED',{set:n}); ui.sel=null; ui.page='play'; break;
+    case 'nclose': ui.notice=null; break;
+    case 'penopen': ui.pen={team:null,kind:null}; break;
+    case 'injopen': ui.pen={team:null,kind:b.getAttribute('data-v')}; break;
+    case 'penclose': if(ui.pen&&ui.pen.resume)ui.sub=ui.pen.resume; ui.pen=null; break;
+    case 'penback': ui.pen.kind=null; break;
+    case 'penteam': ui.pen.team=k; break;
+    case 'penkind': ui.pen={team:k,kind:b.getAttribute('data-v'),resume:ui.sub}; ui.sub=null; break;
+    case 'pendo': ui.pen.team=k; ui.pen.ok={kind:b.getAttribute('data-v'),who:'隊'}; break;
+    case 'penwho': var wv=b.getAttribute('data-v'); ui.pen.ok={kind:ui.pen.kind,who:no===null?wv:no}; break;
+    case 'penno': ui.pen.ok=null; break;
+    case 'penyes':
+      var pk=ui.pen.ok,who=pk.who,kd=pk.kind;k=ui.pen.team;no=typeof who==='number'?who:null;
+      dispatch('SANCTION',{set:n,team:k,kind:kd,who:who}); ui.pen=null;
+      if((kd==='E'||kd==='D')&&no!==null&&c.cur[k]&&c.cur[k].indexOf(no)>=0&&s.teams[k].liberos.indexOf(no)<0)ui.sub={team:k,idx:c.cur[k].indexOf(no),exc:false,ids:[],forced:true};
+      break;
+    case 'forceexc': ui.sub.exc=true; break;
+    case 'injpick':
+      dispatch('INJURY',{set:n,team:k,no:no}); ui.pen=null;
+      ui.timer={team:k,end:Date.now()+180000,shown:true,closed:true,label:'傷停 '+no+' 號'}; break;
+    case 'inc':
+      dispatch('INCOMPLETE',{set:n,team:k,scope:b.getAttribute('data-v')}); ui.pen=null; ui.sub=null; ui.timer=null;
+      if(!matchOver(reduce(m.events))){dispatch('SET_ADVANCED',{blank:true}); ui.luTeam=null; ui.page=reduce(m.events).setNo===2?'lineup':'toss'} else ui.page='play';
+      break;
+    case 'forfeit': dispatch('FORFEIT',{team:k}); ui.pen=null; ui.sub=null; ui.timer=null; ui.page='play'; break;
+    case 'rtab': ui.rtab=b.getAttribute('data-v'); break;
+    case 'fsopen':
+      ui.fs=true;
+      try{var fe=document.documentElement;if(fe.requestFullscreen){var fp=fe.requestFullscreen();if(fp&&fp.then)fp.then(function(){if(screen.orientation&&screen.orientation.lock)return screen.orientation.lock('landscape')}).catch(function(){})}}catch(err){}
+      break;
+    case 'fsclose':
+      ui.fs=false;
+      try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();if(document.fullscreenElement)document.exitFullscreen().catch(function(){})}catch(err){}
+      break;
+    case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='s'+s.setNo; break;
+    case 'sheetclose': ui.liveSheet=false; ui.rtab=null; break;
+    case 'report': ui.report=true; break;
+    case 'rpclose': ui.report=false; break;
+    case 'rpprint': window.print(); return;
+    case 'rpcsv': saveFile(fname(s,'csv'),csvText(m,s),'text/csv;charset=utf-8'); return;
+    case 'rpjson': saveFile(fname(s,'json'),JSON.stringify({app:'volleyball-scoresheet',version:1,match:m}),'application/json'); return;
+    case 'rpcopy':
+      var ms=document.getElementById('rvmsg'),txt=csvText(m,s);
+      try{navigator.clipboard.writeText(txt).then(function(){ms.textContent='已複製 CSV'},function(){ms.textContent='無法複製'})}catch(er){ms.textContent='無法複製'}
+      return;
+    case 'serve': if(Date.now()<(ui.noServe||0))return; ui.lib=null; ui.sub=null; ui.timer=null; dispatch('SERVE',{set:n}); break;
+    case 'replay': dispatch('REPLAY',{set:n}); break;
+    case 'point': dispatch('POINT',{set:n,team:k}); break;
+    case 'timeout': ui.toAsk=k; break;
+    case 'tono': ui.toAsk=null; break;
+    case 'toyes': k=ui.toAsk; ui.toAsk=null; dispatch('TIMEOUT',{set:n,team:k}); ui.timer={team:k,end:Date.now()+30000,shown:false,closed:false}; break;
+    case 'tmclose': if(ui.timer)ui.timer.closed=true; break;
+    case 'tmend': ui.timer=null; break;
+    case 'libcell': ui.sub=null; ui.lib=(ui.lib&&ui.lib.no===no&&ui.lib.team===k)?null:{team:k,no:no}; break;
+    case 'libout': ui.lib=null; dispatch('LIBERO_OUT',{set:n,team:k}); break;
+    case 'ackl': ui.ackL[k]=b.getAttribute('data-v'); break;
+    case 'subopen': ui.lib=null; ui.sub={team:k,idx:null,exc:b.getAttribute('data-m')==='exc',ids:[]}; break;
+    case 'subcancel': (ui.sub.ids||[]).slice().reverse().forEach(function(id){dispatch('UNDO',{target:id})}); ui.sub=null; ui.noServe=Date.now()+700; break;
+    case 'subclose':
+      var cnt=c.subCount[ui.sub.team];
+      if(!ui.sub.exc&&(ui.sub.ids||[]).length&&cnt>=5)ui.notice=tName(s,ui.sub.team)+' 第 '+cnt+' 次替補';
+      ui.sub=null; ui.noServe=Date.now()+700; break;
+    case 'subinj': ui.sub.inj=!ui.sub.inj; break;
+    case 'subin': dispatch('SUB',{set:n,team:k,idx:ui.sub.idx,out:c.cur[k][ui.sub.idx],in:no,exc:ui.sub.exc,injury:!!(ui.sub.exc&&ui.sub.inj)}); ui.sub.ids.push(m.events[m.events.length-1].id); ui.sub.idx=null; break;
+    case 'gcappick': ui.sheet={type:'gcap',team:k}; break;
+    case 'capmode':
+      var cn=b.getAttribute('data-v');
+      dispatch('INFO_SET',{field:'c'+cn,value:b.getAttribute('data-m')==='on'?(capOf(s,Number(cn))||target(s,Number(cn))+2):''});
+      break;
+    case 'lurot': dispatch('LINEUP_ROTATED',{set:n,team:k,dir:b.getAttribute('data-v')}); ui.sel=null; break;
+    case 'gcset': dispatch('GAME_CAPTAIN_SET',{set:n,team:k,no:no}); ui.sheet=null; break;
+    case 'pcell':
+      var ix=Number(b.getAttribute('data-v'));
+      if(ui.sub){ui.sub.idx=ix;break}
+      if(ui.lib){
+        if(c.libOut[k]&&s.teams[k].liberos.indexOf(c.cur[k][ix])>=0)dispatch('LIBERO_SWAP',{set:n,team:k,lib:ui.lib.no});
+        else if(c.libOut[k]){ui.lib=null;break}
+        else dispatch('LIBERO_IN',{set:n,team:k,lib:ui.lib.no,idx:ix});
+        ui.lib=null;
+      }
+      break;
+    case 'undo': ui.rtab=null; var last=lastUndoable(m); if(last){dispatch('UNDO',{target:last.id}); if(last.type==='TIMEOUT')ui.timer=null; if(last.type==='SET_STARTED'){ui.page='lineup';ui.sel=null;ui.luTeam=null}} break;
+    case 'swap8': dispatch('SIDES_SWAPPED',{set:n}); break;
+    case 'endset':
+      dispatch('SET_ENDED',{set:n,winner:k});
+      var after=reduce(m.events);
+      if(!matchOver(after)){dispatch('SET_ADVANCED',{blank:true}); ui.luTeam=null; ui.lib=null; ui.sub=null; ui.page=reduce(m.events).setNo===2?'lineup':'toss'}
+      ui.rtab=null;
+      break;
+    default: return;
+  }
+  render();
+});
+function commitNumber(k,t){
+  var raw=ui.entry[k],sl=ui.slot[k];
+  if(raw==='')return true;
+  var n=Number(raw),old=sl.no;
+  if(t.players.some(function(p){return p.no===n&&p.no!==old})){ui.msg[k]=n+' 號已在名單上';ui.entry[k]='';return false}
+  if(old!==null){
+    if(n!==old)dispatch('PLAYER_NUMBER_CHANGED',{team:k,from:old,to:n});
+  }else{
+    dispatch('PLAYER_ADDED',{team:k,no:n});
+    if(sl.kind==='lib')dispatch('LIBERO_SET',{team:k,no:n,on:true});
+  }
+  ui.entry[k]=''; ui.msg[k]='';
+  ui.slot[k]=(old===null&&sl.kind==='reg')?autoSlot(reduce(current().events).teams[k]):null;
+  return true;
+}
+
+function makeSample(){
+  var info=defaultInfo(); info.game='範例'; info.division='男子組';
+  var m=createMatch(info);
+  [['t1','範例紅隊',[1,3,5,7,9,11,12,18],3,[12]],['t2','範例藍隊',[2,4,6,8,10,14,15,20,77],6,[15,20]]].forEach(function(c){
+    dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]},m);
+    c[2].forEach(function(n){dispatch('PLAYER_ADDED',{team:c[0],no:n},m)});
+    dispatch('CAPTAIN_SET',{team:c[0],no:c[3]},m);
+    c[4].forEach(function(n){dispatch('LIBERO_SET',{team:c[0],no:n,on:true},m)});
+  });
+}
+
+render();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
