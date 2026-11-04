@@ -1138,7 +1138,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=reduce(m.events);if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-0044';
+var BUILD='1105-0104';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1343,7 +1343,7 @@ function homeHtml(){
   if(g.live.length)body+='<section><h2>進行中</h2><div class="rlist">'+g.live.map(function(x){return resumeRow(x.m,x.s)}).join('')+'</div></section>';
   body+='<section><div class="shead"><h2>歷史紀錄</h2>'+(g.done.length?'<button class="linkbtn" data-act="history">全部 '+g.done.length+' 場</button>':'')+'</div>'+(g.done.length?'<div class="rlist">'+g.done.slice(0,3).map(function(x){return historyRow(x.m,x.s)}).join('')+'</div>':'<p class="muted">打完的比賽會放在這裡，可以隨時打開看記錄表。</p><button class="linkbtn" data-act="history">匯入比賽備份</button>')+'</section>';
   var th=prefs.theme||'auto';
-  body+=inst+storageNote()+'<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div><button class="verbtn" data-act="ver">版本 '+BUILD+'</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
+  body+=inst+storageNote()+'<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
   return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herolinks"><button class="linkbtn" data-act="helpopen">看使用教學</button><button class="linkbtn" data-act="sample">用範例比賽試試</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function historyHtml(){
