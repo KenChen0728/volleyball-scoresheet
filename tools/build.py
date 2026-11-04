@@ -17,6 +17,12 @@ pwa='''<meta name="theme-color" content="#12324F">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="手機、平板、電腦都能用的排球電子記錄表。按發球、按得分，記錄表自動寫好，可以離線使用。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="排球電子記錄表">
+<meta property="og:description" content="按發球、按得分，記錄表自動寫好。資料只存在自己的裝置，可以離線使用。">
+<meta property="og:url" content="https://kenchen0728.github.io/volleyball-scoresheet/">
+<meta property="og:image" content="https://kenchen0728.github.io/volleyball-scoresheet/icons/icon-512.png">
 '''
 reg="<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>\n"
 open(WEB,'w',encoding='utf8').write(base+pwa+s.rstrip()+'\n'+reg)
