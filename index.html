@@ -6,7 +6,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="排球記錄表">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -254,7 +253,7 @@ button.chip.blank{cursor:pointer}
 .ghost-file input{position:absolute;opacity:0;width:1px;height:1px}
 /* 記錄表：一律白底黑字，比照紙本 A4 橫式 */
 .rv{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg)}
-.rvbar{flex:none;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-block:calc(6px + env(safe-area-inset-top,0px)) 6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.rvbar{flex:none;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-block:calc(6px + var(--safe-top)) 6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
 .rvbar button{min-height:40px;font-size:14px}
 .rvscroll{flex:1;min-height:0;overflow:auto;background:#777;padding:10px}
 .paper{--ink:#000;--line:#000;--muted:#333;--bad:#000;width:277mm;min-height:190mm;background:#fff;color:#000;padding:0;font-size:8pt;line-height:1.15;font-variant-numeric:tabular-nums;margin:0 auto}
@@ -409,7 +408,7 @@ button.chip.blank{cursor:pointer}
 /* 浮動面板：手機從下方出現，平板靠右 */
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--panel);border-radius:12px 12px 0 0;max-height:84%;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
-@media (min-width:760px){.sheet{left:auto;top:0;width:360px;max-height:none;border-radius:12px 0 0 12px;padding-top:calc(14px + env(safe-area-inset-top,0px))}}
+@media (min-width:760px){.sheet{left:auto;top:0;width:360px;max-height:none;border-radius:12px 0 0 12px;padding-top:calc(14px + var(--safe-top))}}
 .sheet .imp{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left}
 .sheet .imp small{font-weight:500;color:var(--muted);white-space:nowrap}
 .flag[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
@@ -529,11 +528,11 @@ button.chip.blank{cursor:pointer}
 .excinj button{min-height:40px;font-weight:700;padding:0 12px;flex:none}
 .excinj button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .pfbtn{color:var(--danger,#c0392b)}
-.bar{padding-top:max(6px,env(safe-area-inset-top,0px))}
-.fsin{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
-@media (orientation:portrait){.fsin{padding:0 env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}}
+.bar{padding-top:max(6px,var(--safe-top))}
+.fsin{padding:var(--safe-top) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
+@media (orientation:portrait){.fsin{padding:0 env(safe-area-inset-bottom,0px) 0 var(--safe-top)}}
 .helpbtn{flex:none;width:34px;min-width:34px;min-height:34px;height:34px;padding:0;border-radius:50%;font-weight:800;font-size:17px}
-.help{position:fixed;inset:0;z-index:95;background:var(--bg);display:flex;flex-direction:column;gap:10px;padding:max(10px,env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box;max-width:620px;margin:0 auto}
+.help{position:fixed;inset:0;z-index:95;background:var(--bg);display:flex;flex-direction:column;gap:10px;padding:max(10px,var(--safe-top)) 16px calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box;max-width:620px;margin:0 auto}
 .hhead{flex:none;display:flex;align-items:center;justify-content:space-between;font-weight:800;color:var(--muted)}
 .hhead button{width:40px;min-width:40px;min-height:40px;padding:0}
 .himg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
@@ -549,10 +548,19 @@ button.chip.blank{cursor:pointer}
 @media (max-width:389px){.bartime span:last-child{display:none}}
 /*DESIGN-START*/
 /* 視覺系統：取自記錄台。深藍是球場與版頭，黃色只給「往下走」的主要動作，紅色只給不可逆動作，數字用窄體像計分板。 */
+/* iPhone 頂部。iOS 26 會在跑到狀態列底下的主畫面 App 上蓋一層模糊，約到狀態列下方 40pt，網頁關不掉。
+   現在不再讓 App 跑到狀態列底下；還沒重新加入的舊圖示 inset 大於 0，內容才多往下 40，避開模糊。
+   色帶固定在最上面，捲動的內容不會跑到時間和動態島後面，Safari 也會用它的顏色畫狀態列。 */
+:root{--safe-top:env(safe-area-inset-top,0px)}
+@media (display-mode:standalone){:root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)))}}
+.statusband{position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--brand);z-index:99;pointer-events:none}
+@media print{.statusband{display:none}}
 html{touch-action:manipulation;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 body{overscroll-behavior:none}
 button,label,.bar,.nav,.pc,.ss,.mid,.setbox{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #app{max-width:none;height:100vh;height:100dvh}
+html.iosapp #app{height:var(--app-h)}
+@media (orientation:portrait){html.iosapp .fsin{width:var(--app-h)}}
 button{transition:background-color .1s}
 button:active:not(:disabled){filter:brightness(.92)}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #1F5FC4;outline-offset:1px}
@@ -566,7 +574,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 .warning{flex:none}
 
 /* 版頭 */
-.bar{background:var(--brand);color:#fff;padding-top:max(8px,env(safe-area-inset-top,0px));padding-bottom:8px;min-height:54px}
+.bar{background:var(--brand);color:#fff;padding-top:max(8px,calc(var(--safe-top) + 6px));padding-bottom:8px;min-height:54px}
 .bar h1{font-size:19px;font-weight:800;color:#fff}
 .bar button{background:transparent;border-color:rgba(255,255,255,.38);color:#fff;min-height:38px}
 .bar button:disabled{opacity:.4}
@@ -590,9 +598,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
 /* 主畫面 */
 .home{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch}
-.hero{position:relative;flex:none;overflow:hidden;background:var(--brand);color:#fff;padding:calc(max(14px,env(safe-area-inset-top,0px)) + 18px) 22px 20px;display:flex;flex-direction:column;gap:12px}
+.hero{position:relative;flex:none;overflow:hidden;background:var(--brand);color:#fff;padding:calc(max(14px,var(--safe-top)) + 18px) 22px 20px;display:flex;flex-direction:column;gap:12px}
 .herocourt{position:absolute;inset:0;width:100%;height:100%}
-.heroball{position:absolute;right:-64px;top:calc(env(safe-area-inset-top,0px) - 8px);width:236px;height:236px}
+.heroball{position:absolute;right:-64px;top:calc(var(--safe-top) - 8px);width:236px;height:236px}
 .heroball .ball{width:100%;height:100%;display:block}
 .hero>h1,.hero>p,.hero>button,.herolinks{position:relative}
 .hero h1{font-size:clamp(50px,15vw,84px);line-height:1.04;font-weight:900;letter-spacing:.02em;color:#fff}
@@ -766,16 +774,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   .nav{width:92px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-top:0;border-right:1px solid var(--line);padding-left:env(safe-area-inset-left,0px)}
   .nav button{flex:0 1 72px;min-height:52px}
   .home{flex-direction:row}
-  .hero{width:44%;max-width:560px;flex:none;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 40px 24px max(32px,env(safe-area-inset-left,0px))}
+  .hero{width:44%;max-width:560px;flex:none;justify-content:center;padding:calc(var(--safe-top) + 24px) 40px 24px max(32px,env(safe-area-inset-left,0px))}
   .heroball{width:300px;height:300px;right:-90px;top:-40px}
   .hero h1{font-size:clamp(52px,9vh,88px)}
-  .homebody{overflow:auto;height:100%;flex:1;max-width:none;padding:24px max(28px,env(safe-area-inset-right,0px)) 24px 28px}
+  .homebody{overflow:auto;height:100%;flex:1;max-width:none;padding:calc(var(--safe-top) + 24px) max(28px,env(safe-area-inset-right,0px)) 24px 28px}
   .homebody>*{max-width:600px;width:100%;margin:0 auto}
   .luwrap{flex-direction:row;gap:20px;justify-content:center;align-items:flex-start}
   .lumain{flex:0 0 360px}
   .luside{flex:0 1 480px}
   .page.kpopen{padding-bottom:8px}
-  .kp:not(.bench){top:54px;bottom:0;left:auto;right:0;width:330px;border-top:0;border-left:2px solid var(--ink);justify-content:center}
+  .kp:not(.bench){top:max(54px,calc(var(--safe-top) + 52px));bottom:0;left:auto;right:0;width:330px;border-top:0;border-left:2px solid var(--ink);justify-content:center}
   .kp.t2:not(.bench){right:auto;left:92px;border-left:0;border-right:2px solid var(--ink)}
   .rr{height:32px}
   .pagewide{padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
@@ -800,7 +808,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   .wsheet svg{width:100%;height:100%}
 .help.menu{flex-direction:column;flex-wrap:nowrap;max-width:680px}
   .help.menu .hhead{flex:none}
-  .kp.bench{top:54px;bottom:0;right:0;left:auto;width:min(340px,38vw);border-top:0;border-left:2px solid var(--ink);padding-top:12px;justify-content:flex-start}
+  .kp.bench{top:max(54px,calc(var(--safe-top) + 52px));bottom:0;right:0;left:auto;width:min(340px,38vw);border-top:0;border-left:2px solid var(--ink);padding-top:12px;justify-content:flex-start}
   .kp.bench.onleft{left:0;right:auto;border-left:0;border-right:2px solid var(--ink)}
   .help{max-width:none;flex-direction:row;flex-wrap:wrap;align-content:stretch;gap:10px 24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
   .hhead{flex:0 0 100%}
@@ -813,7 +821,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
   .wmid .foot{margin-top:0}
   .sheetfoot .sv,.pendrow button{min-height:46px;font-size:18px}
   .wplay{grid-template-rows:minmax(0,1fr)}
-  .bar{min-height:44px;padding-top:max(4px,env(safe-area-inset-top,0px));padding-bottom:4px}
+  .bar{min-height:44px;padding-top:max(4px,var(--safe-top));padding-bottom:4px}
   .kp.bench{top:44px}
   .kp:not(.bench){top:44px}
   .wmid .sv,.wmid .sb{min-height:50px}
@@ -831,6 +839,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 /*DESIGN-END*/
 </style>
 
+<div class="statusband" aria-hidden="true"></div>
 <div id="app"></div>
 
 <script>
@@ -1101,8 +1110,11 @@ resetUi();
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function savePrefs(){try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch(e){}}
-function applyTheme(){var r=document.documentElement;if(prefs.theme==='light'||prefs.theme==='dark')r.setAttribute('data-theme',prefs.theme);else r.removeAttribute('data-theme')}
+function syncBar(){var m=document.querySelector('meta[name="theme-color"]'),c=getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();if(m&&c)m.setAttribute('content',c)}
+function applyTheme(){var r=document.documentElement;if(prefs.theme==='light'||prefs.theme==='dark')r.setAttribute('data-theme',prefs.theme);else r.removeAttribute('data-theme');syncBar()}
 applyTheme();
+// iPhone 主畫面 App 不跑在狀態列底下時，100vh 會比實際畫面高（WebKit 316008），改用實際高度，免得下方按鈕被切掉
+(function(){if(navigator.standalone!==true)return;var r=document.documentElement;function fit(){r.style.setProperty('--app-h',window.innerHeight+'px')}r.classList.add('iosapp');fit();addEventListener('resize',fit);addEventListener('orientationchange',function(){setTimeout(fit,300)})})();
 /* 版面：橫向展開成球場居中；直向平板下方多放記錄表 */
 var MQ_WIDE=window.matchMedia?matchMedia('(orientation:landscape) and (min-width:640px)'):null;
 var MQ_TALL=window.matchMedia?matchMedia('(orientation:portrait) and (min-width:700px)'):null;
@@ -1159,7 +1171,7 @@ function applyColors(s){
     st.setProperty('--'+k+'-j',j.j); st.setProperty('--'+k+'-jt',jerseyText(j.j));
   });
 }
-if(window.matchMedia){try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){render()})}catch(e){}}
+if(window.matchMedia){try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){syncBar();render()})}catch(e){}}
 var ROMAN=['I','II','III','IV','V','VI'];
 var STAFF=[['coach','教練'],['execCoach','執行教練'],['teacher','隨隊教師'],['leader','領隊']];
 
@@ -1826,9 +1838,7 @@ function setStartHM(s,n){
   if(n===1)return s.info.actual||'';
   if(s.info['st'+n])return s.info['st'+n];
   var e=s.sets[n-1].endAt;if(!e)return '';
-  var t=new Date(e).getTime()+180000,c=s.sets[n],f=c.firstServeAt||c.startAt;
-  if(f&&new Date(f).getTime()<t)t=new Date(f).getTime();
-  return hm(new Date(t).toISOString());
+  return hm(new Date(new Date(e).getTime()+180000).toISOString());
 }
 function setEndHM(s,n){return s.info['en'+n]||(s.sets[n].endAt?hm(s.sets[n].endAt):'')}
 function pointsGrid(c,k,tg,win){
