@@ -691,7 +691,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .sheetgrid{border-radius:6px;overflow:hidden}
 .num b,.chip b,.pad button,.cell b,.lc b,.oc b{font-family:var(--num);font-weight:700}
 .num b{font-size:19px}
-.num b.circ{width:24px;height:24px;font-size:16px;line-height:1;border-width:1.5px;letter-spacing:-.5px}
+.num b.circ{position:relative;width:auto;height:auto;font-size:19px;border:0;overflow:visible}
+.num b.circ::after{content:"";position:absolute;left:50%;top:50%;width:24px;height:24px;box-sizing:border-box;transform:translate(-50%,-50%);border:1.5px solid currentColor;border-radius:50%;pointer-events:none}
 .chip b{font-size:26px}
 .pad button{font-size:26px}
 .pad .add,.pad .back{font-family:var(--font);font-size:15px}
@@ -1296,7 +1297,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1108';
+var BUILD='1105-1109';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
