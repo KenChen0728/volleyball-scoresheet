@@ -1086,6 +1086,8 @@ button.dim{opacity:.45}
 .pc .cdm .cd{box-shadow:0 0 0 1.5px #111,0 0 0 3px #fff}
 .pc .cdm .cd+.cd{margin-left:4px}
 .pc .cdm{left:7px;bottom:7px}
+.foot.tallfoot{margin-top:4px}
+.tallsheet{margin-top:4px}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1423,7 +1425,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-2150';
+var BUILD='1105-2239';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2357,7 +2359,7 @@ function playHtml(s){
   if(isWide())return '<div class="wplay">'+wideCol(s,L)+'<div class="wmid">'+midh+court+warn+timerBar(s)+foot+lock+tools+'</div>'+wideCol(s,R)+'<div class="wsheet">'+setSvg(s,n)+'</div></div>';
   return '<div class="board">'+sideScore(s,L)+setBox(s,L)+midh+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
-    '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="tallsheet">'+setSvg(s,n)+'</div>':'')+foot;
+    '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);
 }
 function timerLeft(){return ui.timer?Math.max(0,Math.ceil((ui.timer.end-Date.now())/1000)):0}
 function timerText(){var n=timerLeft();return ui.timer&&ui.timer.label?Math.floor(n/60)+':'+('0'+(n%60)).slice(-2):n}
