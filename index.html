@@ -1388,7 +1388,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1550';
+var BUILD='1105-1554';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2086,7 +2086,7 @@ function notesList(s,A,B){
   [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push('第 '+n+' 局 '+ab({t1:p[0],t2:p[1]})+tag(k)+'球員 '+x.out+(x.injury?' 宣告為受傷且被':' 被')+'球員 '+x.in+' 例外替補')}})})});
   (s.redes||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+'自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
   s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+x.no+' 號傷停')});
-  (s.acc||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+'助理教練(AC)成為執行教練(C)')});
+  (s.acc||[]).forEach(function(x){var o=other(x.team);notes.push('第 '+x.set+' 局 '+x.raw[x.team]+':'+x.raw[o]+' '+(x.team===A?'A':'B')+' 隊請求 AC 代 C')});
   if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score,wn=setsWon(s);
     notes.push(ii.scope==='match'?'在第 '+ii.set+' 局後，由於'+tag(il)+'球員未完整，'+tag(iw)+'贏得本場比賽 '+wn[iw]+':'+wn[il]:'第 '+ii.set+' 局 '+ab(ii.raw).replace('，','')+'，由於'+tag(il)+'球員不完整，'+tag(iw)+'贏得本局 '+isc[iw]+':'+isc[il]);}
   if(s.preForfeit)notes.push('因 B 隊「'+tName(s,other(s.preForfeit.winner))+'」'+s.preForfeit.reason+'，由 A 隊「'+tName(s,s.preForfeit.winner)+'」以 2:0 (25:0 25:0) 獲勝');

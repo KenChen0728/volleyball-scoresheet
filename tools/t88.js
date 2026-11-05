@@ -10,7 +10,7 @@ await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
 T('quick buttons',await pg.locator('.quicknote .qn').count()===2);
 await pg.click('[data-act=accadd][data-team=t1]');
 const txt=await pg.textContent('.prem ul');
-T('note text',txt.includes('第 1 局 A:B=1:2，藍（B 隊）助理教練(AC)成為執行教練(C)')); console.log(txt);
+T('note text',txt.includes('第 1 局 2:1 B 隊請求 AC 代 C')); console.log(txt);
 T('button on',await pg.$('.qn.on.t1')!==null);
 await pg.screenshot({path:'/home/claude/nanshe/test/t88.png'});
 await pg.click('[data-act=accdel]');
