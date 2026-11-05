@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(),pg=await b.newPage({viewport:{width:402,height:874},deviceScaleFactor:2});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
+ [['t1','黃',[1,3,5,7,9,11],[]],['t2','紅',[2,4,6,8,10,14],[]]].forEach(c=>{T.dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]});c[2].forEach(n=>T.dispatch('PLAYER_ADDED',{team:c[0],no:n}));T.dispatch('CAPTAIN_SET',{team:c[0],no:c[2][1]})});
+ T.dispatch('TEAM_COLOR_SET',{team:'t1',color:'yellow'});T.dispatch('TEAM_COLOR_SET',{team:'t2',color:'red'});
+ T.dispatch('TOSS_SET',{set:1,left:'t1',serve:'t1'});
+ [[1,3,5,7,9,11],[2,4,6,8,10,14]].forEach((l,i)=>{var k=i?'t2':'t1';l.forEach((no,p)=>T.dispatch('LINEUP_SET',{set:1,team:k,pos:p,no:no}));T.dispatch('LINEUP_LOCKED',{set:1,team:k})});
+ T.dispatch('SET_STARTED',{set:1});
+ T.dispatch('SANCTION',{set:1,team:'t1',kind:'W',who:3});T.dispatch('SANCTION',{set:1,team:'t1',kind:'P',who:5});T.dispatch('SANCTION',{set:1,team:'t2',kind:'P',who:4});T.dispatch('SANCTION',{set:1,team:'t2',kind:'W',who:6});
+ T.save();T.resetUi();T.setView('setup');T.ui.page='play';T.render();});
+await pg.waitForTimeout(300);
+const el=await pg.$('.pcourt');await el.screenshot({path:'/home/claude/nanshe/test/t96.png'});
+console.log('errors',errs.length, await pg.evaluate(()=>getComputedStyle(document.querySelector('.pc .cdm .cd')).boxShadow));await b.close()})();
