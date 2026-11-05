@@ -26,3 +26,11 @@
 - `sw.js` 只刪 `scoresheet-` 開頭的快取，同網域的其他程式不受影響；開啟時最多等網站 1.5 秒，沒回應就先用離線版
 - 瀏覽器資料的 key 是 `nanshe-scoresheet-v1`，不要更改，否則舊比賽讀不到
 - `tools/` 放建置和測試腳本：`reg.js` 跑完整流程與各尺寸版面，`cap.js` 重截教學圖，`help-gen.py` 把教學圖寫進網頁，路徑寫死在 `/home/claude/nanshe`
+
+## 二裁輪轉表（`school/`）
+
+美國學校比賽專用的獨立網頁：https://kenchen0728.github.io/volleyball-scoresheet/school/
+
+- 二裁自己操作：背號名單（12＋2，無姓名）、分數、發球、輪轉、暫停、無限次綁定替補、三局或五局，不輸出記錄表
+- 原始檔是 `tools/school/src.html`，改完跑 `python3 tools/school/build.py`；測試 `tools/school/test.js`、`sizes.js`，說明圖 `shots.js`
+- 資料 key 是 `vb-school-v1`，快取前綴是 `vbschool-`，都不能用 `scoresheet-` 開頭，否則會被主程式的 service worker 刪掉
