@@ -16,7 +16,9 @@ await A('rosgo');ok((await p.textContent('#roserr')).includes('至少要 6 位')
 const fill=async(k,ns,ls)=>{for(let i=0;i<ns.length;i++)await p.fill(`[data-r="${k}"][data-g="p"][data-i="${i}"]`,''+ns[i]);for(let i=0;i<ls.length;i++)await p.fill(`[data-r="${k}"][data-g="l"][data-i="${i}"]`,''+ls[i])};
 await fill('t1',[1,2,3,4,5,6,8,9,10,11,12,13],[7,14]);await fill('t2',[21,22,23,24,25,26,28],[27]);
 ok(await p.locator('[data-r="t1"][data-g="p"]').count()===12&&await p.locator('[data-r="t1"][data-g="l"]').count()===2,'12+2 格');
-await p.fill('[data-r="t2"][data-g="p"][data-i="6"]','21');await A('rosgo');ok((await p.textContent('#roserr')).includes('重複'),'重複背號');
+await p.fill('[data-r="t2"][data-g="p"][data-i="6"]','21');ok(await p.inputValue('[data-r="t2"][data-g="p"][data-i="6"]')===''&&(await p.textContent('#roserr')).includes('21 號'),'兩位數重複馬上清掉');
+await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','5');await p.keyboard.press('Tab');ok(await p.inputValue('[data-r="t1"][data-g="l"][data-i="1"]')==='','一位數重複離開才清');
+await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','5');await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','51');ok(await p.inputValue('[data-r="t1"][data-g="l"][data-i="1"]')==='51','5 可以接著打成 51');await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','14');
 await p.fill('[data-r="t2"][data-g="p"][data-i="6"]','28');await A('rosgo');
 // 先發
 await A('setgo');ok((await p.textContent('#seterr')).includes('先發球'),'要先選發球');

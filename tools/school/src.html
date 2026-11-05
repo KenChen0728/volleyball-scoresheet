@@ -476,8 +476,12 @@ function setGo(s){
 }
 app.addEventListener('input',function(e){var t=e.target,d=t.dataset;
   if(d.f&&fresh){fresh[d.f]=t.value}
-  if(d.r){t.value=t.value.replace(/\D/g,'');ui.ros[d.r][d.g][Number(d.i)]=t.value;if(t.value.length===2)rosNext(t)}
+  if(d.r){t.value=t.value.replace(/\D/g,'');ui.ros[d.r][d.g][Number(d.i)]=t.value;rosMsg('');if(t.value.length===2&&!rosDup(t))rosNext(t)}
 });
+function rosMsg(x){var e=document.getElementById('roserr');if(e)e.textContent=x}
+/* 重複的背號不留下來：兩位數打完馬上清掉；一位數可能還要接著打（5 和 51），離開格子時才清 */
+function rosDup(t){var d=t.dataset,v=t.value;if(v==='')return false;var hit=[].slice.call(app.querySelectorAll('[data-r="'+d.r+'"]')).some(function(x){return x!==t&&x.value!==''&&Number(x.value)===Number(v)});if(!hit)return false;t.value='';ui.ros[d.r][d.g][Number(d.i)]='';rosMsg(Number(v)+' 號已經在名單上了');return true}
+app.addEventListener('focusout',function(e){if(e.target.dataset&&e.target.dataset.r)rosDup(e.target)});
 function rosNext(t){var a=[].slice.call(app.querySelectorAll('[data-r]')),n=a[a.indexOf(t)+1];if(n)n.focus()}
 app.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.r&&!e.isComposing){e.preventDefault();rosNext(e.target)}});
 addEventListener('keydown',function(e){kbd=e.key==='Tab'||kbd;
