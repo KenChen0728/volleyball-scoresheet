@@ -16,7 +16,7 @@ await cap('steps','.nav',['.nav'],6);
 await p.locator('.nav [data-v=info]').click();await cap('info','.fields');
 await p.click('[data-act=sheet][data-v=points]');await cap('points','.sheet');await p.click('.sheet button[data-act=close]');
 await p.locator('.nav [data-v=roster]').click();await p.waitForTimeout(100);
-await cap('roster1',['.rh.t1','.rh.t2'],['#n-t1','.rh.t1 .swatch'],6);
+await cap('roster1',['.rh.t1','.rh.t2'],['#n-t1','#n-t2'],6);
 await p.locator('[data-act=slot]').nth(14).click();await p.waitForTimeout(80);await cap('roster2','.kp',['.pad']);
 if(await p.locator('.kp').count())await p.click('[data-act=kpclose]');
 await p.locator('[data-act=slot][data-team=t1]').first().click();await p.waitForTimeout(80);await cap('roster3','.kp',['.acts']);await p.click('[data-act=kpclose]').catch(()=>{});
