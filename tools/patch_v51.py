@@ -9,7 +9,7 @@ rep("""function sheetLibs(t){""","""function excAvail(s,k,idx){var lg=subOptions
 function sheetLibs(t){""")
 rep("""    if(o.err)h='<div class="kphead"><span class="err">'+esc(o.err)+'</span></div>'+(o.legal?'<button class="full" data-act="excoff">改用一般替補</button>':'');
     else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>';
-    else h='<div class="subhint">'+now+' 號換下，上場：</div>""","""    var ea=!ui.sub.exc&&excAvail(s,k,ui.sub.idx),eb=ea?'<button class="full" data-act="forceexc">改用例外替補</button>':'';
+    else h='<div class="subhint">'+now+' 號換下，上場：</div>""","""    var ea=!ui.sub.exc&&!ui.sub.forced&&excAvail(s,k,ui.sub.idx),eb=ea?'<button class="full" data-act="forceexc">改用例外替補</button>':'';
     var en=ui.sub.exc&&!o.err?'<p class="excnote">被例外替補換下的人，本場比賽不能再上場</p>':'';
     if(o.err)h='<div class="kphead"><span class="err">'+esc(o.err)+'</span></div>'+(o.legal?'<button class="full" data-act="excoff">改用一般替補</button>':'')+eb;
     else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>'+eb;

@@ -1,0 +1,17 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(),pg=await b.newPage({viewport:{width:393,height:760}});
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
+ [['t1','藍',[1,3,5,7,9,11,18,20],[]],['t2','橘',[2,4,6,8,10,14,77],[]]].forEach(c=>{T.dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]});c[2].forEach(n=>T.dispatch('PLAYER_ADDED',{team:c[0],no:n}));T.dispatch('CAPTAIN_SET',{team:c[0],no:c[2][0]})});
+ T.dispatch('TOSS_SET',{set:1,left:'t1',serve:'t1'});
+ [[1,3,5,7,9,11],[2,4,6,8,10,14]].forEach((l,i)=>{var k=i?'t2':'t1';l.forEach((no,p)=>T.dispatch('LINEUP_SET',{set:1,team:k,pos:p,no:no}));T.dispatch('LINEUP_LOCKED',{set:1,team:k})});
+ T.dispatch('SET_STARTED',{set:1});
+ T.dispatch('SUB',{set:1,team:'t1',idx:0,out:1,in:20,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});
+ T.dispatch('SUB',{set:1,team:'t1',idx:0,out:20,in:1,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});
+ T.dispatch('SANCTION',{set:1,team:'t1',kind:'E',who:1});
+ T.save();T.resetUi();T.setView('setup');T.ui.page='play';T.render();});
+await pg.waitForTimeout(300);
+console.log('case 1 expelled at done position:',await pg.locator('.kp [data-act=forceexc]').count(),'exc buttons;',(await pg.textContent('.kp')).replace(/\s+/g,' ').slice(0,160));
+await pg.screenshot({path:'/home/claude/nanshe/test/t93a.png'});
+await pg.evaluate(()=>{T.dispatch('SANCTION',{set:1,team:'t1',kind:'E',who:3});T.render()});
+await b.close()})();
