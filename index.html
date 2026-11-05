@@ -1166,6 +1166,7 @@ function reduce(events){
         break;
       case 'LIBERO_REDESIGNATED':
         var rt=s.teams[d.team],rs=s.sets[d.set];
+        if(!rt.regLib)rt.regLib=rt.liberos.slice(); // 記錄表名單維持原本登錄的，換人只寫在記事欄
         rt.liberos=rt.liberos.filter(function(q){return q!==d.old});
         if(d.no!==null)rt.liberos.push(d.no);
         s.matchOut[d.team].push(d.old);
@@ -1225,6 +1226,7 @@ function pastTeams(excludeId){
       var t=s.teams[k], key=t.name.trim();
       if(!key||!t.players.length||seen[key])return;
       seen[key]=1;
+      if(t.regLib){t=Object.assign({},t,{liberos:t.regLib});delete t.regLib}
       list.push({name:key,team:t,date:s.info.date||''});
     });
   });
@@ -1268,6 +1270,7 @@ function subOptions(s,k,idx,exc){
   var used=[];c.subPos[k].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
   return {nos:free.filter(function(n){return c.lineups[k].indexOf(n)<0&&used.indexOf(n)<0})};
 }
+function sheetLibs(t){return t.regLib||t.liberos}
 function regularCount(t){return t.players.length-t.liberos.length}
 function validate(t){
   var regular=t.players.length-t.liberos.length;
@@ -1286,7 +1289,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1039';
+var BUILD='1105-1050';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1748,8 +1751,8 @@ function rosterHtml(s,m){
   var regs={},libs={};
   ['t1','t2'].forEach(function(k){
     var t=s.teams[k];
-    regs[k]=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0});
-    libs[k]=t.players.filter(function(p){return t.liberos.indexOf(p.no)>=0});
+    regs[k]=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)<0});
+    libs[k]=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)>=0});
     h+='<div class="rh '+k+'">'+(A?'<span class="ab">'+(A===k?'A':'B')+'</span>':'')+'<input id="n-'+k+'" aria-label="隊名" placeholder="輸入隊名" value="'+esc(t.name)+'" data-kind="teamname" data-team="'+k+'"'+(t.locked?' disabled':'')+'><button class="swatch" data-act="sheet" data-v="color" data-team="'+k+'" aria-label="選球衣顏色">'+jerseyIcon(jersey(t.color||JERSEY_DEFAULT[k]).j)+'</button><button class="swatch" data-act="sheet" data-v="color" data-team="'+k+'" aria-label="選自由球員球衣顏色">'+jerseyIcon(jersey(t.liberoColor||t.color||JERSEY_DEFAULT[k]).j,true)+'</button></div>';
   });
   h+='<div class="ch t1"><span>號碼</span><span>姓名</span></div><div class="ch"><span>號碼</span><span>姓名</span></div>';
@@ -2053,7 +2056,7 @@ function r6Svg(s){
   blocks.forEach(function(b){maxRows=Math.max(maxRows,b.rows.length)});
   var H=head+rowH*maxRows+4,h='',A=T.A;
   blocks.forEach(function(b,i){
-    var hide=b.n===3&&!set3Open(s),bx=x+bw*i,t=s.teams[b.k],l=hide?[]:t.liberos,c1=bx+w[0],c2=c1+w[1],letter=hide?'':b.k===A?'A':'B';
+    var hide=b.n===3&&!set3Open(s),bx=x+bw*i,t=s.teams[b.k],l=hide?[]:sheetLibs(t),c1=bx+w[0],c2=c1+w[1],letter=hide?'':b.k===A?'A':'B';
     if(i===0||i===2||i===4){var sw2=i===4?bw*3:bw*2;h+=svT(bx+sw2/2,16,'第 '+b.n+' 局',19,'#000',800)+svL(bx,3,bx,H,2.4)}else h+=svL(bx,30,bx,H,1.4);
     h+=svT(bx+36,44,'№ '+(l[0]==null?'':l[0]),13,INK)+svC(bx+bw/2,44,11,'#000',1.3)+svT(bx+bw/2,44,letter,15)+svT(bx+bw-36,44,'№ '+(l[1]==null?'':l[1]),13,INK);
     h+=svT(bx+w[0]/2,63,'自由',12,'#000',700)+svT(c1+w[1]/2,63,'被換',12,'#000',700)+svT(c2+w[2]/2,63,'比分',12,'#000',700);
@@ -2313,7 +2316,7 @@ function reportHtml(s,m){
     h+='<section class="setb"><div class="seth"><b>第 '+n+' 局</b><span>開始 '+esc(c.started?setStartHM(s,n):'')+'</span><span>結束 '+(c.endAt?hm(c.endAt):'')+'</span><span>時間 '+(c.ended?setMin(c)+' 分':'')+'</span>'+(n===3?'<span>換場比分 '+esc(c.swapScore||'')+'</span>':'')+'<span>比分 '+(c.started?c.score[L]+' : '+c.score[R]:'')+'</span></div><div class="setg">'+teamBlock(s,n,L)+teamBlock(s,n,R)+'</div></section>';
   });
   function rost(k){
-    var t=s.teams[k],rows='',regs=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0}),libs=t.players.filter(function(p){return t.liberos.indexOf(p.no)>=0});
+    var t=s.teams[k],rows='',regs=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)<0}),libs=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)>=0});
     function line(p){var cap=p&&t.captain===p.no;return '<tr><td>'+(p?(cap?'<span class="ca">'+p.no+'</span>':p.no):'')+'</td><td>'+(p?esc(p.name):'')+'</td></tr>'}
     for(var j=0;j<12;j++)rows+=line(regs[j]);
     rows+='<tr><th colspan="2">自由球員 L</th></tr>'+line(libs[0])+line(libs[1]);
@@ -2825,10 +2828,11 @@ app.addEventListener('click',function(e){
     case 'redmode': ui.sheet.mode=b.getAttribute('data-v'); break;
     case 'reddo':
       var rx=ui.sheet,rk=rx.team,rl2=b.getAttribute('data-lib');
-      if(rx.mode==='back'&&c.libOut[rk])dispatch('LIBERO_OUT',{set:n,team:rk});
-      dispatch('LIBERO_REDESIGNATED',{set:n,team:rk,old:rx.lib,no:no});
-      if(rx.mode==='direct'&&no!==null)dispatch('LIBERO_SWAP',{set:n,team:rk,lib:no});
-      if(rx.mode==='second')dispatch('LIBERO_SWAP',{set:n,team:rk,lib:Number(rl2)});
+      var rg=uid(); // 同一個動作的幾筆事件用 grp 綁在一起，復原一次全部退回
+      if(rx.mode==='back'&&c.libOut[rk])dispatch('LIBERO_OUT',{set:n,team:rk,grp:rg});
+      dispatch('LIBERO_REDESIGNATED',{set:n,team:rk,old:rx.lib,no:no,grp:rg});
+      if(rx.mode==='direct'&&no!==null)dispatch('LIBERO_SWAP',{set:n,team:rk,lib:no,grp:rg});
+      if(rx.mode==='second')dispatch('LIBERO_SWAP',{set:n,team:rk,lib:Number(rl2),grp:rg});
       ui.sheet=null; ui.toast={t:no!==null?'已重新指定 '+no+' 號為自由球員':'已記錄自由球員 '+rx.lib+' 號不能上場',until:Date.now()+3500}; break;
     case 'injpick':
       dispatch('INJURY',{set:n,team:k,no:no}); ui.pen=null;
@@ -2899,7 +2903,7 @@ app.addEventListener('click',function(e){
         ui.lib=null;
       }
       break;
-    case 'undo': ui.rtab=null; var last=lastUndoable(m); if(last){ui.toast={t:'已復原：'+undoText(s,last),until:Date.now()+3500}; dispatch('UNDO',{target:last.id}); if(last.type==='TIMEOUT')ui.timer=null; if(last.type==='SET_STARTED'){ui.page='lineup';ui.sel=null;ui.luTeam=null}} break;
+    case 'undo': ui.rtab=null; var last=lastUndoable(m); if(last){var ug=last.data&&last.data.grp;ui.toast={t:'已復原：'+(ug?'重新指定自由球員':undoText(s,last)),until:Date.now()+3500}; dispatch('UNDO',{target:last.id}); while(ug){var u2=lastUndoable(m);if(u2&&u2.data&&u2.data.grp===ug)dispatch('UNDO',{target:u2.id});else break} if(last.type==='TIMEOUT')ui.timer=null; if(last.type==='SET_STARTED'){ui.page='lineup';ui.sel=null;ui.luTeam=null}} break;
     case 'swap8': dispatch('SIDES_SWAPPED',{set:n}); break;
     case 'endset':
       if(Date.now()<(ui.noEnd||0))return;
