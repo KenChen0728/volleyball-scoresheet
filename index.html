@@ -998,6 +998,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .jsy path{stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
 .colors .jsy{width:30px;height:28px}
 /*DESIGN-END*/
+.kp.forced .forcedmsg{margin:6px 10px 0;font-weight:700;color:var(--bad);line-height:1.4}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1266,6 +1267,12 @@ function capText(s){
 }
 function target(s,n){return Number(s.info['p'+n])||(n===3?15:25)}
 function setsWon(s){var w={t1:0,t2:0};[1,2,3].forEach(function(n){if(s.sets[n].winner)w[s.sets[n].winner]++});return w}
+function pendingOut(s){
+  var c=s.sets[s.setNo];if(!c||!c.started||c.ended||s.incomplete||matchOver(s)||setWinner(s))return null;var r=null;
+  ['t1','t2'].some(function(k){var t=s.teams[k];return c.cur[k].some(function(no,i){if(no!=null&&t.liberos.indexOf(no)<0&&(c.expelled[k].indexOf(no)>=0||s.matchOut[k].indexOf(no)>=0)){r={team:k,idx:i,no:no,d:s.matchOut[k].indexOf(no)>=0};return true}})});
+  return r;
+}
+function sanGone(s,k,w){var n=s.setNo;return s.sanctions.some(function(x){return x.team===k&&x.who===w&&x.kind==='D'})?'D':s.sanctions.some(function(x){return x.team===k&&x.who===w&&x.kind==='E'&&x.set===n})?'E':''}
 function matchOver(s){var w=setsWon(s);return w.t1>=2||w.t2>=2}
 function setWinner(s){
   var n=s.setNo,c=s.sets[n],a=c.score.t1,b=c.score.t2,tg=target(s,n);
@@ -1315,7 +1322,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1219';
+var BUILD='1105-1457';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1450,6 +1457,9 @@ function draw(){
   var m=current(),s=reduce(m.events);
   applyColors(s);
   var pgKey=ui.page+'|'+(ui.rtab||'')+'|'+(ui.liveSheet?1:0),old=app.querySelector('.page'),top=old&&pgKey===lastPgKey?old.scrollTop:0,oldTabs=app.querySelector('.sheettabs'),tabX=oldTabs?oldTabs.scrollLeft:0;
+  if(ui.page==='play'&&!ui.pen&&!ui.liveSheet){var po=pendingOut(s);
+    if(po){if(!(ui.sub&&ui.sub.forced&&ui.sub.team===po.team&&ui.sub.idx===po.idx))ui.sub={team:po.team,idx:po.idx,exc:!!(ui.sub&&ui.sub.forced&&ui.sub.team===po.team&&ui.sub.exc),ids:[],forced:true};ui.sub.po=po;ui.lib=null;ui.toAsk=null}
+    else if(ui.sub&&ui.sub.forced)ui.sub=null}
   var body=pageHtml(s,m),kp=kpHtml(s)+subHtml(s);
   var inGame=ui.page==='play'&&(s.sets[s.setNo].started||matchOver(s));
   syncAwake(ui.page==='play'&&s.sets[s.setNo].started&&!matchOver(s));
@@ -1813,7 +1823,8 @@ function subHtml(s){
     else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>';
     else h='<div class="subhint">'+now+' 號換下，上場：</div><div class="benchrow">'+o.nos.map(function(n){return '<button class="chip '+k+'" data-act="subin" data-team="'+k+'" data-no="'+n+'"><b>'+n+'</b></button>'}).join('')+'</div>';
   }
-  return '<div class="kp bench '+k+(k===c.left?' onright':' onleft')+'"><div class="kphead"><span>'+esc(tName(s,k))+(ui.sub.exc?' 例外替補':' 替補 '+c.subCount[k])+'</span><span class="row" style="flex:none"><button class="danger" data-act="subcancel">取消</button><button class="go" data-act="subclose">完成</button></span></div><div class="subbody">'+h+'</div>'+(ui.sub.exc?'<div class="excinj"><button data-act="subinj" aria-pressed="'+!!ui.sub.inj+'">'+(ui.sub.inj?'☑':'☐')+' 宣告受傷</button><span class="muted">換下的人本場不能再上。</span></div>':'')+(ui.sub.forced?'<div class="row">'+(ui.sub.exc?'':'<button data-act="forceexc">改用例外替補</button>')+'<button class="danger" data-act="penkind" data-v="INC" data-team="'+k+'">陣容不完整</button></div>':'')+'</div>';
+  var fp=ui.sub.forced&&ui.sub.po;
+  return '<div class="kp bench '+k+(k===c.left?' onright':' onleft')+(fp?' forced':'')+'"><div class="kphead"><span>'+esc(tName(s,k))+(ui.sub.exc?' 例外替補':' 替補 '+c.subCount[k])+'</span>'+(fp?'':'<span class="row" style="flex:none"><button class="danger" data-act="subcancel">取消</button><button class="go" data-act="subclose">完成</button></span>')+'</div>'+(fp?'<p class="forcedmsg">'+fp.no+' 號已被判'+(fp.d?'出場':'出局')+'，要先換下場才能繼續比賽。判錯了請按上方「復原」。</p>':'')+'<div class="subbody">'+h+'</div>'+(ui.sub.exc?'<div class="excinj"><button data-act="subinj" aria-pressed="'+!!ui.sub.inj+'">'+(ui.sub.inj?'☑':'☐')+' 宣告受傷</button><span class="muted">換下的人本場不能再上。</span></div>':'')+(ui.sub.forced?'<div class="row">'+(ui.sub.exc?'':'<button data-act="forceexc">改用例外替補</button>')+'<button class="danger" data-act="penkind" data-v="INC" data-team="'+k+'">陣容不完整</button></div>':'')+'</div>';
 }
 function kpHtml(s){
   var k=ui.slot.t1?'t1':ui.slot.t2?'t2':null; if(!k||ui.page!=='roster')return '';
@@ -2284,8 +2295,9 @@ function penHtml(s){
   }else if(p.kind==='FF'){
     h='<h2>棄權</h2>'+teams+'<p class="muted">規則 6.4.1：比賽判對方獲勝，每局 25:0。</p><div class="row"><button class="danger" data-act="ffask" data-team="'+k+'">'+esc(tName(s,k))+' 棄權</button><button data-act="penclose">關閉</button></div>';
   }else if(p.kind){
-    var pl=t.players.map(function(q){return '<button class="chip '+k+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"><b>'+q.no+'</b></button>'}).join('');
-    var st=STAFFWHO.map(function(x){return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('');
+    var gone=function(w){var g=sanGone(s,k,w);return g==='D'||(g==='E'&&p.kind!=='D')?g:''},gtx={D:'已出場',E:'已出局'};
+    var pl=t.players.map(function(q){var g=gone(q.no);return '<button class="chip '+k+(g?' off':'')+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"'+(g?' disabled':'')+'><b>'+q.no+'</b>'+(g?'<small>'+gtx[g]+'</small>':'')+'</button>'}).join('');
+    var st=STAFFWHO.map(function(x){var g=gone(x[0]);return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'"'+(g?' disabled':'')+'>'+x[1]+(g?' '+gtx[g]:'')+'</button>'}).join('');
     h='<h2>'+esc(tName(s,k))+' '+PERSON[p.kind]+'：選對象</h2><div class="bench"><div class="benchrow">'+pl+'</div></div><div class="stf">'+st+'</div><button data-act="penback">返回</button>';
   }else{
     function cnt(q){return s.sanctions.filter(function(x){return x.team===k&&x.kind===q}).length}
@@ -2660,6 +2672,8 @@ app.addEventListener('click',function(e){
   if(staleTab)return;
   if(act==='rpraw'){var raw0='';try{raw0=localStorage.getItem(KEY)||''}catch(err){raw0=JSON.stringify(db)}saveFile('排球記錄表原始資料_'+today()+'.json',raw0,'application/json');return}
   var m=current(),s=m?reduce(m.events):null,t=(s&&k)?s.teams[k]:null,n=s?s.setNo:1,c=s?s.sets[n]:null;
+  var po=(s&&view==='setup'&&ui.page==='play')?pendingOut(s):null;
+  if(po&&['serve','replay','point','timeout','toyes','libcell','libout','subopen','subcancel','subclose','swap8','endset','injopen'].indexOf(act)>=0){ui.toast={t:tName(s,po.team)+' '+po.no+' 號要先換下場',until:Date.now()+3000};render();return}
   switch(act){
     case 'new': var nm=createMatch(defaultInfo()); db.currentId=nm.id; save(); resetUi(); view='setup'; break;
     case 'open': db.currentId=b.getAttribute('data-id'); save(); resetUi(); ui.page=firstPage(reduce(current().events)); ui.from=b.getAttribute('data-from'); view='setup'; break;
@@ -2938,7 +2952,7 @@ app.addEventListener('click',function(e){
     case 'gcset': dispatch('GAME_CAPTAIN_SET',{set:n,team:k,no:no}); ui.sheet=null; break;
     case 'pcell':
       var ix=Number(b.getAttribute('data-v'));
-      if(ui.sub){ui.sub.idx=ix;break}
+      if(ui.sub){if(!ui.sub.forced)ui.sub.idx=ix;break}
       if(ui.lib){
         if(c.libOut[k]&&s.teams[k].liberos.indexOf(c.cur[k][ix])>=0)dispatch('LIBERO_SWAP',{set:n,team:k,lib:ui.lib.no});
         else if(c.libOut[k]){ui.lib=null;break}
