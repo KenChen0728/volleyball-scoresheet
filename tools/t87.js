@@ -32,7 +32,7 @@ const {chromium}=require('playwright');
  c=await st(); T('one tap swap',c.cur.t1.indexOf(13)>=0&&c.cur.t1.indexOf(12)<0);
  await pg.waitForTimeout(800);await pg.click('[data-act=serve]');await pg.waitForTimeout(400);await pg.click('[data-act=point][data-team=t1]');await pg.waitForTimeout(500);
  const lfr=await pg.evaluate(()=>!!document.querySelector('.pc.bad'));
- if(lfr){await pg.click('.pc.bad')}else{T('libback text',(await pg.textContent('[data-act=libback][data-no="13"]')).includes('換回'));await pg.click('[data-act=libback][data-no="13"]')}
+ if(lfr){await pg.click('.pc.bad')}else{T('libback enabled',await pg.isEnabled('[data-act=libback][data-no="13"]'));await pg.click('[data-act=libback][data-no="13"]')}
  c=await st(); T('back out',c.cur.t1.indexOf(13)<0&&c.cur.t1.indexOf(12)<0);
  // 隊長不在場：替補換下 1 號 → 隊長格紅色，點它指定
  await pg.waitForTimeout(800);

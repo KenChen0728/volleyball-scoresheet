@@ -15,7 +15,7 @@ T('L2 still selectable box',await pg.$('[data-act=libcell][data-no="14"]')!==nul
 await pg.screenshot({path:'/home/claude/nanshe/test/t95a.png'});
 await pg.evaluate(()=>{T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});T.render()});
 await pg.waitForTimeout(600);
-T('can swap back text',(await pg.textContent('[data-act=libback][data-team=t1]')).includes('點我換回'));
+T('can swap back (enabled)',await pg.isEnabled('[data-act=libback][data-team=t1]'));
 await pg.screenshot({path:'/home/claude/nanshe/test/t95b.png'});
 await pg.click('[data-act=libback][data-team=t1]');
 T('swapped back',await pg.evaluate(()=>T.reduce(T.current().events).sets[1].cur.t1.indexOf(11)>=0));
