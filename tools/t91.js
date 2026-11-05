@@ -1,0 +1,18 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(),pg=await b.newPage({viewport:{width:393,height:760}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));let ok=0,bad=0;const T=(n,c)=>{if(c)ok++;else{bad++;console.log('FAIL',n)}};
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
+ [['t1','藍',[1,3,5,7,9,11,18,12],[12]],['t2','橘',[2,4,6,8,10,14,77],[]]].forEach(c=>{T.dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]});c[2].forEach(n=>T.dispatch('PLAYER_ADDED',{team:c[0],no:n}));T.dispatch('CAPTAIN_SET',{team:c[0],no:c[2][0]});c[3].forEach(n=>T.dispatch('LIBERO_SET',{team:c[0],no:n,on:true}))});
+ T.dispatch('TOSS_SET',{set:1,left:'t1',serve:'t2'});
+ [[1,3,5,7,9,11],[2,4,6,8,10,14]].forEach((l,i)=>{var k=i?'t2':'t1';l.forEach((no,p)=>T.dispatch('LINEUP_SET',{set:1,team:k,pos:p,no:no}));T.dispatch('LINEUP_LOCKED',{set:1,team:k})});
+ T.dispatch('SET_STARTED',{set:1});T.dispatch('SERVE',{set:1});T.dispatch('REPLAY',{set:1});T.save();T.resetUi();T.setView('setup');T.ui.page='play';T.render();});
+T('hint',(await pg.textContent('.lockline')).includes('照常記錄'));
+T('timeout enabled',await pg.isEnabled('[data-act=timeout][data-team=t1]'));
+T('sub enabled',await pg.isEnabled('[data-act=subopen][data-team=t2]'));
+await pg.click('[data-act=timeout][data-team=t1]');await pg.click('[data-act=toyes]');
+T('timeout recorded',await pg.evaluate(()=>T.reduce(T.current().events).sets[1].timeouts.t1.length===1));
+await pg.evaluate(()=>{T.ui.to=null;T.render()});
+await pg.click('[data-act=subopen][data-team=t2]');await pg.click('.pc.t2[data-pos="1"]');await pg.click('[data-act=subin][data-no="77"]');
+T('sub recorded',await pg.evaluate(()=>T.reduce(T.current().events).sets[1].subCount.t2===1));
+T('libero still locked',await pg.isDisabled('[data-act=libcell][data-no="12"]'));
+T('no errors',errs.length===0);if(errs.length)console.log(errs);console.log('ok',ok,'bad',bad);await b.close()})();
