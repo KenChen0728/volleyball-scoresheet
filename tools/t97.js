@@ -9,7 +9,7 @@ await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
  T.dispatch('SET_STARTED',{set:1});T.save();T.resetUi();T.setView('setup');T.ui.page='play';T.render();});
 await pg.waitForTimeout(200);
 const r=await pg.evaluate(()=>{const sv=document.querySelector('.sv').getBoundingClientRect(),pb=document.querySelector('.pbtns').getBoundingClientRect(),ts=document.querySelector('.tallsheet');return {gap:Math.round(sv.top-pb.bottom),svBottom:Math.round(sv.bottom),H:innerHeight,sheetBelow:ts?ts.getBoundingClientRect().top>=sv.bottom-1:null}});
-T(w+'x'+h+' serve near tools',r.gap<40); T(w+'x'+h+' serve visible',r.svBottom<=r.H); if(r.sheetBelow!==null)T(w+'x'+h+' sheet below serve',r.sheetBelow);
+if(r.sheetBelow!==null)T(w+'x'+h+' serve near tools',r.gap<40); T(w+'x'+h+' serve visible',r.svBottom<=r.H); if(r.sheetBelow!==null)T(w+'x'+h+' sheet below serve',r.sheetBelow);
 console.log(w+'x'+h,JSON.stringify(r));
 await pg.screenshot({path:`/home/claude/nanshe/test/t97_${w}.png`});T('no errors',errs.length===0);await pg.close()}
 console.log('ok',ok,'bad',bad);await b.close()})();

@@ -27,11 +27,11 @@ const {chromium}=require('playwright');
  // 前排：只有替補
  await pg.click('.pc.t1[data-pos="2"]');
  T('front no libero',!(await pg.$('[data-act=pmlin]')));
- T('front sub',await pg.isEnabled('[data-act=pmsub]'));
- await pg.click('[data-act=pmsub]');
- T('sub panel idx',await pg.evaluate(()=>T.ui.sub&&T.ui.sub.idx===2));
+ T('front sub',await pg.isEnabled('[data-act=pmstep][data-v=sub]'));
+ await pg.click('[data-act=pmstep][data-v=sub]');
+ T('sub list',await pg.$('.sheet [data-act=pmsubin]')!==null);
  await pg.screenshot({path:'/home/claude/nanshe/test/t85b.png'});
- await pg.click('[data-act=subcancel]');
+ await pg.click('.sheet [data-act=pmback]'); await pg.click('.sheet [data-act=close]');
  // 舊方法：點 L 號碼再點格子
  await pg.click('[data-act=libcell][data-no="12"]');
  T('libmode',await pg.$('.pcourt.libmode')!==null);
@@ -43,7 +43,7 @@ const {chromium}=require('playwright');
  await pg.waitForTimeout(800); await pg.click('[data-act=serve]'); await pg.waitForTimeout(400);
  T('pbtns no jump live',Math.abs(await y('.pbtns')-y0)<1);
  await pg.click('.pc.t1[data-pos="1"]');
- T('live no menu',!(await pg.$('[data-act=pmsub]')));
+ T('live no menu',!(await pg.$('[data-act=pmstep]')));
  T('toast',(await pg.textContent('.lockline')).includes('球在進行中'));
  T('pbtns no jump toast',Math.abs(await y('.pbtns')-y0)<1);
  T('no errors',errs.length===0); if(errs.length)console.log(errs);

@@ -1088,6 +1088,10 @@ button.dim{opacity:.45}
 .pc .cdm{left:7px;bottom:7px}
 .foot.tallfoot{margin-top:4px}
 .tallsheet{margin-top:4px}
+/* v58 點球員選單 */
+.pm3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pmb{min-height:64px;font-size:19px;font-weight:800}
+.pmb:disabled{opacity:.4}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1218,7 +1222,7 @@ function reduce(events){
         var lr=s.sets[d.set].lineups[d.team],st2=d.dir==='cw'?1:5;
         s.sets[d.set].lineups[d.team]=lr.map(function(_,i){return lr[(i+st2)%6]});
         break;
-      case 'GAME_CAPTAIN_SET': s.sets[d.set].gameCaptain[d.team]=d.no; break;
+      case 'GAME_CAPTAIN_SET': s.sets[d.set].gameCaptain[d.team]=d.no; var co=s.teams[d.team].capOrder=(s.teams[d.team].capOrder||[]).slice(); if(d.no!=null&&co.indexOf(d.no)<0)co.push(d.no); break;
       case 'LINEUP_CORRECTED':
         var fc=s.sets[d.set],fl=fc.lineups[d.team],fa=fl[d.pos],fo2=fl.indexOf(d.no),fcur=fc.cur[d.team],flo=fc.libOut;
         var fix=function(i,a,b){if(fcur[i]===a)fcur[i]=b;if(flo[d.team]&&flo[d.team].idx===i&&flo[d.team].no===a)flo[d.team].no=b};
@@ -1392,7 +1396,7 @@ function courtIdx(c,k,pos){return (pos+c.rot[k])%6}
 function courtPlayer(c,k,pos){return (c.cur[k]||c.lineups[k])[courtIdx(c,k,pos)]}
 function canPause(c){return !c.live}
 function canLib(c,k){return canPause(c)&&!c.replayLock&&(c.libRally[k]===null||c.libRally[k]<c.rally)}
-function actingCap(c,t,k){var u=c.cur[k]||c.lineups[k];if(u.indexOf(t.captain)>=0)return t.captain;return u.indexOf(c.gameCaptain[k])>=0?c.gameCaptain[k]:null}
+function actingCap(c,t,k){var u=c.cur[k]||c.lineups[k];if(u.indexOf(t.captain)>=0)return t.captain;if(u.indexOf(c.gameCaptain[k])>=0)return c.gameCaptain[k];var o=(t.capOrder||[]).filter(function(n){return u.indexOf(n)>=0})[0];return o==null?null:o}
 function subOptions(s,k,idx,exc){
   var c=s.sets[s.setNo],t=s.teams[k],now=c.cur[k][idx],ps=c.subPos[k][idx];
   if(t.liberos.indexOf(now)>=0)return {err:'自由球員要先換回原本的球員'};
@@ -1425,7 +1429,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-2239';
+var BUILD='1105-2304';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1536,7 +1540,7 @@ function restoreFocus(k){
   if(!el||el.disabled)el=t?focusList(t)[0]:app.querySelector('.foot button:not([disabled])');
   if(el)el.focus({preventScroll:true});
 }
-var SHEET_DISMISS=['[data-act=close]','[data-act=penclose]','[data-act=penno]','[data-act=penback]','[data-act=tono]','[data-act=incno]','[data-act=ffno]','[data-act=cs-no]','[data-act=nclose]','[data-act=amendback]','[data-act=fixback]','[data-act=import-cancel]','[data-act=del-no]'];
+var SHEET_DISMISS=['[data-act=close]','[data-act=pmback]','[data-act=penclose]','[data-act=penno]','[data-act=penback]','[data-act=tono]','[data-act=incno]','[data-act=ffno]','[data-act=cs-no]','[data-act=nclose]','[data-act=amendback]','[data-act=fixback]','[data-act=import-cancel]','[data-act=del-no]'];
 function sheetDismiss(sh){for(var i=0;i<SHEET_DISMISS.length;i++){var e=sh.querySelector(SHEET_DISMISS[i]);if(e&&!e.disabled)return e}return null}
 function markSwipe(){if(matchMedia('(min-width:760px)').matches)return;app.querySelectorAll('.sheet').forEach(function(sh){if(sheetDismiss(sh))sh.classList.add('swipe')})}
 var drag=null;
@@ -2619,25 +2623,29 @@ function sheetHtml(s,m){
     var ac=s.sets[s.setNo],aE=ac.expelled[k].indexOf(x.no)>=0,aFree=t.liberos.filter(function(q){return ac.cur[k].indexOf(q)<0&&ac.expelled[k].indexOf(q)<0&&s.matchOut[k].indexOf(q)<0});
     h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 自由球員 '+x.no+' 號不能上</h2><p class="muted">'+(aE?'這局被判出局，下一局可以再上。':'本場不能再上（被判出場、受傷或已重新指定）。')+'</p>'+(!aFree.length&&!aE?'<button class="mbtn big" data-act="redopen" data-team="'+k+'"><strong>重新指定自由球員</strong><small>這隊目前沒有自由球員可以上</small></button>':'')+'<button data-act="close">關閉</button>';
   }else if(x.type==='pmenu'){
-    var pc=s.sets[s.setNo],pno=pc.cur[k][x.idx],pL=t.liberos.indexOf(pno)>=0,pOk=canPause(pc),lOk=canLib(pc,k),opts=[],why='';
+    var pc=s.sets[s.setNo],pno=pc.cur[k][x.idx],pL=t.liberos.indexOf(pno)>=0,pOk=canPause(pc),lOk=canLib(pc,k);
     var free=t.liberos.filter(function(q){return pc.cur[k].indexOf(q)<0&&pc.expelled[k].indexOf(q)<0&&s.matchOut[k].indexOf(q)<0});
-    var back=x.pos===4||x.pos===5||(x.pos===0&&pc.serving!==k);
-    var penB=sanGone(s,k,pno)==='D'?'':'<button class="mbtn big" data-act="pmpen" data-team="'+k+'" data-no="'+pno+'"><strong>判罰 '+pno+' 號</strong><small>選警告、懲罰、出局或出場</small></button>';
-    if(pL){
-      if(pc.libOut[k])opts.push('<button class="mbtn big" data-act="pmlout" data-team="'+k+'"'+(lOk?'':' disabled')+'><strong>換回 '+pc.libOut[k].no+' 號</strong><small>自由球員下場</small></button>');
-      free.forEach(function(q){opts.push('<button class="mbtn big" data-act="pmlswap" data-team="'+k+'" data-no="'+q+'"'+(lOk?'':' disabled')+'><strong>換成自由球員 '+q+' 號</strong><small>兩位自由球員互換</small></button>')});
-      opts.push('<button class="mbtn big" data-act="redopen" data-team="'+k+'"><strong>不能繼續：重新指定自由球員</strong><small>受傷、生病或被判離場時</small></button>');
-      if(!lOk)why='自由球員剛換過，要隔一球才能再換。';
+    var back=x.pos===4||x.pos===5||(x.pos===0&&pc.serving!==k),penOk=sanGone(s,k,pno)!=='D';
+    var chip=function(act,q,extra){return '<button class="chip '+k+'" data-act="'+act+'" data-team="'+k+'" data-no="'+q+'"'+(extra||'')+'><b>'+q+'</b></button>'};
+    var big=function(act,label,ok,extra){return '<button class="pmb" data-act="'+act+'" data-team="'+k+'"'+(extra||'')+(ok?'':' disabled')+'>'+label+'</button>'};
+    var head='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由）':'')+'</h2>';
+    var lg=subOptions(s,k,x.idx,false),lgN=(lg.nos||[]),sOk=pOk&&pc.subRally[k]!==pc.rally&&lgN.length>0,eOk=pOk&&excAvail(s,k,x.idx);
+    if(x.step){
+      var list='';
+      if(x.step==='lib')list=free.map(function(q){return chip('pmlin',q)}).join('');
+      else if(x.step==='swap')list=free.map(function(q){return chip('pmlswap',q)}).join('');
+      else if(x.step==='sub')list=lgN.map(function(q){return chip('pmsubin',q)}).join('');
+      else if(x.step==='exc')list=(subOptions(s,k,x.idx,true).nos||[]).map(function(q){return chip('pmsubin',q,' data-exc="1"')}).join('');
+      h=head+(x.step==='exc'?'<p class="excnote">被例外替補換下的人，本場比賽不能再上場</p>':'')+'<p class="subhint">'+({lib:'自由球員上場',swap:'換成哪一位自由',sub:pno+' 號換下，上場：',exc:pno+' 號例外替補，上場：'}[x.step])+'</p><div class="bench"><div class="benchrow">'+list+'</div></div>'+
+        (x.step==='exc'?'<button class="ghost" data-act="pminj" aria-pressed="'+!!x.inj+'">'+(x.inj?'☑':'☐')+' 宣告受傷</button>':'')+'<button data-act="pmback">返回</button>';
+    }else if(pL){
+      h=head+'<div class="pm3">'+big('pmlout','換回',lOk&&!!pc.libOut[k])+big(free.length===1?'pmlswap':'pmstep','換自由',lOk&&free.length>0,free.length===1?' data-no="'+free[0]+'"':' data-v="swap"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div>'+
+        '<button class="linkbtn" data-act="redopen" data-team="'+k+'">不能繼續：重新指定自由球員</button><button data-act="close">關閉</button>';
     }else{
-      if(!pc.libOut[k]&&back)free.forEach(function(q){opts.push('<button class="mbtn big" data-act="pmlin" data-team="'+k+'" data-no="'+q+'"'+(lOk?'':' disabled')+'><strong>自由球員 '+q+' 號上場</strong><small>換下 '+pno+' 號</small></button>')});
-      if(t.liberos.length&&!back)why='前排球員不能換自由球員。';
-      else if(free.length&&!lOk&&!pc.libOut[k])why='自由球員剛換過，要隔一球才能再換。';
-      var sOk=pOk&&pc.subRally[k]!==pc.rally;
-      if(pOk&&excAvail(s,k,x.idx))opts.push('<button class="mbtn big" data-act="pmexc" data-team="'+k+'"><strong>例外替補：換下 '+pno+' 號</strong><small>不能一般替補時使用，換下的人本場不能再上場</small></button>');
-      else opts.push('<button class="mbtn big" data-act="pmsub" data-team="'+k+'"'+(sOk?'':' disabled')+'><strong>替補：換下 '+pno+' 號</strong><small>'+(sOk?'接著選上場的人':'這次已替補過，打完下一球才能再替補')+'</small></button>');
+      var lAv=!pc.libOut[k]&&back&&free.length>0&&lOk;
+      h=head+'<div class="pm3">'+big(free.length===1?'pmlin':'pmstep','換自由',lAv,free.length===1?' data-no="'+free[0]+'"':' data-v="lib"')+
+        big('pmstep',!sOk&&eOk?'例外替補':'替補',sOk||eOk,' data-v="'+(sOk?'sub':'exc')+'"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div><button data-act="close">關閉</button>';
     }
-    opts.push(penB);
-    h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由球員）':'')+'</h2>'+opts.join('')+(why?'<p class="muted">'+why+'</p>':'')+'<button data-act="close">關閉</button>';
   }else if(x.type==='points'){
     h='<h2>每局分數設定</h2><p class="muted">Deuce 無上限：先領先 2 分的贏。搶分：先到設定分數的贏。</p><div class="ptset">'+[1,2,3].map(function(n){
       var dis=s.sets[n].started,cap=capOf(s,n),d=dis?' disabled':'';
@@ -3004,6 +3012,11 @@ app.addEventListener('click',function(e){
     case 'why': ui.toast={t:b.getAttribute('data-v'),until:Date.now()+3000}; break;
     case 'pmpen': var pmp=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub=null;ui.pen={team:k,kind:null,who:no}; break;
     case 'libaway': ui.sheet={type:'libaway',team:k,no:no}; break;
+    case 'pmstep': ui.sheet.step=b.getAttribute('data-v'); ui.sheet.inj=ui.sheet.step==='exc'; break;
+    case 'pmback': ui.sheet.step=null; break;
+    case 'pminj': ui.sheet.inj=!ui.sheet.inj; break;
+    case 'pmsubin': var psx=ui.sheet,pex=b.getAttribute('data-exc')==='1',pout=c.cur[k][psx.idx];ui.sheet=null;ui.lib=null;ui.sub=null;
+      dispatch('SUB',{set:n,team:k,idx:psx.idx,out:pout,in:no,exc:pex,injury:pex&&!!psx.inj});ui.toast={t:(pex?'例外替補：':'替補：')+pout+' 號換 '+no+' 號',until:Date.now()+3000};break;
     case 'pmexc': var pme=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pme.idx,exc:true,ids:[]};break;
     case 'pmsub': var pms=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pms.idx,exc:false,ids:[]};break;
     case 'close': if(document.activeElement)document.activeElement.blur(); ui.sheet=null; ui.pending=null; ui.ptErr=''; ui.cupSheet=null; break;

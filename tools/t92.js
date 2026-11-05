@@ -35,8 +35,11 @@ await pg.evaluate(()=>{var c=T.reduce(T.current().events).sets[1];T.dispatch('SU
 await pg.waitForTimeout(800);
 const i11=await pg.evaluate(()=>T.reduce(T.current().events).sets[1].cur.t2.indexOf(11));
 await pg.click(`.pc.t2[data-v="${i11}"]`);
-T('pmenu exc option',await pg.isVisible('[data-act=pmexc]'));
+T('pmenu exc option',(await pg.textContent('[data-act=pmstep][data-v=exc]')).includes('例外替補'));
 await pg.screenshot({path:'/home/claude/nanshe/test/t92c.png'});
-await pg.click('[data-act=pmexc]');
-T('pmenu -> exc panel',await pg.evaluate(()=>T.ui.sub&&T.ui.sub.exc===true));
+await pg.click('[data-act=pmstep][data-v=exc]');
+T('pmenu -> exc step',await pg.evaluate(()=>T.ui.sheet&&T.ui.sheet.step==='exc'));
+T('exc note in menu',(await pg.textContent('.sheet')).includes('本場比賽不能再上場'));
+await pg.click('.sheet [data-act=pmsubin]');
+T('exc sub via menu',await pg.evaluate(()=>{var e=T.current().events.filter(x=>x.type==='SUB').pop();return e.data.exc===true&&e.data.out===11}));
 T('no errors',errs.length===0);if(errs.length)console.log(errs);console.log('ok',ok,'bad',bad);await b.close()})();
