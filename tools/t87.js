@@ -27,7 +27,7 @@ const {chromium}=require('playwright');
  T('12 box greyed (wait)',await pg.isDisabled('[data-act=libback][data-no="12"]'));
  T('13 disabled same rally',await pg.isDisabled('[data-act=libcell][data-no="13"]'));
  await pg.waitForTimeout(800);await pg.click('[data-act=serve]');await pg.waitForTimeout(400);await pg.click('[data-act=point][data-team=t1]');await pg.waitForTimeout(500);
- T('13 shows 互換',(await pg.textContent('[data-act=libcell][data-no="13"]')).includes('互換'));
+ T('13 enabled for swap',await pg.isEnabled('[data-act=libcell][data-no="13"]'));
  await pg.click('[data-act=libcell][data-no="13"]');
  c=await st(); T('one tap swap',c.cur.t1.indexOf(13)>=0&&c.cur.t1.indexOf(12)<0);
  await pg.waitForTimeout(800);await pg.click('[data-act=serve]');await pg.waitForTimeout(400);await pg.click('[data-act=point][data-team=t1]');await pg.waitForTimeout(500);
