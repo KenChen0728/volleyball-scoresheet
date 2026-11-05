@@ -38,7 +38,7 @@ await p.click('[data-act=subopen][data-team=t2]');await W(40);await p.locator('.
 const lc=p.locator('.lc.t2').first();await lc.click();await W(40);const pk=p.locator('.pc.t2.pk').first();if(await pk.count()){await pk.click();await W(40)}
 await W(50);ok('libero on court',await p.locator('.pc.isl').count()>=1);
 // 其他：例外替補面板
-await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').count()===4);await p.locator('.sheet [data-act=close]').click();
+await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').count()===5);await p.locator('.sheet [data-act=close]').click();
 // 處罰
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=pendo][data-v=DP]');ok('pending',await S(p)==='2:0');await p.click('[data-act=penyes]');await W(40);ok('penalty point',await S(p)==='3:0',await S(p));
 // 打完第一局
