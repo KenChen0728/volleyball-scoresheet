@@ -11,7 +11,7 @@ await p.goto('file:///home/claude/nanshe/排球電子記錄表.html');await p.wa
 await cap('home','.hero',['.herocta'],0);
 await cap('sample','.herolinks',['[data-act=sample]'],10);
 await p.click('[data-act=sample]');
-await p.evaluate(()=>{const k='nanshe-scoresheet-v1';localStorage[k]=localStorage[k].replaceAll('範例藍隊','屏科').replaceAll('範例橘隊','高科')});await p.reload();await p.waitForTimeout(100);await cap('resume','.rlist',['.rmain em'],6);await p.click('[data-act=open]');await p.waitForTimeout(100);
+await p.reload();await p.waitForTimeout(100);await cap('resume','.rlist',['.rmain em'],6);await p.click('[data-act=open]');await p.waitForTimeout(100);
 await cap('steps','.nav',['.nav'],6);
 await p.locator('.nav [data-v=info]').click();await cap('info','.fields');
 await p.click('[data-act=sheet][data-v=points]');await cap('points','.sheet');await p.click('.sheet button[data-act=close]');
@@ -64,4 +64,9 @@ await cap('bk',['#bkwarn','.savebtns'],['[data-act=rpjson]'],6);
 await p.click('.bar [data-act=home]');await p.waitForTimeout(150);await p.locator('.homebody').scrollIntoViewIfNeeded();
 await p.evaluate(()=>document.querySelector('.home').scrollTop=9999);await p.waitForTimeout(80);await cap('hist1','.homebody section',['.hrow'],6);
 await p.click('.shead [data-act=history]');await p.waitForTimeout(120);await cap('hist2','.narrow',['.histtools'],6);
+await p.click('.bar [data-act=home]');await p.waitForTimeout(150);await p.click('[data-act=cupcreate]');await p.fill('#cup-name','範例盃');await cap('cup1','.sheet',['#cup-name']);await p.click('[data-act=cupnamesave]');await p.waitForTimeout(120);
+await p.click('[data-act=cupteam]');await p.fill('#ct-name','範例藍隊');await p.fill('#ct-text','教練：王教練\n1 王小明 隊長\n3 陳大文\n5 林小華\n7 張小強\n9 李小志\n11 黃小宇\n12 吳小安 L');await cap('cup2','.sheet',['#ct-text']);await p.click('[data-act=cupteamsave]');await p.waitForTimeout(100);
+await p.click('[data-act=cupteam]');await p.fill('#ct-name','範例橘隊');await p.fill('#ct-text','2 趙小傑 隊長\n4 周小文\n6 鄭小偉\n8 謝小祥\n10 許小明\n14 何小光');await p.click('[data-act=cupteamsave]');await p.waitForTimeout(100);
+await p.click('[data-act=cupnew]');await p.locator('.sheet [data-act=cuppick]').nth(0).click();await p.waitForTimeout(60);await p.locator('.sheet [data-act=cuppick]').nth(1).click();await cap('cup3','.sheet',['.sheet .imp']);await p.click('.sheet [data-act=close]');await p.waitForTimeout(100);
+await cap('cup4','.histtools',['[data-act=cupsave]'],6);
 console.log(e);await b.close()})().catch(x=>{console.log('ERR',x.message.slice(0,400));process.exit(1)});
