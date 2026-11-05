@@ -1,0 +1,22 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();let ok=0,bad=0;const T=(n,c)=>{if(c)ok++;else{bad++;console.log('FAIL',n)}};
+for(const [w,h,dark] of [[402,874,true],[360,640,false],[844,390,false]]){const ctx=await b.newContext({viewport:{width:w,height:h},colorScheme:dark?'dark':'light'});const pg=await ctx.newPage();
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
+ [['t1','屏科',[1,3,5,7,9,11,12],[12]],['t2','高科',[2,4,6,8,10,14,15],[15]]].forEach((c,i)=>{T.dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]});c[2].forEach(n=>T.dispatch('PLAYER_ADDED',{team:c[0],no:n}));T.dispatch('CAPTAIN_SET',{team:c[0],no:i?6:10});c[3].forEach(n=>T.dispatch('LIBERO_SET',{team:c[0],no:n,on:true}))});
+ T.dispatch('PLAYER_ADDED',{team:'t1',no:10});
+ T.dispatch('TOSS_SET',{set:1,left:'t1',serve:'t1'});
+ [[1,3,5,10,9,11],[2,4,6,8,10,14]].forEach((l,i)=>{var k=i?'t2':'t1';l.forEach((no,p)=>T.dispatch('LINEUP_SET',{set:1,team:k,pos:p,no:no}))});
+ T.save();T.resetUi();T.setView('setup');T.ui.page='lineup';T.ui.luTeam='t2';T.render();});
+await pg.waitForTimeout(150);
+const sz=await pg.evaluate(()=>[...document.querySelectorAll('.cell b')].map(e=>getComputedStyle(e).fontSize));
+T(w+' lineup same size',new Set(sz).size===1); 
+await pg.screenshot({path:`/home/claude/nanshe/test/t90_lu_${w}.png`});
+await pg.evaluate(()=>{T.dispatch('LINEUP_LOCKED',{set:1,team:'t1'});T.dispatch('LINEUP_LOCKED',{set:1,team:'t2'});T.dispatch('SET_STARTED',{set:1});T.ui.page='play';T.render()});
+await pg.waitForTimeout(150);
+const ps=await pg.evaluate(()=>[...document.querySelectorAll('.pc b')].map(e=>getComputedStyle(e).fontSize));
+T(w+' court same size',new Set(ps).size===1);
+const fit=await pg.evaluate(()=>[...document.querySelectorAll('.pc b.circ')].every(e=>{const c=e.closest('.pc').getBoundingClientRect();const f=parseFloat(getComputedStyle(e).fontSize)*1.5;return f<=c.height+1&&f<=c.width+1}));
+T(w+' circle fits cell',fit);
+await pg.screenshot({path:`/home/claude/nanshe/test/t90_pl_${w}.png`});await ctx.close()}
+console.log('ok',ok,'bad',bad);await b.close()})();

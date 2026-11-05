@@ -1069,6 +1069,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .lc small{font-weight:800}
 .capbox span{font-size:12px}
 .mrow strong small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+/* v49 隊長圈：數字不縮小，圈用 ::after 疊在外面（同名單頁做法） */
+.cell b.circ,.pc b.circ,.chip b.circ{position:relative;width:auto;height:auto;border:0;overflow:visible}
+.cell b.circ::after,.pc b.circ::after,.chip b.circ::after{content:"";position:absolute;left:50%;top:50%;width:1.5em;height:1.5em;box-sizing:border-box;transform:translate(-50%,-50%);border:3px solid currentColor;border-radius:50%;pointer-events:none}
+.chip b.circ::after{border-width:2px}
+.cell b.circ{font-size:44px}
+.pc b.circ{font-size:34px}
+.chip b.circ{font-size:26px}
+@media (orientation:portrait) and (max-height:700px){.pc b.circ{font-size:30px}}
+@media (orientation:landscape) and (max-height:520px){.cell b.circ{font-size:32px}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1405,7 +1414,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1700';
+var BUILD='1105-1713';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
