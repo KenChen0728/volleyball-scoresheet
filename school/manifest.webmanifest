@@ -1,17 +1,32 @@
 {
-  "name": "排球二裁輪轉表",
-  "short_name": "二裁輪轉表",
+  "name": "Volleyball Score Sheet",
+  "short_name": "Score Sheet",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#12324F",
   "theme_color": "#12324F",
   "lang": "zh-Hant",
-  "description": "給第二裁判自己操作的排球輪轉表，可離線使用",
+  "description": "美國學校排球賽用的記錄工具，按得分自動處理輪轉並寫好 Score Sheet，可離線使用",
   "orientation": "any",
   "icons": [
-    {"src": "icons/icon-192.png","sizes": "192x192","type": "image/png","purpose": "any"},
-    {"src": "icons/icon-512.png","sizes": "512x512","type": "image/png","purpose": "any"},
-    {"src": "icons/icon-maskable-512.png","sizes": "512x512","type": "image/png","purpose": "maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

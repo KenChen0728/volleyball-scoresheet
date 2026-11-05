@@ -1,0 +1,86 @@
+
+/* ========== 美國學校版 ========== */
+/* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
+@media not all and (display-mode:standalone){:root[data-theme="light"]{color-scheme:only light}}
+.jsy,.colors button,.pc,.lc,.sb,.bench .chip{color-scheme:only light}
+/* 選取狀態不只靠外框：多一個勾 */
+.colors button{position:relative}
+.colors button[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:-1px}
+.colors button[aria-pressed="true"]::after{content:"✓";position:absolute;right:2px;top:1px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sel);color:var(--sel-on);font-size:14px;font-weight:900;line-height:1}
+.seg button[aria-pressed="true"]::before,.teampick button[aria-pressed="true"]::before{content:"✓ ";font-weight:900}
+/* iPhone 主畫面 App：狀態列的霧蓋到網頁上緣，不管回報的 inset 是多少都多留一段 */
+@media (orientation:portrait){html.iosapp{--safe-top:calc(env(safe-area-inset-top,0px) + 40px)}}
+/* 只按得分 */
+.sbs{grid-template-columns:1fr 1fr;gap:8px}
+.sb{min-height:76px}
+.wmid .sb{min-height:64px}
+@media (orientation:landscape) and (max-height:620px){.wmid .sb{min-height:50px}}
+/* 橫放時不放記錄表，球場放大 */
+@media (orientation:landscape) and (min-width:640px){
+  .wplay{grid-template-rows:minmax(0,1fr)}
+  .wmid .pcourt{flex:1 1 0;min-height:132px;grid-template-rows:repeat(3,minmax(0,1fr))}
+  .wmid .foot{margin-top:0}
+}
+/* 綁定 */
+.bindm{position:absolute;right:5px;top:3px;display:flex;align-items:center;gap:1px;font-family:var(--num);font-size:17px;font-weight:700;line-height:1;opacity:.92}
+.bindm i{font-style:normal;font-size:13px}
+.pc.srv .bindm{right:9px;top:8px}
+.bindnote{display:block;font-size:15px;font-weight:700;color:var(--muted);margin-top:2px}
+/* 名單：每隊 15 格，一個畫面看完 */
+.rteams{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:760px;align-self:center}
+.rteam{min-width:0;border:2px solid var(--ink);border-radius:6px;background:var(--panel);overflow:hidden}
+.rteam .rh{border-right:0}
+.rteam .rh input{font-size:16px}
+.rteam .rh input::placeholder{font-weight:500;font-size:14px}
+.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.rgrid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rgrid .rr,.rgrid .rr.t1{display:block;height:46px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);box-sizing:border-box}
+.rgrid .rr:nth-child(3n){border-right:0}
+.rgrid.two .rr:nth-child(2n){border-right:0}
+.rgrid.two .rr{border-bottom:0}
+.rgrid .rr:nth-last-child(-n+3){border-bottom:0}
+.rgrid .num{display:flex;width:100%;height:100%;align-items:center;justify-content:center;border-right:0}
+.rgrid .num b{font-size:22px}
+.rteam .band{font-size:12.5px}
+.tools{max-width:760px}
+@media (orientation:landscape) and (max-height:520px){
+  .rgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .rgrid .rr,.rgrid .rr.t1{height:40px}
+  .rgrid .rr:nth-child(3n){border-right:1px solid var(--line)}
+  .rgrid .rr:nth-child(5n){border-right:0}
+  .rgrid .rr:nth-last-child(-n+5){border-bottom:0}
+  .rgrid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* 記錄表 */
+.ussheet{max-width:1000px;align-self:center}
+.sheetbtns{flex:none;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.crew{margin-top:10px}
+.rv,.tallsheet .ussheet{max-width:none}
+/* 主畫面標題 */
+.hero .hmark{width:100%;max-width:560px;font-size:0;line-height:0;margin-top:4px}
+.hmark svg{display:block;width:100%;height:auto}
+.hero p{max-width:none}
+/* 比賽資料一頁放完 */
+.ptbtn{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px}
+.ptbtn small{font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.crewrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:359px){.ptbtn{flex-direction:column;justify-content:center;gap:0;padding:4px}}
+@media (max-width:340px){.bindm{font-size:14px;right:2px;top:1px}.bindm i{font-size:11px}.pc:has(.bindm) b{margin-right:16px}}
+/* 直拿平板：球場優先，放得下才在下方放記錄表 */
+@media (orientation:portrait) and (min-width:700px){
+  .pcourt{max-height:none;max-width:680px}
+  .strips,.tt,.pbtns{max-width:680px}
+  .board{width:100%;max-width:680px;align-self:center}
+  .foot.tallfoot{margin-top:auto}
+}
+@media (orientation:portrait) and (max-height:1299px){.tallsheet{display:none}}
+@media (orientation:portrait) and (min-height:1300px){.pcourt{min-height:300px}.foot.tallfoot{margin-top:4px}}
+/* 點記錄表就放大 */
+.ussheet[data-act]{cursor:zoom-in}
+.verline{align-self:center;text-align:center;font-size:12px;color:var(--muted)}
+/* 矮的手機：陣容格壓扁，背號不用捲動就按得到 */
+@media (orientation:portrait) and (max-height:700px){
+  .lugrid .cell{aspect-ratio:auto;height:62px}
+  .lusheet header{padding-block:2px}
+  .sheetnet{display:none}
+}

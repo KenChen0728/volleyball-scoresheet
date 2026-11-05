@@ -27,10 +27,38 @@
 - 瀏覽器資料的 key 是 `nanshe-scoresheet-v1`，不要更改，否則舊比賽讀不到
 - `tools/` 放建置和測試腳本：`reg.js` 跑完整流程與各尺寸版面，`cap.js` 重截教學圖，`help-gen.py` 把教學圖寫進網頁，路徑寫死在 `/home/claude/nanshe`
 
-## 二裁輪轉表（`school/`）
+## 美國學校版 Volleyball Score Sheet（`school/`）
 
 美國學校比賽專用的獨立網頁：https://kenchen0728.github.io/volleyball-scoresheet/school/
 
-- 二裁自己操作：背號名單（12＋2，無姓名）、分數、發球、輪轉、暫停、無限次綁定替補、三局或五局，不輸出記錄表
-- 原始檔是 `tools/school/src.html`，改完跑 `python3 tools/school/build.py`；測試 `tools/school/test.js`、`sizes.js`，說明圖 `shots.js`
-- 資料 key 是 `vb-school-v1`，快取前綴是 `vbschool-`，都不能用 `scoresheet-` 開頭，否則會被主程式的 service worker 刪掉
+傳到 LINE 時請用：https://kenchen0728.github.io/volleyball-scoresheet/school/?openExternalBrowser=1
+
+和完整版的差別：
+
+- 只按得分：沒有發球鍵和公正鍵，一球按一下
+- 替補次數不限，局內固定一對互換，下一局解除
+- 名單只輸入背號，每隊 15 格加 2 個自由球員，自由球員可以空著
+- 預設三局兩勝，開賽前可改五局三勝，第 3 局限制 17 分用「每局分數設定」的搶分
+- 記錄表是學校的 VOLLEYBALL SCORE SHEET，每局一張，可以存 PDF（整場）或圖片（單局）
+
+給維護者：
+
+- `school/index.html` 是由完整版的 `index.html` 產生的，不要直接改。完整版更新後跑 `python3 tools/school/derive.py` 就會同步，對不上的地方會直接停下來
+- 改動都在 `tools/school/`：`patches.txt`（逐段替換）、`sheet.js`（記錄表和 PDF）、`extra.css`、`help.json`（使用教學文字）
+- 標題字形是 Graduate（Eduardo Tunni，SIL Open Font License 1.1）轉成的外框，存在 `lettering.json`，網頁不用帶字型檔；圖示由 `icon.js` 產生
+- 使用教學的圖：`node tools/school/help-shots.js 暫存資料夾`，`python3 tools/school/help-img.py 暫存資料夾`，再跑一次 `derive.py`
+- 測試：`test.js`（真實點擊跑規則）、`layout.js`（各尺寸版面）、`offline.js`（離線、和完整版並存，要先在專案根目錄開 `python3 -m http.server 8765`）。測試環境要設 `LANG=C.UTF-8`，不然中文檔名會變成 download
+- 資料 key 是 `vb-school-v2`，個人設定 `vb-school-prefs`，快取前綴 `vbschool-`，都不能用 `scoresheet-` 開頭，否則會被完整版的 service worker 刪掉
+
+### 退回前一版
+
+前一版（自己重寫的二裁輪轉表）留在 `backup/school-rewrite` 分支。要退回時：
+
+```
+git rm -r -q school
+git checkout backup/school-rewrite -- school
+git commit -m "退回前一版學校網頁"
+git push
+```
+
+前一版的資料 key 是 `vb-school-v1`，新版沒有動到，退回後舊資料還在。

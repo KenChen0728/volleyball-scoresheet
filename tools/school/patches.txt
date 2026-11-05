@@ -1,0 +1,674 @@
+美國學校版的所有改動。derive.py 讀根目錄 index.html（完整版），照這份逐段替換，找不到或數量不對就停下來。
+區塊外的文字都是說明，不會被讀取。
+
+格式：
+  <<<<            換掉一段，必須剛好出現一次；<<<< 3 表示剛好出現 3 次
+  舊內容
+  ====
+  新內容
+  >>>>
+
+  <<<<cut         換掉一整段：從開頭字串到結尾字串之前
+  開頭字串
+  ----
+  結尾字串（保留）
+  ====
+  新內容
+  >>>>
+
+＝＝＝ 網頁資訊 ＝＝＝
+<<<<
+<meta name="apple-mobile-web-app-title" content="排球記錄表">
+====
+<meta name="apple-mobile-web-app-title" content="Score Sheet">
+<meta name="color-scheme" content="light dark">
+>>>>
+<<<<
+content="手機、平板、電腦都能用的排球電子記錄表。按發球、按得分，記錄表自動寫好，可以離線使用。"
+====
+content="美國學校排球賽用的記錄工具。按得分，輪轉和 Score Sheet 自動寫好，可以離線使用。"
+>>>>
+<<<<
+<meta property="og:title" content="排球電子記錄表">
+====
+<meta property="og:title" content="Volleyball Score Sheet">
+>>>>
+<<<<
+content="按發球、按得分，記錄表自動寫好。資料只存在自己的裝置，可以離線使用。"
+====
+content="按得分，輪轉和 Score Sheet 自動寫好。資料只存在自己的裝置，可以離線使用。"
+>>>>
+<<<<
+content="https://kenchen0728.github.io/volleyball-scoresheet/"
+====
+content="https://kenchen0728.github.io/volleyball-scoresheet/school/"
+>>>>
+<<<<
+content="https://kenchen0728.github.io/volleyball-scoresheet/icons/icon-512.png"
+====
+content="https://kenchen0728.github.io/volleyball-scoresheet/school/icons/icon-512.png"
+>>>>
+<<<<
+<title>排球電子記錄表</title>
+====
+<title>Volleyball Score Sheet</title>
+>>>>
+
+＝＝＝ 存放位置：和完整版分開，互不影響 ＝＝＝
+<<<<
+var KEY='nanshe-scoresheet-v1';
+====
+var KEY='vb-school-v2';
+>>>>
+<<<<
+var MAX_PLAYERS=12, MAX_LIBEROS=2, MIN_ON_COURT=6;
+====
+var MAX_PLAYERS=15, MAX_LIBEROS=2, MIN_ON_COURT=6;
+>>>>
+<<<<
+var PREF='volleyball-prefs',prefs={};
+====
+var PREF='vb-school-prefs',prefs={};
+>>>>
+<<<< 4
+app:'volleyball-scoresheet'
+====
+app:'volleyball-school'
+>>>>
+<<<<
+saveFile('排球記錄表原始資料_'
+====
+saveFile('ScoreSheet原始資料_'
+>>>>
+<<<<
+saveFile('排球記錄表備份_'
+====
+saveFile('ScoreSheet備份_'
+>>>>
+<<<<
+saveFile('排球記錄表問題資料_'
+====
+saveFile('ScoreSheet問題資料_'
+>>>>
+<<<<
+saveFile('排球記錄表損毀存檔_'
+====
+saveFile('ScoreSheet損毀存檔_'
+>>>>
+
+＝＝＝ 五局三勝：局數都看賽制 ＝＝＝
+<<<<
+sets:{1:emptySet(),2:emptySet(),3:emptySet()}}
+====
+sets:{1:emptySet(),2:emptySet(),3:emptySet(),4:emptySet(),5:emptySet()}}
+>>>>
+<<<<
+for(var mn=d.set+1;mn<=3&&setsWon(s)[op]<2;mn++)
+====
+for(var mn=d.set+1;mn<=fmtOf(s)&&setsWon(s)[op]<needWins(s);mn++)
+>>>>
+<<<<
+        s.sets[1].left=pw;s.sets[2].left=pl2;
+        [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=pw;mc.score[pw]=25});
+        s.setNo=2;s.preForfeit={winner:pw,reason:d.reason};
+====
+        winList(s).forEach(function(mn){var mc=s.sets[mn];mc.left=mn%2?pw:pl2;mc.started=true;mc.ended=true;mc.winner=pw;mc.score[pw]=25});
+        s.setNo=needWins(s);s.preForfeit={winner:pw,reason:d.reason};
+>>>>
+<<<<
+        [1,2,3].forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
+        [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
+        if(!s.sets[1].left)s.sets[1].left='t1';
+        s.setNo=2;s.forfeit=d.team;
+====
+        setList(s).forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
+        winList(s).forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
+        if(!s.sets[1].left)s.sets[1].left='t1';
+        s.setNo=needWins(s);s.forfeit=d.team;
+>>>>
+<<<<
+        if(n===2){s.sets[2].left=other(prev.left); s.sets[2].serve=other(prev.serve)}
+====
+        if(autoSet(s,n)){s.sets[n].left=other(prev.left); s.sets[n].serve=other(prev.serve)}
+>>>>
+<<<<
+function capOf(s,n){return Number(s.info['c'+n])||0}
+====
+/* 賽制：預設三局兩勝，開賽前可以改五局三勝 */
+function fmtOf(s){return Number(s.info&&s.info.fmt)===5?5:3}
+function setList(s){return fmtOf(s)===5?[1,2,3,4,5]:[1,2,3]}
+function winList(s){return fmtOf(s)===5?[1,2,3]:[1,2]}
+function needWins(s){return fmtOf(s)===5?3:2}
+function autoSet(s,n){return n>1&&n<fmtOf(s)} // 決勝局以外自動換邊換發，不用挑邊
+function afterSetPage(s){return autoSet(s,s.setNo)?'lineup':'toss'}
+function forfeitScore(s){return needWins(s)+':0 ('+winList(s).map(function(){return '25:0'}).join(' ')+')'}
+function capOf(s,n){return Number(s.info['c'+n])||0}
+>>>>
+<<<<
+  var c=[capOf(s,1),capOf(s,2),capOf(s,3)];
+  if(!c[0]&&!c[1]&&!c[2])return 'Deuce 無上限';
+====
+  var c=setList(s).map(function(n){return capOf(s,n)});
+  if(!c.some(function(v){return v}))return 'Deuce 無上限';
+>>>>
+<<<<
+function target(s,n){return Number(s.info['p'+n])||(n===3?15:25)}
+function setsWon(s){var w={t1:0,t2:0};[1,2,3].forEach(
+====
+function target(s,n){return Number(s.info['p'+n])||(n===fmtOf(s)?15:25)}
+function setsWon(s){var w={t1:0,t2:0};[1,2,3,4,5].forEach(
+>>>>
+<<<<
+function matchOver(s){var w=setsWon(s);return w.t1>=2||w.t2>=2}
+====
+function matchOver(s){var w=setsWon(s),q=needWins(s);return w.t1>=q||w.t2>=q}
+>>>>
+<<<<
+  return n===3&&c.started&&!c.ended&&!c.swapped&&Math.max(c.score.t1,c.score.t2)>=Math.ceil(target(s,3)/2);
+====
+  return n===fmtOf(s)&&c.started&&!c.ended&&!c.swapped&&Math.max(c.score.t1,c.score.t2)>=Math.ceil(target(s,n)/2);
+>>>>
+<<<<
+  if(ui.page==='toss'&&s.setNo===3&&!s.sets[3].started)return 'set3';
+====
+  if(ui.page==='toss'&&s.setNo===fmtOf(s)&&!s.sets[s.setNo].started)return 'set3';
+>>>>
+<<<<
+    var mln=[3,2,1].filter(function(n){return s.sets[n].endAt})[0]
+====
+    var mln=[5,4,3,2,1].filter(function(n){return s.sets[n].endAt})[0]
+>>>>
+<<<<
+  return c.left||(n===3?s.sets[2].left:null)||'t1';
+====
+  return c.left||(n>1?s.sets[n-1].left:null)||'t1';
+>>>>
+<<<<
+  var n=s.setNo,c=s.sets[n],L=sideLeft(s),R=other(L),fixed=n===2||c.started;
+====
+  var n=s.setNo,c=s.sets[n],L=sideLeft(s),R=other(L),fixed=autoSet(s,n)||c.started;
+>>>>
+<<<<
+(n===1?'點先發球隊伍的排球。左邊是 A 隊，要換邊按中間的按鈕。':n===2?'第 2 局自動換邊，同一端發球，不用挑邊。':'決勝局重新挑邊
+====
+(n===1?'點先發球隊伍的排球。左邊是 A 隊，要換邊按中間的按鈕。':autoSet(s,n)?'第 '+n+' 局自動換邊，同一端發球，不用挑邊。':'決勝局重新挑邊
+>>>>
+<<<<
+  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push(
+====
+  setList(s).forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push(
+>>>>
+<<<<
+'」以 2:0 (25:0 25:0) 獲勝');
+====
+'」以 '+forfeitScore(s)+' 獲勝');
+>>>>
+<<<<
+'」以 2:0 (25:0 25:0) 獲勝。確定後比賽直接結束。</p>'
+====
+'」以 '+forfeitScore(s)+' 獲勝。確定後比賽直接結束。</p>'
+>>>>
+<<<<
+  [1,2,3].forEach(function(n){
+    var c=s.sets[n],on=c.ended;
+====
+  setList(s).forEach(function(n){
+    var c=s.sets[n],on=c.ended;
+>>>>
+<<<<
+  var n=ui.fixSet||s.setNo,c=s.sets[n],seg='<div class="seg three" style="flex:none">'+[1,2,3].map(
+====
+  var n=ui.fixSet||s.setNo,c=s.sets[n],seg='<div class="seg three" style="flex:none">'+setList(s).map(
+>>>>
+<<<<
+先完成'+(n===2?'陣容':'挑邊和陣容')+'。</p><button class="full" data-act="page" data-v="'+(n===2?'lineup':'toss')+'">前往'+(n===2?'陣容':'挑邊')+'</button>
+====
+先完成'+(autoSet(s,n)?'陣容':'挑邊和陣容')+'。</p><button class="full" data-act="page" data-v="'+(autoSet(s,n)?'lineup':'toss')+'">前往'+(autoSet(s,n)?'陣容':'挑邊')+'</button>
+>>>>
+<<<<
+  [1,2,3].forEach(function(n){var c=s.sets[n];if(!c.started)return;lines.push(
+====
+  setList(s).forEach(function(n){var c=s.sets[n];if(!c.started)return;lines.push(
+>>>>
+<<<<
+一隊先到 '+Math.ceil(target(s,3)/2)+' 分
+====
+一隊先到 '+Math.ceil(target(s,s.setNo)/2)+' 分
+>>>>
+<<<<
+<div class="ptset">'+[1,2,3].map(function(n){
+====
+<div class="ptset">'+setList(s).map(function(n){
+>>>>
+<<<<
+mb('tossfix','','挑邊',mc.live||s.setNo===2)
+====
+mb('tossfix','','挑邊',mc.live||autoSet(s,s.setNo))
+>>>>
+<<<<
+if(kind==='info'&&/^[pc][123]$/.test(fld||''))
+====
+if(kind==='info'&&/^[pc][1-5]$/.test(fld||''))
+>>>>
+<<<<
+  return s.setNo===2?'lineup':'toss';
+====
+  return afterSetPage(s);
+>>>>
+<<<<
+    case 'start': if(n===2){dispatch('SET_STARTED',{set:n});
+====
+    case 'start': if(autoSet(s,n)){dispatch('SET_STARTED',{set:n});
+>>>>
+<<<<
+ui.luTeam=null; ui.page=reduce(m.events).setNo===2?'lineup':'toss'} else ui.page='play';
+====
+ui.luTeam=null; ui.page=afterSetPage(reduce(m.events))} else ui.page='play';
+>>>>
+<<<<
+ui.luTeam=null; ui.lib=null; ui.sub=null; ui.page=reduce(m.events).setNo===2?'lineup':'toss'}
+====
+ui.luTeam=null; ui.lib=null; ui.sub=null; ui.page=afterSetPage(reduce(m.events))}
+>>>>
+
+＝＝＝ 替補：次數不限，綁定一對 ＝＝＝
+SUB 不再把位置標成 done；subOptions 拿掉 6 次和「已換回」，換過的位置只給配對的另一人。
+<<<<
+        else{sb.subCount[d.team]++; if(ps.sub==null)ps.sub=d.in; else ps.done=true}
+====
+        else{sb.subCount[d.team]++; if(ps.sub==null)ps.sub=d.in}
+        sb.tape.push({k:'S',team:d.team,st:sb.serving,si:sb.rot[sb.serving],in:d.in,out:d.out});
+>>>>
+<<<<
+  if(c.subCount[k]>=6)return {err:'這局 6 次替補已用完'};
+  if(ps.done)return {err:'這個位置已換回，不能再換'};
+  if(ps.sub!=null){var st0=c.lineups[k][idx];return (c.expelled[k].indexOf(st0)>=0||s.matchOut[k].indexOf(st0)>=0||t.liberos.indexOf(st0)>=0)?{err:'原先發不能上場，請用例外替補'}:{nos:[st0]}}
+====
+  if(ps.sub!=null){var st0=c.lineups[k][idx],mate=now===st0?ps.sub:st0;return (c.expelled[k].indexOf(mate)>=0||s.matchOut[k].indexOf(mate)>=0||t.liberos.indexOf(mate)>=0)?{err:'綁定的 '+mate+' 號不能上場，請用例外替補'}:{nos:[mate]}}
+>>>>
+<<<<
+sw2=c.live?'球在進行中，得分後才能替補':c.subRally[k]===c.rally?'這次死球已換過人，打完一球才能再換':'';
+====
+sw2=c.live?'球在進行中，得分後才能替補':'';
+>>>>
+<<<<
+  var subDone=[L,R].filter(function(k){return c.subRally[k]===c.rally&&c.rally>0})[0];
+====
+  var subDone=null;
+>>>>
+<<<<
+sOk=pOk&&pc.subRally[k]!==pc.rally&&lgN.length>0,eOk=
+====
+sOk=pOk&&lgN.length>0,eOk=
+>>>>
+<<<<
+    var head='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由）':'')+'</h2>';
+====
+    var pmate=pL?null:mateOf(pc,k,x.idx,pno);
+    var head='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由）':'')+(pmate!=null?'<small class="bindnote">綁定 '+pmate+' 號</small>':'')+'</h2>';
+>>>>
+<<<<
+        big('pmstep',!sOk&&eOk?'例外替補':'替補',sOk||eOk,' data-v="'+(sOk?'sub':'exc')+'"')+
+====
+        (sOk&&lgN.length===1?big('pmsubin','換 '+lgN[0]+' 號',true,' data-no="'+lgN[0]+'"'):big('pmstep',!sOk&&eOk?'例外替補':'替補',sOk||eOk,' data-v="'+(sOk?'sub':'exc')+'"'))+
+>>>>
+<<<<
+      var cnt=c.subCount[ui.sub.team];
+      if(!ui.sub.exc&&(ui.sub.ids||[]).length&&cnt>=5)ui.notice=tName(s,ui.sub.team)+' 第 '+cnt+' 次替補';
+      ui.sub=null;
+====
+      ui.sub=null;
+>>>>
+<<<<
+function playCell(s,k,pos){
+====
+function mateOf(c,k,idx,no){var q=c.subPos[k][idx].sub,st=c.lineups[k][idx];return q==null?null:no===st?q:no===q?st:null}
+function playCell(s,k,pos){
+>>>>
+<<<<
+  var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null;
+  var tap=pick||bad||(!ui.sub&&!ui.lib);
+====
+  var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null,mate=isL?null:mateOf(c,k,idx,no);
+  var tap=pick||bad||(!ui.sub&&!ui.lib);
+>>>>
+<<<<
+' 號'+(isL?' 自由球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
+====
+' 號'+(isL?' 自由球員':'')+(mate!=null?'，綁定 '+mate+' 號':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(mate!=null?'<span class="bindm" aria-hidden="true"><i>⇄</i>'+mate+'</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
+>>>>
+
+＝＝＝ 只按得分：沒有發球鍵和公正鍵 ＝＝＝
+<<<<
+function applyPoint(c,k){
+  var lo=other(k);
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
+}
+====
+function applyPoint(c,k){
+  var lo=other(k),st=c.serving,si=c.rot[st];
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
+  c.tape.push({k:'P',team:k,st:st,si:si,ni:c.rot[k],sc:c.score[k]});
+}
+>>>>
+<<<<
+libRows:{t1:[],t2:[]}}}
+function applyPoint
+====
+libRows:{t1:[],t2:[]},tape:[]}}
+function applyPoint
+>>>>
+<<<<
+st.started=true; st.serving=st.serve; st.startAt=ev.at;
+====
+st.started=true; st.serving=st.serve; st.startAt=ev.at; st.firstServeAt=ev.at;
+>>>>
+<<<<
+if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot])}
+====
+if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.tape[sn.tape.length-1].pen=true}
+>>>>
+<<<<
+to.timeouts[d.team].push(to.score.t1+':'+to.score.t2);
+====
+to.timeouts[d.team].push(to.score.t1+':'+to.score.t2); to.tape.push({k:'T',team:d.team,st:to.serving,si:to.rot[to.serving]});
+>>>>
+<<<<
+        if(fo2>=0){fl[fo2]=fa;fix(fo2,d.no,fa)}
+====
+        if(fo2>=0){fl[fo2]=fa;fix(fo2,d.no,fa)}
+        fc.tape.forEach(function(q){if(q.k!=='S'||q.team!==d.team)return;['in','out'].forEach(function(f){if(q[f]===fa)q[f]=d.no;else if(fo2>=0&&q[f]===d.no)q[f]=fa})});
+>>>>
+<<<<
+  var srv=courtPlayer(c,c.serving,0),main,warn='';
+  if(!c.live)main='<button class="sv" data-act="serve">發球'+(c.replayLock?'（公正重發）':'')+'</button>';
+  else main='<div class="sbs"><button class="sb '+L+'" data-act="point" data-team="'+L+'"><span class="sbn">'+esc(tName(s,L))+'</span><span>得分</span></button><button class="rp" data-act="replay">公正<small>重打這球</small></button><button class="sb '+R+'" data-act="point" data-team="'+R+'"><span class="sbn">'+esc(tName(s,R))+'</span><span>得分</span></button></div>';
+====
+  var srv=courtPlayer(c,c.serving,0),main,warn='';
+  main='<div class="sbs"><button class="sb '+L+'" data-act="point" data-team="'+L+'"><span class="sbn">'+esc(tName(s,L))+'</span><span>得分</span></button><button class="sb '+R+'" data-act="point" data-team="'+R+'"><span class="sbn">'+esc(tName(s,R))+'</span><span>得分</span></button></div>';
+>>>>
+<<<<
+n===1&&c.rally===0?'裁判鳴哨發球時按「發球」，打完按得分的隊伍':'';
+====
+n===1&&c.rally===0?'每一球打完，按得分的隊伍':'';
+>>>>
+<<<<
+  if(lfb&&['serve','endset'].indexOf(act)>=0){ui.toast={t:'先點閃的 L 換回 '+lfb.no+' 號才能發球',until:Date.now()+3000};render();return}
+====
+  if(lfb&&['point','endset'].indexOf(act)>=0){ui.toast={t:'先點閃的 L 換回 '+lfb.no+' 號才能繼續',until:Date.now()+3000};render();return}
+>>>>
+<<<<
+    case 'point': if(Date.now()<(ui.noPoint||0))return; dispatch('POINT',{set:n,team:k}); ui.noServe=Date.now()+350; armGuard(); break;
+====
+    case 'point': if(Date.now()<(ui.noPoint||0))return; ui.lib=null; ui.sub=null; ui.timer=null; dispatch('POINT',{set:n,team:k}); ui.noPoint=Date.now()+500; armGuard(); break;
+>>>>
+
+＝＝＝ 比賽畫面：橫放不放記錄表，球場放大；直拿平板放在按鈕下面 ＝＝＝
+<<<<
+'</div>'+wideCol(s,R)+'<div class="wsheet">'+setSvg(s,n)+'</div></div>';
+====
+'</div>'+wideCol(s,R)+'</div>';
+>>>>
+
+＝＝＝ 沒有自由球員時不佔位置 ＝＝＝
+<<<<
+  var slots=[0,1].map(function(i){
+    var no=t.liberos[i];
+    if(no==null)return '<div class="lc '+k+' empty" aria-hidden="true"><span>L'+(i+1)+'</span><b class="none">無</b></div>';
+====
+  var slots=[0,1].filter(function(i){return t.liberos[i]!=null}).map(function(i){
+    var no=t.liberos[i];
+>>>>
+
+＝＝＝ 第二裁判自己操作，拿掉「告知二裁」「和紙本核對」 ＝＝＝
+<<<<
+c.timeouts[k].length>=2?'這局 2 次暫停已用完，請告知二裁':''
+====
+c.timeouts[k].length>=2?'這局 2 次暫停已用完':''
+>>>>
+<<<<
+<h2>'+esc(ui.notice)+'</h2><p class="muted">請用手勢告知第二裁判。</p><button
+====
+<h2>'+esc(ui.notice)+'</h2><button
+>>>>
+<<<<
+ 第 '+tn+' 次暫停？</h2>'+(tn>=2?'<p class="muted">確定後請用手勢告知第二裁判。</p>':'')+'<div class="row">
+====
+ 第 '+tn+' 次暫停？</h2><div class="row">
+>>>>
+<<<<
+(none?'隊長不在先發，場上隊長可以現在選，也可以等二裁核對時再選：':
+====
+(none?'隊長不在先發，場上隊長可以現在選，也可以比賽時再選：':
+>>>>
+<<<<
+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'
+====
+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'
+>>>>
+<<<<
+<div class="note">已開局。記錄台輸入錯誤時，用下方的修正陣容。</div>
+====
+<div class="note">已開局。輸入錯誤時，用下方的修正陣容。</div>
+>>>>
+<<<<
+<p class="muted">用於記錄台輸入錯誤，比分和輪轉不會改變。</p>
+====
+<p class="muted">用於輸入錯誤，比分和輪轉不會改變。</p>
+>>>>
+
+＝＝＝ 比賽資料：賽制、裁判 ＝＝＝
+<<<<
+  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||''};
+====
+  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||'',fmt:last.fmt||3,referee:last.referee||'',umpire:last.umpire||'',scorer:last.scorer||''};
+>>>>
+<<<<
+    '<div class="wide ptsum"><strong>三局兩勝　'+target(s,1)+'、'+target(s,2)+'、'+target(s,3)+'</strong><span class="muted">'+capText(s)+'</span></div>'+
+====
+    '<div class="wide seg">'+[[3,'三局兩勝'],[5,'五局三勝']].map(function(x){return '<button data-act="fmt" data-v="'+x[0]+'" aria-pressed="'+(fmtOf(s)===x[0])+'"'+(lk?' disabled':'')+'>'+x[1]+'</button>'}).join('')+'</div>'+
+    '<button class="wide ptbtn" data-act="sheet" data-v="points"><span>每局分數設定</span><small>'+ptText(s)+'</small></button>'+
+    crewFields(s)+
+>>>>
+<<<<
+    '<button class="wide" data-act="sheet" data-v="points">每局分數設定</button>'+
+    '</div>'
+====
+    '</div>'
+>>>>
+<<<<
+function autoSlot(t){
+====
+function ptText(s){var c=setList(s).map(function(n){return target(s,n)+(capOf(s,n)?'（搶 '+capOf(s,n)+'）':'')}).join('、');return setList(s).some(function(n){return capOf(s,n)})?c:c+'　Deuce 無上限'}
+function crewFields(s){var i=s.info;return '<div class="wide crewrow">'+field('i-ref','第一裁判',i.referee||'',false,{field:'referee',kind:'info'})+field('i-ump','第二裁判',i.umpire||'',false,{field:'umpire',kind:'info'})+field('i-sco','記錄',i.scorer||'',false,{field:'scorer',kind:'info'})+'</div>'}
+function autoSlot(t){
+>>>>
+<<<<
+    case 'div': dispatch('INFO_SET',
+====
+    case 'fmt': dispatch('INFO_SET',{field:'fmt',value:Number(b.getAttribute('data-v'))}); break;
+    case 'div': dispatch('INFO_SET',
+>>>>
+<<<<
+placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
+====
+placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea><div class="fields crew">'+crewFields(s)+'</div></div>';
+>>>>
+
+＝＝＝ 名單：不打姓名，每隊 15 格加 2 個自由球員 ＝＝＝
+<<<<cut
+function rowHtml(k,t,kind,p,idx){
+----
+function rosterNext(s){
+====
+function rowHtml(k,t,kind,p,idx){
+  var sl=t.locked?null:ui.slot[k], e=ui.entry[k];
+  var on=!!sl&&sl.kind===kind&&(p?sl.no===p.no:(sl.no===null&&sl.idx===idx));
+  var txt=on&&e!==''?e:(p?p.no:'');
+  var cap=!!p&&t.captain===p.no&&!(on&&e!=='');
+  var lj=(kind==='lib'&&p&&t.liberoColor)?jersey(t.liberoColor).j:null;
+  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 格'+(p?' '+p.no+' 號':'空')+(cap?' 隊長':'')+'"'+(t.locked?' disabled':'')+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button></div>';
+}
+function rosterHtml(s,m){
+  var a=s.teams.t1,b=s.teams.t2,A=s.sets[1].left,h='';
+  ['t1','t2'].forEach(function(k){
+    var t=s.teams[k],regs=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)<0}),libs=t.players.filter(function(p){return sheetLibs(t).indexOf(p.no)>=0}),i,g='',l='';
+    for(i=0;i<MAX_PLAYERS;i++)g+=rowHtml(k,t,'reg',regs[i],i);
+    for(i=0;i<MAX_LIBEROS;i++)l+=rowHtml(k,t,'lib',libs[i],i);
+    h+='<section class="rteam '+k+'"><div class="rh '+k+'">'+(A?'<span class="ab">'+(A===k?'A':'B')+'</span>':'')+'<input id="n-'+k+'" aria-label="隊名" placeholder="'+(k==='t1'?'主隊隊名 Home':'客隊隊名 Visitor')+'" value="'+esc(t.name)+'" data-kind="teamname" data-team="'+k+'"'+(t.locked?' disabled':'')+'></div><div class="rgrid">'+g+'</div><div class="band">自由球員 L（可空著）</div><div class="rgrid two">'+l+'</div></section>';
+  });
+  var tools=['t1','t2'].map(function(k){
+    var t=s.teams[k],oth=s.teams[other(k)];
+    var past=teamChoices(m).filter(function(p){return p.name!==oth.name.trim()}).length>0;
+    return '<div class="tool '+k+'"><div class="count">登錄人數：'+t.players.length+' 人</div>'+(past&&!t.locked?'<div class="row"><button data-act="sheet" data-v="import" data-team="'+k+'">載入</button></div>':'')+'<div id="foot-'+k+'" class="foot">'+footHtml(k,t,s)+'</div></div>';
+  }).join('');
+  var sameColor=(a.color||JERSEY_DEFAULT.t1)===(b.color||JERSEY_DEFAULT.t2);
+  return (a.locked?'':'<p class="stephint">點空格輸入背號，每隊至少 6 位。再點背號可以設隊長、自由球員或移除。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，到挑邊頁可以更改。</p>':'')+'<div class="rteams">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
+}
+>>>>
+<<<<
+placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 王小明 隊長\n7 陳大文\n12 林小華 L"
+====
+placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 隊長\n7\n12 L"
+>>>>
+<<<<
+<p class="muted">身分寫 L 是自由球員，寫隊長是隊長。可以加「教練：王教練」。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>
+====
+<p class="muted">背號後面寫 L 是自由球員，寫隊長是隊長。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>
+>>>>
+<<<<
+組別,隊名,背號,姓名,身分\n男子組,範例藍隊,教練,王教練,\n男子組,範例藍隊,1,王小明,隊長\n男子組,範例藍隊,7,陳大文,\n男子組,範例藍隊,12,林小華,L\n女子組,範例橘隊,3,李小美,隊長\n
+====
+組別,隊名,背號,姓名,身分\n男子組,範例藍隊,1,,隊長\n男子組,範例藍隊,7,,\n男子組,範例藍隊,12,,L\n女子組,範例橘隊,3,,隊長\n
+>>>>
+<<<<
+ui.cupSheet.err='還沒有名單，請貼上背號和姓名';
+====
+ui.cupSheet.err='還沒有名單，請貼上背號';
+>>>>
+<<<<
+var TEAM_LABEL={t1:'隊伍一',t2:'隊伍二'};
+====
+var TEAM_LABEL={t1:'主隊',t2:'客隊'};
+>>>>
+<<<<
+  [['t1','範例藍隊',[1,3,5,7,9,11,12,18],3,[12]],['t2','範例橘隊',[2,4,6,8,10,14,15,20,77],6,[15,20]]].forEach(function(c){
+====
+  [['t1','範例藍隊',[1,3,5,7,9,11,12,18],3,[]],['t2','範例橘隊',[2,4,6,8,10,14,15,20,77],6,[]]].forEach(function(c){
+>>>>
+
+＝＝＝ 主畫面 ＝＝＝
+<<<<
+<section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p>
+====
+<section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和記錄表自動寫好</p>
+>>>>
+<<<<
+var BIGCOURT='<svg class="herocourt"
+====
+var HERO_MARK='__HERO_MARK__';
+var BIGCOURT='<svg class="herocourt"
+>>>>
+
+＝＝＝ 記錄表：拿掉 AVC 版面和 R6，換成 SCORE SHEET ＝＝＝
+<<<<cut
+function svEntries(c,k,i,d){
+----
+function ppResult(s){
+====
+/*US-SHEET*/
+>>>>
+<<<<cut
+function pointsGrid(c,k,tg,win){
+----
+function csvText(m,s){
+====
+>>>>
+<<<<cut
+function statRow(c,n,A,B,win,endIso,single){
+----
+function notesList(s,A,B){
+====
+>>>>
+<<<<
++(ui.report?reportHtml(s,m):'')+
+====
++
+>>>>
+<<<<
+  var tabs=[['s1','第1局'],['s2','第2局'],['s3','第3局'],['res','結果'],['pen','判罰'],['r6','<span class="lg">R6 </span>自由'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
+====
+  var tabs=setList(s).filter(function(i){return i===1||s.sets[i].started}).map(function(i){return ['s'+i,'第'+i+'局']}).concat([['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']]);
+>>>>
+<<<<
+  var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>':'';
+====
+  var sn=/^s[1-5]$/.test(tab)?Number(tab.slice(1)):0;
+  var wide=sn?'<div class="sheetbtns"><button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>'+(pv?'':'<button class="fsbtn" data-act="rppng" data-v="'+sn+'">存成圖片</button>')+'</div><div id="rvmsg" class="muted"></div>':'';
+>>>>
+<<<<
+  if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
+  if(tab==='note')
+====
+  if(tab==='note')
+>>>>
+<<<<
+  if(tab==='s1'||tab==='s2'||tab==='s3')return head+setSvg(s,Number(tab.slice(1)))+wide+back+fs(setSvg(s,Number(tab.slice(1))));
+====
+  if(sn)return head+setSvg(s,sn,true)+wide+back+fs(setSvg(s,sn));
+>>>>
+<<<<
+<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
+====
+<button class="primary full" data-act="rppdf">存成記錄表 PDF</button><div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
+>>>>
+<<<<
+    case 'rpprint': window.print(); return;
+====
+    case 'rppdf': usSavePdf(s); return;
+    case 'rppng': usSavePng(s,Number(b.getAttribute('data-v'))); return;
+    case 'rpready': if(ui.ready)saveBlob(ui.ready.name,ui.ready.blob); return;
+>>>>
+<<<<
+    case 'report': ui.report=true; break;
+    case 'rpclose': ui.report=false; break;
+====
+>>>>
+
+＝＝＝ 說明圖改成獨立檔案 ＝＝＝
+<<<<
+var src=HELP_IMG[x.img];
+====
+var src='help/'+x.img+'.webp';
+>>>>
+
+＝＝＝ 手機狀態列的霧：iPhone 主畫面 App 一律多留一段色帶 ＝＝＝
+<<<<
+applyTheme();
+// 主畫面 App 剛開時
+====
+applyTheme();
+if(navigator.standalone&&/iPhone/.test(navigator.userAgent))document.documentElement.classList.add('iosapp');
+// 主畫面 App 剛開時
+>>>>
+
+＝＝＝ 檔名、回報方式 ＝＝＝
+<<<<
+function fname(s,ext){return ('排球記錄表_'+tName(s,'t1')+'對'+tName(s,'t2')+'_'+(s.info.date||'')).replace(
+====
+function fname(s,ext){return ('ScoreSheet_'+tName(s,'t1')+'_vs_'+tName(s,'t2')+'_'+(s.info.date||'')).replace(
+>>>>
+<<<<
+<button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>
+====
+<button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>
+>>>>
+
+＝＝＝ 陣容：填的時候不放旋轉鈕，小手機才看得到背號 ＝＝＝
+<<<<
+  var rotb=c.locked[k]||c.started?'':'<div class="rotb">
+====
+  var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb">
+>>>>
