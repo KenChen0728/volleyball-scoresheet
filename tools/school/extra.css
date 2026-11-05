@@ -26,7 +26,7 @@
 .bindm i{font-style:normal;font-size:13px}
 .pc.srv .bindm{right:9px;top:8px}
 .bindnote{display:block;font-size:15px;font-weight:700;color:var(--muted);margin-top:2px}
-/* 名單：每隊 15 格，一個畫面看完 */
+/* 名單：每隊 12 格加 2 個自由球員，一個畫面看完 */
 .rteams{flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:760px;align-self:center}
 .rteam{min-width:0;border:2px solid var(--ink);border-radius:6px;background:var(--panel);overflow:hidden}
 .rteam .rh{border-right:0}
@@ -44,11 +44,11 @@
 .rteam .band{font-size:12.5px}
 .tools{max-width:760px}
 @media (orientation:landscape) and (max-height:520px){
-  .rgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
-  .rgrid .rr,.rgrid .rr.t1{height:40px}
+  .rgrid{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .rgrid .rr,.rgrid .rr.t1{height:44px}
   .rgrid .rr:nth-child(3n){border-right:1px solid var(--line)}
-  .rgrid .rr:nth-child(5n){border-right:0}
-  .rgrid .rr:nth-last-child(-n+5){border-bottom:0}
+  .rgrid .rr:nth-child(6n){border-right:0}
+  .rgrid .rr:nth-last-child(-n+6){border-bottom:0}
   .rgrid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 /* 記錄表 */
@@ -83,4 +83,39 @@
   .lugrid .cell{aspect-ratio:auto;height:62px}
   .lusheet header{padding-block:2px}
   .sheetnet{display:none}
+}
+/* 數字鍵盤打開時，下一步先收起來，不然會浮在格子上 */
+.page.kpopen .rnext{display:none}
+/* 手機橫放避開瀏海：導覽列和面板把安全區域加在寬度上，不能擠掉裡面的內容 */
+@media (orientation:landscape) and (min-width:640px){
+  .nav{width:calc(92px + env(safe-area-inset-left,0px))}
+  .kp:not(.bench){width:calc(310px + env(safe-area-inset-right,0px));padding-left:12px}
+  .kp.t2:not(.bench){left:calc(92px + env(safe-area-inset-left,0px));width:310px;padding-right:12px}
+  .shell:not(.nonav) .page{padding-left:12px}
+  .kp.bench{padding-left:12px}
+  .kp.bench.onleft{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px}
+}
+@media (orientation:landscape) and (min-width:760px){
+  .sheet{width:calc(360px + env(safe-area-inset-right,0px));padding-left:14px}
+}
+.pmb{padding:0 2px;white-space:nowrap}
+/* 矮的手機：比賽資料的下一步固定看得到；上面已經有回主畫面，下面那顆收起來 */
+@media (orientation:portrait) and (max-height:700px){
+  .page>.primary.full{position:sticky;bottom:-4px;z-index:3;box-shadow:0 -6px 8px var(--bg)}
+  .page>.ghost.full[data-act=home]{display:none}
+}
+/* 手機橫放打背號：只留正在輸入的那一隊，數字鍵盤不會蓋到格子 */
+@media (orientation:landscape) and (max-height:520px){
+  #app:has(.kp.t1:not(.bench)) .page{padding-right:calc(322px + env(safe-area-inset-right,0px))}
+  #app:has(.kp.t2:not(.bench)) .page{padding-left:322px}
+  #app:has(.kp.t1:not(.bench)) .rteam.t2,#app:has(.kp.t2:not(.bench)) .rteam.t1{display:none}
+  #app:has(.kp:not(.bench)) .rteams{grid-template-columns:minmax(0,1fr)}
+  #app:has(.kp:not(.bench)) .tools{display:none}
+}
+.kp .pad .add{white-space:nowrap;padding:0}
+@media (orientation:landscape) and (min-width:640px){.kp .pad .add{font-size:13px}}
+@media (orientation:portrait) and (max-height:700px){
+  .fields{gap:6px}
+  .fields input{min-height:40px;height:40px}
+  .fields .seg button,.fields .ptbtn{min-height:42px}
 }

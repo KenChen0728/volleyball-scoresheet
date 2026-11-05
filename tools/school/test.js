@@ -1,6 +1,7 @@
 // 真實點擊跑規則：node tools/school/test.js
 const {chromium}=require('playwright'),path=require('path');
 const URL_='file://'+path.resolve(__dirname,'../../school/index.html');
+const SHEET=false; // 和 derive.py 的 SHEET 一致
 let pass=0,fail=0;const fails=[];
 function ok(c,msg){if(c)pass++;else{fail++;fails.push(msg);console.log('  ✗ '+msg)}}
 const wait=(p,ms=40)=>p.waitForTimeout(ms);
@@ -14,7 +15,7 @@ async function fresh(b,o={}){
 }
 async function keys(p,list){
   for(const n of list){for(const d of String(n))await p.click(`.kp [data-act=key][data-v="${d}"]`);if(String(n).length<2)await p.click('.kp [data-act=add]');await wait(p,8)}
-  await p.click('.kp [data-act=kpclose]');await wait(p,15);
+  if(await p.locator('.kp [data-act=kpclose]').count())await p.click('.kp [data-act=kpclose]');await wait(p,15);
 }
 async function roster(p,o={}){
   await p.click('[data-act=new]');await wait(p);
@@ -105,7 +106,7 @@ console.log('三局兩勝');
  ok(await p.locator('[data-act=swap8]').count()===1,'第 3 局 8 分換場');
  await wait(p,720);await p.click('[data-act=swap8]');await wait(p,50);
  await endSet(p,'t1');
- ok(await p.locator('[data-act=rppdf]').count()===1,'比賽結束看到存 PDF');
+ ok(await p.locator('[data-act=rppdf]').count()===(SHEET?1:0),SHEET?'比賽結束看到存 PDF':'沒有存 PDF 鍵');
  ok((await p.locator('.good').textContent()).includes('2 : 1'),'2:1 結束');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
 console.log('五局三勝');
@@ -120,10 +121,11 @@ console.log('五局三勝');
  ok(await sets(p,'t1')===2&&await sets(p,'t2')===2,'2:2');
  await endSet(p,'t2');
  ok((await p.locator('.good').textContent()).includes('3 : 2'),'3:2 結束');
- await p.click('[data-act=rtab][data-v=s5]');await wait(p,60);ok(await p.locator('.ussheet svg').count()===1,'第 5 局記錄表');
+ if(SHEET){await p.click('[data-act=rtab][data-v=s5]');await wait(p,60);ok(await p.locator('.ussheet svg').count()===1,'第 5 局記錄表')}
+ else ok(await p.locator('.sheettabs button').count()===4,'只有結果、判罰、記事、更正');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
 console.log('綁定和無限替補');
-{const p=await fresh(b);await roster(p,{t1:[1,2,3,4,5,6,7,8,9,10,20,21,22],t2:[11,12,13,14,15,16,17,18]});await firstSet(p);
+{const p=await fresh(b);await roster(p,{t1:[1,2,3,4,5,6,7,8,9,10,20,21],t2:[11,12,13,14,15,16,17,18]});await firstSet(p);
  ok(await sub(p,'t1',1,7),'1 換 7');
  ok((await court(p,'t1')).includes(7),'7 上場');
  ok(await p.locator('.bindm').count()===1,'球場標示綁定');
@@ -191,21 +193,42 @@ console.log('自由球員');
  await p.locator('.pc.bad').click();await wait(p,50);
  ok(!(await court(p,'t1')).includes(9),'點閃的 L 換回');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
-console.log('搶分、記錄表內容');
-{const p=await fresh(b);await roster(p,{info:async p=>{await p.fill('#i-ref','R One');await p.fill('#i-ump','U Two');await p.fill('#i-sco','S Three');await p.keyboard.press('Tab');await wait(p,30);await p.click('[data-act=sheet][data-v=points]');await wait(p,30);await p.click('[data-act=capmode][data-v="3"][data-m=on]');await wait(p,30);await p.fill('#i-c3','17');await p.keyboard.press('Tab');await wait(p,30);await p.click('.sheet .primary[data-act=close]');await wait(p,30)}});
+console.log('記錄內容');
+{const p=await fresh(b);await roster(p,{info:async p=>{if(SHEET){await p.fill('#i-ref','R One');await p.fill('#i-ump','U Two');await p.fill('#i-sco','S Three');await p.keyboard.press('Tab');await wait(p,30)}await p.click('[data-act=sheet][data-v=points]');await wait(p,30);await p.click('[data-act=capmode][data-v="3"][data-m=on]');await wait(p,30);await p.fill('#i-c3','17');await p.keyboard.press('Tab');await wait(p,30);await p.click('.sheet .primary[data-act=close]');await wait(p,30)}});
+ await p.locator('.nav [data-v=info]').click();await wait(p,50);
+ ok((await p.locator('.ptbtn small').textContent()).includes('搶 17'),'每局分數顯示搶 17');
+ await p.locator('.nav [data-v=toss]').click();await wait(p,50);
  await firstSet(p,'t1');
  await pt(p,'t1',2);await pt(p,'t2',1);
  await p.click('[data-act=timeout][data-team=t1]');await wait(p,30);await p.click('[data-act=toyes]');await wait(p,30);await p.click('[data-act=tmend]');await wait(p,30);
  await sub(p,'t2',11,17);
  await p.click('[data-act=penopen]');await wait(p,30);await p.click('[data-act=penteam][data-team=t2]');await wait(p,30);await p.click('[data-act=penkind][data-v=W]');await wait(p,30);await p.click('[data-act=penwho][data-no="12"]');await wait(p,30);await p.click('[data-act=penyes]');await wait(p,60);
  await p.click('[data-act=sheetopen]');await wait(p,100);
- const txt=await p.$eval('.ussheet svg',e=>[...e.querySelectorAll('text')].map(t=>t.textContent).join(' | '));
- ok(txt.includes('R One')&&txt.includes('U Two')&&txt.includes('S Three'),'裁判名字');
- ok(txt.includes('Tx')||txt.includes('| T |'),'暫停寫入');
- ok(txt.includes('S17/11'),'發球方替補寫 S 上/下 '+txt.match(/Sx?\d+\/\d+/));
- ok(txt.includes('Y #12 (1-2)'),'黃牌寫 Comments，受罰隊分數在前');
+ if(SHEET){
+  const txt=await p.$eval('.ussheet svg',e=>[...e.querySelectorAll('text')].map(t=>t.textContent).join(' | '));
+  ok(txt.includes('R One')&&txt.includes('U Two')&&txt.includes('S Three'),'裁判名字');
+  ok(txt.includes('Tx')||txt.includes('| T |'),'暫停寫入');
+  ok(txt.includes('S17/11'),'發球方替補寫 S 上/下 '+txt.match(/Sx?\d+\/\d+/));
+  ok(txt.includes('Y #12 (1-2)'),'黃牌寫 Comments，受罰隊分數在前');
+ }else{
+  ok((await p.locator('.pres').textContent()).includes('比賽結果'),'比賽紀錄打開是結果');
+  await p.click('[data-act=rtab][data-v=pen]');await wait(p,60);ok((await p.locator('.psan').textContent()).includes('12'),'判罰有記錄 12 號');
+  await p.click('[data-act=rtab][data-v=fix]');await wait(p,60);ok(await p.locator('.fixrow').count()===3,'更正列出暫停、替補、判罰 '+await p.locator('.fixrow').count());
+  ok(!(await p.content()).includes('ussheet"'),'畫面上沒有記錄表');
+ }
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);
  await p.context().close()}
+console.log('名單的下一步、其他選單');
+{const p=await fresh(b,{vp:{width:402,height:760}});await p.click('[data-act=sample]');await wait(p,100);
+ ok(await p.locator('.rnext .primary').isVisible(),'名單齊全看到下一步');
+ await p.locator('[data-act=slot]:not(.fill)').first().click();await wait(p,60);
+ ok(!(await p.locator('.rnext .primary').isVisible()),'數字鍵盤打開時下一步收起來');
+ await p.click('.kp [data-act=kpclose]');await wait(p,60);
+ ok(await p.locator('.rnext .primary').isVisible(),'關掉鍵盤下一步回來');
+ await p.click('[data-act=page][data-v=toss]');await wait(p,60);await firstSet(p,'t1',[1,3,5,7,9,11],[2,4,6,8,10,14]);
+ await p.click('.pbtns [data-v=more]');await wait(p,60);
+ ok(await p.locator('.sheet [data-act=redopen]').count()===0,'沒有自由球員時不放重新指定');
+ ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
 console.log('不動到別的資料');
 {const seed=`if(!localStorage.getItem('nanshe-scoresheet-v1')){localStorage.setItem('nanshe-scoresheet-v1','{"matches":[{"keep":1}]}');localStorage.setItem('vb-school-v1','{"keep":2}');localStorage.setItem('volleyball-prefs','{"theme":"dark"}')}`;
  const p=await fresh(b,{seed});await roster(p);await firstSet(p);await pt(p,'t1');
@@ -214,12 +237,12 @@ console.log('不動到別的資料');
  await p.context().close()}
 console.log('名單上限、範例');
 {const p=await fresh(b);await p.click('[data-act=new]');await wait(p);await p.locator('.nav [data-v=roster]').click();await wait(p);
- ok(await p.locator('.rgrid:not(.two) [data-team=t1]').count()===15,'每隊 15 格');
+ ok(await p.locator('.rgrid:not(.two) [data-team=t1]').count()===12,'每隊 12 格');
  ok(await p.locator('.rgrid.two [data-team=t1]').count()===2,'自由球員 2 格');
  await p.locator('[data-act=slot][data-team=t1]').first().click();await wait(p,15);
- const many=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
- for(const n of many){for(const d of String(n))await p.click(`.kp [data-act=key][data-v="${d}"]`);if(String(n).length<2)await p.click('.kp [data-act=add]');await wait(p,6);if(n===15)break}
- ok(await p.locator('[data-act=slot][data-team=t1].fill').count()===15,'可以填滿 15 人');
+ const many=[1,2,3,4,5,6,7,8,9,10,11,12];
+ for(const n of many){for(const d of String(n))await p.click(`.kp [data-act=key][data-v="${d}"]`);if(String(n).length<2)await p.click('.kp [data-act=add]');await wait(p,6);if(n===12)break}
+ ok(await p.locator('[data-act=slot][data-team=t1].fill').count()===12,'可以填滿 12 人');
  ok(await p.locator('.kp').count()===0||await p.locator('.num.on').count()===0,'填滿後不再跳下一格');
  if(await p.locator('.kp [data-act=kpclose]').count())await p.click('.kp [data-act=kpclose]');
  // 重複背號
@@ -246,9 +269,9 @@ console.log('中途離開、復原替補、更正');
  // 更正替補：7 改成 8
  await p.click('[data-act=sheetopen]');await wait(p,60);await p.click('[data-act=rtab][data-v=fix]');await wait(p,60);
  await p.locator('.fixrow').first().click();await wait(p,50);await p.click('.sheet [data-act=amendin][data-v="8"]');await wait(p,60);
- await p.click('[data-act=rtab][data-v=s1]');await wait(p,80);
+ if(SHEET){await p.click('[data-act=rtab][data-v=s1]');await wait(p,80);
  const t=await p.$eval('.ussheet svg',e=>[...e.querySelectorAll('text')].map(x=>x.textContent).join('|'));
- ok(t.includes('8/1')&&!t.includes('7/1'),'更正後記錄表跟著改');
+ ok(t.includes('8/1')&&!t.includes('7/1'),'更正後記錄表跟著改')}
  await p.click('[data-act=sheetclose]');await wait(p,50);
  ok((await court(p,'t1')).includes(8),'更正後場上是 8');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
@@ -273,9 +296,10 @@ console.log('第 3 局搶 17、五局 PDF');
  const ctx=await b.newContext({acceptDownloads:true,viewport:{width:1280,height:800}});const q=await ctx.newPage();q.errs=[];q.on('pageerror',x=>q.errs.push(x.message));
  await q.addInitScript(`if(!localStorage.getItem('vb-school-v2'))localStorage.setItem('vb-school-v2',${JSON.stringify(seed5)})`);await q.goto(URL_);await wait(q,120);
  await q.locator('.hrow').first().click();await wait(q,120);
- ok(await q.locator('.sheettabs button').count()===9,'五局比賽 9 個分頁');
+ if(SHEET){ok(await q.locator('.sheettabs button').count()===9,'五局比賽 9 個分頁');
  const dl=q.waitForEvent('download',{timeout:15000});await q.click('[data-act=rppdf]');const f=await dl;const fp=await f.path();const buf=require('fs').readFileSync(fp);
- ok((buf.toString('latin1').match(/\/Type\/Page\//g)||[]).length===5,'PDF 5 頁');
+ ok((buf.toString('latin1').match(/\/Type\/Page\//g)||[]).length===5,'PDF 5 頁')}
+ else ok((await q.locator('.pres').textContent()).includes('3 : 2'),'五局結果 3:2');
  ok(q.errs.length===0,'沒有錯誤 '+q.errs[0]);await ctx.close()}
 await b.close();
 console.log(`通過 ${pass}，失敗 ${fail}`);if(fail)console.log(fails.join('\n'));process.exit(fail?1:0);

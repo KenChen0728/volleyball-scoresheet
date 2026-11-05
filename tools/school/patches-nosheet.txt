@@ -1,0 +1,116 @@
+記錄表暫時拿掉時才套用（derive.py 的 SHEET = False），在 patches.txt 之後執行。格式和 patches.txt 相同。
+記錄表的程式 sheet.js 還留在專案裡，比賽事件也照常記錄，之後加回來舊比賽一樣看得到。
+
+＝＝＝ 網頁資訊和主畫面 ＝＝＝
+<<<<
+content="美國學校排球賽用的記錄工具。按得分，輪轉和 Score Sheet 自動寫好，可以離線使用。"
+====
+content="美國學校排球賽用的記分工具。按得分，輪轉和發球自動處理，可以離線使用。"
+>>>>
+<<<<
+content="按得分，輪轉和 Score Sheet 自動寫好。資料只存在自己的裝置，可以離線使用。"
+====
+content="按得分，輪轉和發球自動處理。資料只存在自己的裝置，可以離線使用。"
+>>>>
+<<<<
+<p>美國學校賽事專用<br>按得分，輪轉和記錄表自動寫好</p>
+====
+<p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p>
+>>>>
+<<<<
+打完的比賽會放在這裡，可以隨時打開看記錄表。
+====
+打完的比賽會放在這裡，可以隨時打開看結果。
+>>>>
+<<<<
+點一場比賽就能看記錄表。
+====
+點一場比賽就能看結果。
+>>>>
+<<<<
+」？記錄表會一起消失。</span>
+====
+」？紀錄會一起消失。</span>
+>>>>
+<<<<
+<p class="muted">記錄表會一起消失，無法復原。要保留的話先下載備份。</p>
+====
+<p class="muted">紀錄會一起消失，無法復原。要保留的話先下載備份。</p>
+>>>>
+
+＝＝＝ 比賽紀錄：只留結果、判罰、記事、更正 ＝＝＝
+<<<<
+  var tabs=setList(s).filter(function(i){return i===1||s.sets[i].started}).map(function(i){return ['s'+i,'第'+i+'局']}).concat([['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']]);
+====
+  var tabs=[['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
+>>>>
+<<<<cut
+  var sn=/^s[1-5]$/.test(tab)?Number(tab.slice(1)):0;
+----
+  var back=pv||over?
+====
+>>>>
+<<<<
+  if(sn)return head+setSvg(s,sn,true)+wide+back+fs(setSvg(s,sn));
+====
+>>>>
+<<<<
+<button class="primary full" data-act="rppdf">存成記錄表 PDF</button>
+====
+>>>>
+<<<<
+<button class="full" data-act="sheetopen">看記錄表</button>
+====
+<button class="full" data-act="sheetopen">看比賽紀錄</button>
+>>>>
+<<<<
+<button data-act="sheetopen">記錄表</button>
+====
+<button data-act="sheetopen">比賽紀錄</button>
+>>>>
+<<<<
+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);
+====
+tools+foot;
+>>>>
+<<<<
+    case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='s'+s.setNo; break;
+====
+    case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='res'; break;
+>>>>
+<<<<cut
+    case 'fsopen':
+----
+    case 'sheetopen':
+====
+>>>>
+<<<<
+    case 'rppdf': usSavePdf(s); return;
+    case 'rppng': usSavePng(s,Number(b.getAttribute('data-v'))); return;
+    case 'rpready': if(ui.ready)saveBlob(ui.ready.name,ui.ready.blob); return;
+====
+>>>>
+
+＝＝＝ 裁判名字只有記錄表用得到 ＝＝＝
+<<<<
+    crewFields(s)+
+====
+>>>>
+<<<<
+<div class="fields crew">'+crewFields(s)+'</div>
+====
+>>>>
+<<<<cut
+function crewFields(s){
+----
+function autoSlot(t){
+====
+>>>>
+
+＝＝＝ 畫記錄表的小工具 ＝＝＝
+<<<<cut
+var INK='#1616c8';
+----
+// 決勝局要重新挑邊
+====
+>>>>

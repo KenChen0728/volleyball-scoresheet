@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),path=require('path'),fs=require('fs');
 const R=path.resolve(__dirname,'../..'),URL_='file://'+R+'/school/index.html',O=(process.argv[2]||'/tmp/school-help')+'/';
 fs.mkdirSync(O,{recursive:true});
 (async()=>{const b=await chromium.launch();
-const W=400,H=760;
+const W=400,H=760,SHEET=false; // SHEET 和 derive.py 一致
 const ctx=await b.newContext({viewport:{width:W,height:H},colorScheme:'dark',deviceScaleFactor:2});const p=await ctx.newPage();const e=[];p.on('pageerror',x=>e.push(x.message));
 // 安裝示意圖
 const q=await (await b.newContext({viewport:{width:640,height:520},deviceScaleFactor:1})).newPage();await q.goto('file://'+__dirname+'/ins.html');
@@ -24,7 +24,7 @@ await cap('steps','.nav',['.nav'],6);
 await p.locator('.nav [data-v=info]').click();await w(80);
 await cap('info','.fields');
 await cap('fmt',['[data-act=fmt]','.ptbtn'],['[data-act=fmt]'],6);
-await cap('crew','.crewrow',['.crewrow input'],6);
+if(SHEET)await cap('crew','.crewrow',['.crewrow input'],6);
 await p.click('[data-act=sheet][data-v=points]');await cap('points','.sheet');await close();
 await p.locator('.nav [data-v=roster]').click();await w(100);
 await cap('roster1',['.rh.t1','.rh.t2'],['#n-t1','#n-t2'],6);
@@ -61,7 +61,7 @@ await p.click('[data-act=penopen]');await w(50);await p.click('[data-act=penteam
 await p.click('[data-act=penkind][data-v=W]');await w(50);await p.click('[data-act=penwho][data-no="6"]');await w(60);await cap('pen2','.sheet',['[data-act=penyes]']);await p.click('[data-act=penyes]');await w(100);
 await cap('pencard','.pcourt',['.cdm'],6);
 // 記錄表
-await p.click('[data-act=sheetopen]');await w(120);await cap('sheet1',['.sheettabs','.ussheet'],['.sheettabs'],6);await cap('sheet2',['.ussheet','.sheetbtns'],['.fsbtn[data-act=fsopen]'],6);
+await p.click('[data-act=sheetopen]');await w(120);if(SHEET){await cap('sheet1',['.sheettabs','.ussheet'],['.sheettabs'],6);await cap('sheet2',['.ussheet','.sheetbtns'],['.fsbtn[data-act=fsopen]'],6)}else await cap('rec',['.sheettabs','.pres'],['.sheettabs'],6);
 await p.click('[data-act=rtab][data-v=fix]');await w(100);await cap('fix1',['.narrow .seg','.fixrow'],['.fixrow'],6);await p.locator('.fixrow').last().click();await w(100);await cap('fix2','.sheet');await close();
 await p.click('[data-act=sheetclose]');await w(100);
 await p.click('.pbtns [data-v=more]');await w(60);await p.locator('.sheet [data-act=fixopen]').first().click();await w(100);await cap('fixlu','.sheet',['.fixpos']);await close();
@@ -79,11 +79,11 @@ for(let i=0;i<9;i++){if(await p.locator('[data-act=swap8]').count())break;await 
 await w(760);await cap('swap','.sheet',['[data-act=swap8]']);await p.click('[data-act=swap8]');await w(80);
 for(let i=0;i<9;i++){if(await p.locator('[data-act=endset]').count())break;await rally('t1')}
 await w(1100);await cap('final',['.good','.pendfoot'],['[data-act=endset]'],6);await p.click('[data-act=endset]');await w(150);
-await cap('bk',['#bkwarn','.savebtns'],['[data-act=rpjson]'],6);await cap('output',['[data-act=rppdf]','.savebtns'],['[data-act=rppdf]'],6);
+await cap('bk',['#bkwarn','.savebtns'],['[data-act=rpjson]'],6);if(SHEET)await cap('output',['[data-act=rppdf]','.savebtns'],['[data-act=rppdf]'],6);
 // 記錄表局部放大，說明怎麼看
-await p.click('[data-act=rtab][data-v=s1]');await w(100);await p.setViewportSize({width:1000,height:760});await w(150);
-{const r=await p.$eval('.ussheet',x=>{const b=x.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height}});await p.screenshot({path:O+'sheetread.png',clip:{x:r.x,y:r.y+r.h*.095,width:r.w*.56,height:r.h*.44}})}
-await p.setViewportSize({width:W,height:H});await w(120);
+if(SHEET){await p.click('[data-act=rtab][data-v=s1]');await w(100);await p.setViewportSize({width:1000,height:760});await w(150);
+const r=await p.$eval('.ussheet',x=>{const b=x.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height}});await p.screenshot({path:O+'sheetread.png',clip:{x:r.x,y:r.y+r.h*.095,width:r.w*.56,height:r.h*.44}})
+await p.setViewportSize({width:W,height:H});await w(120)}
 await p.click('.bar [data-act=home]');await w(150);
 await p.evaluate(()=>{const e=document.querySelector('.home');if(e)e.scrollTop=9999});await w(80);await cap('hist1','.homebody section:nth-of-type(2)',['.hrow'],6);
 await p.click('.shead [data-act=history]');await w(120);await cap('hist2','.narrow',['.histtools'],6);

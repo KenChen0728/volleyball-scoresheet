@@ -61,11 +61,6 @@ var KEY='nanshe-scoresheet-v1';
 var KEY='vb-school-v2';
 >>>>
 <<<<
-var MAX_PLAYERS=12, MAX_LIBEROS=2, MIN_ON_COURT=6;
-====
-var MAX_PLAYERS=15, MAX_LIBEROS=2, MIN_ON_COURT=6;
->>>>
-<<<<
 var PREF='volleyball-prefs',prefs={};
 ====
 var PREF='vb-school-prefs',prefs={};
@@ -497,7 +492,7 @@ placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.rema
 placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea><div class="fields crew">'+crewFields(s)+'</div></div>';
 >>>>
 
-＝＝＝ 名單：不打姓名，每隊 15 格加 2 個自由球員 ＝＝＝
+＝＝＝ 名單：不打姓名，每隊 12 格加 2 個自由球員 ＝＝＝
 <<<<cut
 function rowHtml(k,t,kind,p,idx){
 ----
@@ -671,4 +666,11 @@ function fname(s,ext){return ('ScoreSheet_'+tName(s,'t1')+'_vs_'+tName(s,'t2')+'
   var rotb=c.locked[k]||c.started?'':'<div class="rotb">
 ====
   var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb">
+>>>>
+
+＝＝＝ 兩隊都沒有自由球員時，其他選單不放重新指定 ＝＝＝
+<<<<
+mt('例外替補','subopen',' data-m="exc"',mc.live)+mt('重新指定自由球員','redopen','',mc.live)+
+====
+mt('例外替補','subopen',' data-m="exc"',mc.live)+(s.teams.t1.liberos.length||s.teams.t2.liberos.length||s.redes?mt('重新指定自由球員','redopen','',mc.live):'')+
 >>>>

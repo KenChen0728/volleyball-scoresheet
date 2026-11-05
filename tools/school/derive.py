@@ -10,17 +10,21 @@ import hashlib, json, os, re, sys, time
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 D = R + '/tools/school/'
 
+# 記錄表（VOLLEYBALL SCORE SHEET）暫時拿掉，等看到他們實際的寫法再加回來。
+# 要加回來：把 SHEET 改成 True，圖片重跑 help-shots.js，寫法不同就改 sheet.js。比賽事件不用動，舊比賽也看得到記錄表。
+SHEET = False
 
-def patches():
-    text = open(D + 'patches.txt', encoding='utf8').read()
+
+def patches(name):
+    text = open(D + name, encoding='utf8').read()
     # 區塊開頭一定在行首，結尾 >>>> 也獨立一行
     for m in re.finditer(r'^<<<<(cut| \d+)?\n(.*?)\n?^====\n(.*?)\n?^>>>>$', text, re.S | re.M):
         yield m.group(1) or '', m.group(2), m.group(3)
 
 
-def apply(s):
+def apply(s, name='patches.txt'):
     n = 0
-    for mode, old, new in patches():
+    for mode, old, new in patches(name):
         n += 1
         if mode == 'cut':
             a, b = old.split('\n----\n')
@@ -54,11 +58,14 @@ def main():
     # 完整版把說明圖包在網頁裡，學校版改成獨立檔案，先拿掉再改
     s, k = re.subn(r'^var HELP_IMG=\{.*\};\n', '', s, count=1, flags=re.M)
     assert k == 1, 'HELP_IMG'
-    help_txt = json.load(open(D + 'help.json', encoding='utf8'))
+    help_txt = json.load(open(D + ('help-sheet.json' if SHEET else 'help.json'), encoding='utf8'))
     s, k = re.subn(r'^var HELP=\[.*\];\n', lambda _: 'var HELP=' + json.dumps(help_txt, ensure_ascii=False, separators=(',', ':')) + ';\n', s, count=1, flags=re.M)
     assert k == 1, 'HELP'
     s, n = apply(s)
-    s = s.replace('/*US-SHEET*/', open(D + 'sheet.js', encoding='utf8').read())
+    s = s.replace('/*US-SHEET*/', open(D + 'sheet.js', encoding='utf8').read() if SHEET else '')
+    if not SHEET:
+        s, m = apply(s, 'patches-nosheet.txt')
+        n += m
     s = s.replace('__HERO_MARK__', hero_mark())
     build = time.strftime('%m%d-%H%M')
     s, k = re.subn(r"var BUILD='[^']*';", "var BUILD='%s';" % build, s, count=1)
@@ -69,6 +76,9 @@ def main():
     # 不該留下的東西
     for bad in ['nanshe', '6 次替補', 'HELP_IMG', 'r6Svg', '二裁核對', '請告知二裁', 'data-act="serve"', 'data-act="replay"']:
         assert bad not in s, ('殘留', bad)
+    if not SHEET:
+        for bad in ['setSvg', 'usSave', 'saveBlob', 'rppdf', 'crewFields', 'data-act="fsopen"', '看記錄表', '輪轉和記錄表']:
+            assert bad not in s, ('殘留', bad)
     for bad in [r'\[1,2,3\]\.(forEach|map)\(function\(n\)', r'===3\?15', r's\.sets\[3\]\.started']:
         assert not re.search(bad, s), ('殘留', bad)
     open(R + '/school/index.html', 'w', encoding='utf8').write(s)
