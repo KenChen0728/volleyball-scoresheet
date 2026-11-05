@@ -622,7 +622,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .hhead button{width:44px;min-width:44px;min-height:44px}
 .linkbtn,.verbtn,.shead .linkbtn{min-height:44px}
 .bar button:disabled{opacity:.4}
-.barback{flex:none;border:0!important;padding:0 8px 0 0;font-size:15px;white-space:nowrap}
+.barback{flex:none;min-height:36px;padding:0 10px 0 8px;margin-right:4px;font-size:15px;font-weight:700;white-space:nowrap;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45)!important;border-radius:8px}
 .bartime{color:rgba(255,255,255,.72);font-size:12px}
 .bartime b{color:#fff;font-family:var(--num);font-size:17px}
 .bar h1{min-width:4.3em}
@@ -1299,7 +1299,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1119';
+var BUILD='1105-1122';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
