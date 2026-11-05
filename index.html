@@ -1011,6 +1011,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .libmode .pc.pk{animation:pkpulse .9s ease-in-out 3}
 @keyframes pkpulse{50%{box-shadow:0 0 0 5px var(--accent,#F5C400)}}
 @media (prefers-reduced-motion:reduce){.libmode .pc.pk{animation:none}}
+.lockline.lfr{color:var(--bad);font-weight:700}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1285,6 +1286,16 @@ function pendingOut(s){
   return r;
 }
 function sanGone(s,k,w){var n=s.setNo;return s.sanctions.some(function(x){return x.team===k&&x.who===w&&x.kind==='D'})?'D':s.sanctions.some(function(x){return x.team===k&&x.who===w&&x.kind==='E'&&x.set===n})?'E':''}
+function libFront(s){
+  var c=s.sets[s.setNo];if(!c||!c.started||c.ended||c.live||matchOver(s)||setWinner(s))return null;var who=null;
+  ['t1','t2'].forEach(function(k){
+    var t=s.teams[k];if(who||!c.libOut[k])return;
+    var fr=[1,2,3].filter(function(p){return t.liberos.indexOf(courtPlayer(c,k,p))>=0}).length>0;
+    var sv=c.serving===k&&t.liberos.indexOf(courtPlayer(c,k,0))>=0;
+    if(fr||sv)who={k:k,sv:sv&&!fr,no:c.libOut[k].no};
+  });
+  return who;
+}
 function matchOver(s){var w=setsWon(s);return w.t1>=2||w.t2>=2}
 function setWinner(s){
   var n=s.setNo,c=s.sets[n],a=c.score.t1,b=c.score.t2,tg=target(s,n);
@@ -1334,7 +1345,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1506';
+var BUILD='1105-1512';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1445,11 +1456,31 @@ function restoreFocus(k){
   if(!el||el.disabled)el=t?focusList(t)[0]:app.querySelector('.foot button:not([disabled])');
   if(el)el.focus({preventScroll:true});
 }
+var backGuard=false,backSkip=false;
+function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch)}
+function backSync(){
+  if(!history.pushState)return;
+  var need=backNeed();
+  if(need&&!backGuard){try{history.pushState({vsb:1},'');backGuard=true}catch(e){}}
+  else if(!need&&backGuard){backGuard=false;backSkip=true;history.back()}
+}
+addEventListener('popstate',function(){
+  if(backSkip){backSkip=false;return}
+  backGuard=false;
+  if(staleTab){backSync();return}
+  if(escClose())return;
+  var x=app.querySelector('[data-act=sheetclose],[data-act=rpclose],.bar .barback');
+  if(x){x.click();return}
+  if(view==='setup'&&ui.page!=='play'){var m=current(),s=m?safeReduce(m):null;if(s&&s.sets[s.setNo].started&&!matchOver(s)){ui.page='play';render();return}}
+  if(view==='setup'&&ui.page==='play'){ui.toast={t:'要離開比賽，請按「其他」裡的離開比賽',until:Date.now()+3500}}
+  render();
+});
 function render(){
   var had=kbd&&document.activeElement&&document.activeElement!==document.body,fk=had?focusKey():null;
-  paint();
+  paint();backSync();
   if(kbd&&(had||topLayer()))restoreFocus(fk);
 }
+
 function paint(){
   try{draw()}
   catch(e){
@@ -1943,7 +1974,7 @@ function playCell(s,k,pos){
   if(ui.sub&&ui.sub.team===k)pick=true;
   var on=ui.sub&&ui.sub.team===k&&ui.sub.idx===idx;
   var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null;
-  var tap=pick||(!ui.sub&&!ui.lib);
+  var tap=pick||bad||(!ui.sub&&!ui.lib);
   return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="pc '+k+(isL?' isl':'')+(srv?' srv':'')+(pick?' pk':'')+(on?' sel':'')+(bad?' bad':'')+'" data-act="pcell" data-team="'+k+'" data-v="'+idx+'" data-pos="'+pos+'"'+(tap?'':' disabled')+' aria-label="'+esc(tName(s,k))+' '+no+' 號'+(isL?' 自由球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
 }
 function cardMark(s,k,no){
@@ -2204,8 +2235,9 @@ function playHtml(s){
   var court='<div class="pcourt'+(ui.lib?' libmode':'')+'" role="group" aria-label="球場，記錄台在下方">'+cells+'</div>';
   var tools='<div class="pbtns"><button class="penbtn" data-act="penopen"><span class="ic"><i class="cd cy"></i><i class="cd cr"></i></span>判罰</button><button data-act="sheetopen">記錄表</button><button data-act="sheet" data-v="more">其他</button></div>';
   var subDone=[L,R].filter(function(k){return c.subRally[k]===c.rally&&c.rally>0})[0];
-  var lockT=ui.toast&&Date.now()<ui.toast.until?ui.toast.t:c.live?'球在進行中，得分後才能暫停和替補':c.replayLock?'公正重發，得分後才能暫停和替補':subDone?tName(s,subDone)+' 這次已替補過，打完下一球才能再替補':n===1&&c.rally===0?'裁判鳴哨發球時按「發球」，打完按得分的隊伍':'';
-  var lock='<div class="muted lockline'+(ui.toast&&Date.now()<ui.toast.until?' toast':'')+'">'+esc(lockT)+'</div>';
+  var lfr=libFront(s);
+  var lockT=ui.toast&&Date.now()<ui.toast.until?ui.toast.t:lfr?tName(s,lfr.k)+' 自由球員'+(lfr.sv?'輪到發球':'到前排')+'，點閃的 L 換回 '+lfr.no+' 號':c.live?'球在進行中，得分後才能暫停和替補':c.replayLock?'公正重發，得分後才能暫停和替補':subDone?tName(s,subDone)+' 這次已替補過，打完下一球才能再替補':n===1&&c.rally===0?'裁判鳴哨發球時按「發球」，打完按得分的隊伍':'';
+  var lock='<div class="muted lockline'+(ui.toast&&Date.now()<ui.toast.until?' toast':lfr?' toast lfr':'')+'">'+esc(lockT)+'</div>';
   if(ui.lib)lock='<div class="subhint libhint '+ui.lib.team+'">點後排要換下的球員</div>';
   [L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
@@ -2449,6 +2481,7 @@ function modalHtml(s){
   if(needSwap(s)){
     h='<h2>換場</h2><p class="muted">一隊先到 '+Math.ceil(target(s,3)/2)+' 分，兩隊交換場區，分數和輪轉不變。</p><div class="row"><button class="guarded" data-act="undo"'+gd+'>↶ 復原上一步</button><button class="go guarded" data-act="swap8"'+gd+'>確定換場</button></div>';
   }else{
+    return '';
     var who=null;
     ['t1','t2'].forEach(function(k){
       var t=s.teams[k],k2=c.rally+'-'+c.rot[k];
@@ -2702,6 +2735,8 @@ app.addEventListener('click',function(e){
   if(act==='rpraw'){var raw0='';try{raw0=localStorage.getItem(KEY)||''}catch(err){raw0=JSON.stringify(db)}saveFile('排球記錄表原始資料_'+today()+'.json',raw0,'application/json');return}
   var m=current(),s=m?reduce(m.events):null,t=(s&&k)?s.teams[k]:null,n=s?s.setNo:1,c=s?s.sets[n]:null;
   var po=(s&&view==='setup'&&ui.page==='play')?pendingOut(s):null;
+  var lfb=(s&&view==='setup'&&ui.page==='play'&&!po)?libFront(s):null;
+  if(lfb&&['serve','endset'].indexOf(act)>=0){ui.toast={t:'先點閃的 L 換回 '+lfb.no+' 號才能發球',until:Date.now()+3000};render();return}
   if(po&&['serve','replay','point','timeout','toyes','libcell','libout','subopen','subcancel','subclose','swap8','endset','injopen'].indexOf(act)>=0){ui.toast={t:tName(s,po.team)+' '+po.no+' 號要先換下場',until:Date.now()+3000};render();return}
   switch(act){
     case 'new': var nm=createMatch(defaultInfo()); db.currentId=nm.id; save(); resetUi(); view='setup'; break;
@@ -2992,6 +3027,8 @@ app.addEventListener('click',function(e){
     case 'pcell':
       var ix=Number(b.getAttribute('data-v'));
       if(ui.sub){if(!ui.sub.forced)ui.sub.idx=ix;break}
+      var lf=libFront(s);
+      if(lf&&lf.k===k&&s.teams[k].liberos.indexOf(c.cur[k][ix])>=0){ui.sub=null;ui.lib=null;dispatch('LIBERO_OUT',{set:n,team:k});ui.toast={t:'已換回 '+lf.no+' 號',until:Date.now()+2500};break}
       if(!ui.lib){
         if(c.live){ui.toast={t:'球在進行中，得分後才能換人',until:Date.now()+2500};break}
         ui.sheet={type:'pmenu',team:k,idx:ix,pos:Number(b.getAttribute('data-pos'))};break;

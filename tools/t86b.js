@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(),pg=await b.newPage({viewport:{width:402,height:760}});let ok=0,bad=0;const T=(n,c)=>{if(c)ok++;else{bad++;console.log('FAIL',n)}};
+const errs=[];pg.on('pageerror',e=>errs.push(e.message));
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.click('[data-act=new]'); T('in setup',await pg.evaluate(()=>T.view==='setup'));
+await pg.click('[data-act=helpopen]'); await pg.goBack(); await pg.waitForTimeout(200);
+T('help closed, still setup',await pg.evaluate(()=>!T.ui.help&&T.view==='setup'));
+await pg.goBack(); await pg.waitForTimeout(200);
+T('back to home',await pg.evaluate(()=>T.view==='home'));
+await pg.click('[data-act=new]'); await pg.click('.bar .barback'); await pg.waitForTimeout(200);
+T('home via button',await pg.evaluate(()=>T.view==='home'));
+await pg.click('[data-act=new]'); await pg.goBack(); await pg.waitForTimeout(200);
+T('back again home',await pg.evaluate(()=>T.view==='home'));
+T('no errors',errs.length===0);console.log('ok',ok,'bad',bad);await b.close()})();
