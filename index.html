@@ -451,7 +451,10 @@ button.chip.blank{cursor:pointer}
 .psan table{border-bottom:2px solid #000}
 .psan td{height:30px}
 .psan p{margin:0;padding:6px 8px;font-size:12px;color:#000;line-height:1.5}
-.prem ul{margin:0;padding:6px 12px 6px 28px;color:var(--pi);font-size:15px;line-height:1.7;border-bottom:1px solid #000}
+.prem ul{margin:0;padding:0;list-style:none;color:var(--pi);font-size:15px;line-height:1.45;border-bottom:1px solid #000}
+.prem ul li{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;padding:4px 10px;border-bottom:1px solid #888}
+.prem ul li:last-child{border-bottom:0}
+.prem ul li .accx{flex:none}
 .prem textarea,.psign input{width:100%;border:0;background:#fff;color:var(--pi);font:inherit;font-size:16px;min-height:0;border-radius:0;padding:6px}
 .prem textarea{display:block;line-height:32px;resize:vertical;padding:0 10px;background-image:repeating-linear-gradient(#fff 0 31px,#888 31px 32px);background-attachment:local}
 .prem textarea::placeholder{color:#777}
@@ -1389,7 +1392,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1622';
+var BUILD='1105-1637';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
