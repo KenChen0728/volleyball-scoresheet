@@ -1,0 +1,42 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch(),pg=await b.newPage({viewport:{width:393,height:760}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));let ok=0,bad=0;const T=(n,c)=>{if(c)ok++;else{bad++;console.log('FAIL',n)}};
+await pg.goto('file:///home/claude/nanshe/test/t.html');
+await pg.evaluate(()=>{var m=T.createMatch(T.defaultInfo());T.db.currentId=m.id;
+ [['t1','黑',[1,2,3,7,64,5,18,19,20],[]],['t2','白',[11,22,38,64,88,19,40],[]]].forEach(c=>{T.dispatch('TEAM_NAME_SET',{team:c[0],value:c[1]});c[2].forEach(n=>T.dispatch('PLAYER_ADDED',{team:c[0],no:n}));T.dispatch('CAPTAIN_SET',{team:c[0],no:c[2][1]})});
+ T.dispatch('TOSS_SET',{set:1,left:'t1',serve:'t1'});
+ [[1,2,3,7,64,5],[11,22,38,64,88,19]].forEach((l,i)=>{var k=i?'t2':'t1';l.forEach((no,p)=>T.dispatch('LINEUP_SET',{set:1,team:k,pos:p,no:no}));T.dispatch('LINEUP_LOCKED',{set:1,team:k})});
+ T.dispatch('SET_STARTED',{set:1});
+ // 1 號下 18 上，打一球，18 下 1 回（位置 done）
+ T.dispatch('SUB',{set:1,team:'t1',idx:0,out:1,in:18,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});
+ T.dispatch('SUB',{set:1,team:'t1',idx:0,out:18,in:1,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});
+ T.save();T.resetUi();T.setView('setup');T.ui.page='play';T.render();});
+await pg.waitForTimeout(800);
+await pg.click('[data-act=subopen][data-team=t1]');
+const p1=await pg.evaluate(()=>{var c=T.reduce(T.current().events).sets[1];return c.lineups.t1.indexOf(1)});
+const pos=await pg.evaluate(i=>{var c=T.reduce(T.current().events).sets[1];return document.querySelector('.pc.t1[data-v="'+i+'"]').getAttribute('data-pos')},p1);
+await pg.click(`.pc.t1[data-v="${p1}"]`);
+T('err shown',(await pg.textContent('.kp')).includes('已換回'));
+T('exc button',await pg.isVisible('.kp [data-act=forceexc]'));
+await pg.screenshot({path:'/home/claude/nanshe/test/t92a.png'});
+await pg.click('.kp [data-act=forceexc]');
+T('exc note',(await pg.textContent('.kp')).includes('本場比賽不能再上場'));
+T('injury toggle',await pg.$('.kp .excinj')!==null);
+await pg.screenshot({path:'/home/claude/nanshe/test/t92b.png'});
+await pg.click('.kp [data-act=subin][data-no="19"]');
+const ev=await pg.evaluate(()=>{var e=T.current().events.filter(x=>x.type==='SUB').pop();return e.data});
+T('exc sub recorded',ev.exc===true&&ev.out===1&&ev.in===19);
+await pg.click('[data-act=subclose]');
+// 正常位置不出現例外按鈕
+await pg.waitForTimeout(800);await pg.click('[data-act=subopen][data-team=t2]');await pg.click('.pc.t2[data-pos="0"]');
+T('normal no exc btn',!(await pg.$('.kp [data-act=forceexc]')));
+await pg.click('[data-act=subcancel]');
+// 點球員選單：已換回的位置顯示例外替補（換另一個已 done 的位置：先做一次 t2）
+await pg.evaluate(()=>{var c=T.reduce(T.current().events).sets[1];T.dispatch('SUB',{set:1,team:'t2',idx:0,out:11,in:40,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t2'});T.dispatch('SUB',{set:1,team:'t2',idx:0,out:40,in:11,exc:false,injury:false});T.dispatch('SERVE',{set:1});T.dispatch('POINT',{set:1,team:'t1'});T.render()});
+await pg.waitForTimeout(800);
+const i11=await pg.evaluate(()=>T.reduce(T.current().events).sets[1].cur.t2.indexOf(11));
+await pg.click(`.pc.t2[data-v="${i11}"]`);
+T('pmenu exc option',await pg.isVisible('[data-act=pmexc]'));
+await pg.screenshot({path:'/home/claude/nanshe/test/t92c.png'});
+await pg.click('[data-act=pmexc]');
+T('pmenu -> exc panel',await pg.evaluate(()=>T.ui.sub&&T.ui.sub.exc===true));
+T('no errors',errs.length===0);if(errs.length)console.log(errs);console.log('ok',ok,'bad',bad);await b.close()})();

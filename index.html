@@ -1078,6 +1078,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .chip b.circ{font-size:26px}
 @media (orientation:portrait) and (max-height:700px){.pc b.circ{font-size:30px}}
 @media (orientation:landscape) and (max-height:520px){.cell b.circ{font-size:32px}}
+.excnote{margin:6px 10px 0;font-weight:700;color:var(--bad);line-height:1.4}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1395,6 +1396,7 @@ function subOptions(s,k,idx,exc){
   var used=[];c.subPos[k].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
   return {nos:free.filter(function(n){return c.lineups[k].indexOf(n)<0&&used.indexOf(n)<0})};
 }
+function excAvail(s,k,idx){var lg=subOptions(s,k,idx,false);if(lg.err==='自由球員要先換回原本的球員')return false;if(lg.nos&&lg.nos.length)return false;var ex=subOptions(s,k,idx,true);return !!(ex.nos&&ex.nos.length)}
 function sheetLibs(t){return t.regLib||t.liberos}
 function regularCount(t){return t.players.length-t.liberos.length}
 function validate(t){
@@ -1414,7 +1416,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1826';
+var BUILD='1105-1856';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1949,9 +1951,11 @@ function subHtml(s){
   if(ui.sub.idx==null)h='<div class="subhint">'+(ui.sub.ids&&ui.sub.ids.length?'已換 '+ui.sub.ids.length+' 人。還要換就點球場上的人，換完按「完成」':'點球場上要換下的球員')+'</div>';
   else{
     var o=subOptions(s,k,ui.sub.idx,ui.sub.exc),now=c.cur[k][ui.sub.idx];
-    if(o.err)h='<div class="kphead"><span class="err">'+esc(o.err)+'</span></div>'+(o.legal?'<button class="full" data-act="excoff">改用一般替補</button>':'');
-    else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>';
-    else h='<div class="subhint">'+now+' 號換下，上場：</div><div class="benchrow">'+o.nos.map(function(n){return '<button class="chip '+k+'" data-act="subin" data-team="'+k+'" data-no="'+n+'"><b>'+n+'</b></button>'}).join('')+'</div>';
+    var ea=!ui.sub.exc&&excAvail(s,k,ui.sub.idx),eb=ea?'<button class="full" data-act="forceexc">改用例外替補</button>':'';
+    var en=ui.sub.exc&&!o.err?'<p class="excnote">被例外替補換下的人，本場比賽不能再上場</p>':'';
+    if(o.err)h='<div class="kphead"><span class="err">'+esc(o.err)+'</span></div>'+(o.legal?'<button class="full" data-act="excoff">改用一般替補</button>':'')+eb;
+    else if(!o.nos.length)h='<div class="subhint">沒有可以上場的球員</div>'+eb;
+    else h=en+'<div class="subhint">'+now+' 號換下，上場：</div><div class="benchrow">'+o.nos.map(function(n){return '<button class="chip '+k+'" data-act="subin" data-team="'+k+'" data-no="'+n+'"><b>'+n+'</b></button>'}).join('')+'</div>';
   }
   var fp=ui.sub.forced&&ui.sub.po,lfw=!fp&&libFront(s);
   return '<div class="kp bench '+k+(k===c.left?' onright':' onleft')+(fp?' forced':'')+'"><div class="kphead"><span>'+esc(tName(s,k))+(ui.sub.exc?' 例外替補':' 替補 '+c.subCount[k])+'</span>'+(fp?'':'<span class="row" style="flex:none"><button data-act="subcancel">取消</button><button class="go" data-act="subclose">完成</button></span>')+'</div>'+(lfw?'<p class="forcedmsg">'+esc(tName(s,lfw.k))+' 自由球員'+(lfw.sv?'輪到發球':'到前排')+'，點閃的 L 換回 '+lfw.no+' 號</p>':'')+(fp?'<p class="forcedmsg">'+fp.no+' 號已被判'+(fp.d?'出場':'出局')+'，要先換下場才能繼續比賽。</p>':'')+'<div class="subbody">'+h+'</div>'+(ui.sub.exc&&!ui.sub.forced?'<div class="excinj"><button data-act="subinj" aria-pressed="'+!!ui.sub.inj+'">'+(ui.sub.inj?'☑':'☐')+' 宣告受傷</button><span class="muted">換下的人本場不能再上。</span></div>':'')+(ui.sub.forced?'<div class="row">'+(ui.sub.exc?'':'<button data-act="forceexc">改用例外替補</button>')+'<button class="danger" data-act="penkind" data-v="INC" data-team="'+k+'">陣容不完整</button></div>'+(fp?'<button class="full" data-act="forceundo">↶ 判錯了，復原這個判罰</button>':''):'')+'</div>';
@@ -2609,7 +2613,8 @@ function sheetHtml(s,m){
       if(t.liberos.length&&!back)why='前排球員不能換自由球員。';
       else if(free.length&&!lOk&&!pc.libOut[k])why='自由球員剛換過，要隔一球才能再換。';
       var sOk=pOk&&pc.subRally[k]!==pc.rally;
-      opts.push('<button class="mbtn big" data-act="pmsub" data-team="'+k+'"'+(sOk?'':' disabled')+'><strong>替補：換下 '+pno+' 號</strong><small>'+(sOk?'接著選上場的人':'這次已替補過，打完下一球才能再替補')+'</small></button>');
+      if(pOk&&excAvail(s,k,x.idx))opts.push('<button class="mbtn big" data-act="pmexc" data-team="'+k+'"><strong>例外替補：換下 '+pno+' 號</strong><small>不能一般替補時使用，換下的人本場不能再上場</small></button>');
+      else opts.push('<button class="mbtn big" data-act="pmsub" data-team="'+k+'"'+(sOk?'':' disabled')+'><strong>替補：換下 '+pno+' 號</strong><small>'+(sOk?'接著選上場的人':'這次已替補過，打完下一球才能再替補')+'</small></button>');
     }
     h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由球員）':'')+'</h2>'+opts.join('')+(why?'<p class="muted">'+why+'</p>':'')+'<button data-act="close">關閉</button>';
   }else if(x.type==='points'){
@@ -2975,6 +2980,7 @@ app.addEventListener('click',function(e){
     case 'pmlin': var pmx=ui.sheet;ui.sheet=null;dispatch('LIBERO_IN',{set:n,team:k,lib:no,idx:pmx.idx});break;
     case 'pmlswap': ui.sheet=null;dispatch('LIBERO_SWAP',{set:n,team:k,lib:no});break;
     case 'pmlout': ui.sheet=null;dispatch('LIBERO_OUT',{set:n,team:k});break;
+    case 'pmexc': var pme=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pme.idx,exc:true,ids:[]};break;
     case 'pmsub': var pms=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pms.idx,exc:false,ids:[]};break;
     case 'close': if(document.activeElement)document.activeElement.blur(); ui.sheet=null; ui.pending=null; ui.ptErr=''; ui.cupSheet=null; break;
     case 'rm': dispatch('PLAYER_REMOVED',{team:k,no:no}); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
