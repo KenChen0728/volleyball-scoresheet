@@ -1080,6 +1080,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 @media (orientation:landscape) and (max-height:520px){.cell b.circ{font-size:32px}}
 .excnote{margin:6px 10px 0;font-weight:700;color:var(--bad);line-height:1.4}
 button.dim{opacity:.45}
+/* v54 被自由換下的人放在 L 格 */
+.lc.outp{opacity:1;box-shadow:0 0 0 2px var(--ink)}
+.lc.outp:disabled{opacity:.45;box-shadow:none}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1417,7 +1420,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-2045';
+var BUILD='1105-2129';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2087,8 +2090,9 @@ function libStrip(s,k,mir){
     if(no==null)return '<div class="lc '+k+' empty" aria-hidden="true"><span>L'+(i+1)+'</span><b class="none">無</b></div>';
     var inC=c.cur[k].indexOf(no)>=0,gone=c.expelled[k].indexOf(no)>=0||s.matchOut[k].indexOf(no)>=0,on=ui.lib&&ui.lib.team===k&&ui.lib.no===no,act='libcell',sm='',dis=false,cls='';
     if(gone){sm='不能上';act='libaway';cls=' away'}
-    else if(inC){act='libback';cls=' incourt';sm=can?'換回 '+out.no:wait?'下一球可換':'換 '+out.no;dis=!can}
-    else if(!can){dis=true;if(wait&&out)sm='下一球可換'}
+    else if(inC){act='libback';dis=!can;
+      return '<button class="lc '+k+' outp" data-act="libback" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="'+out.no+' 號被自由球員 L'+(i+1)+' '+no+' 號換下'+(can?'，點一下換回':wait?'，下一球可換':'')+'"><span>換下</span><b>'+out.no+'</b>'+(can?'<small>點我換回</small>':'')+'</button>'}
+    else if(!can){dis=true}
     else if(out)sm='互換';
     return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+cls+(on?' sel':'')+'" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="自由球員 L'+(i+1)+' '+no+' 號'+(sm?' '+sm:'')+'"><span>L'+(i+1)+'</span><b>'+no+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</button>';
   });
