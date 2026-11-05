@@ -1046,6 +1046,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .nohint .lockline.hint{visibility:hidden}
 .homenote{margin:0 0 4px;padding:10px 12px;border-radius:var(--r);background:var(--accent);color:var(--accent-ink);font-weight:700;line-height:1.4;animation:hnfade 6s forwards}
 @keyframes hnfade{85%{opacity:1}100%{opacity:0}}
+/* v45 */
+.quicknote{display:flex;align-items:center;gap:8px;margin:6px 0 8px;padding:0 6px;flex-wrap:wrap}
+.quicknote .qn{flex:1 1 0;min-width:0;min-height:48px;padding:4px 8px;font-size:14px;font-weight:700;line-height:1.25;border:1px solid #1616c8;color:#1616c8;background:#fff;border-radius:8px}
+.quicknote .qn.on{background:#1616c8;color:#fff}
+.quicknote .qn small{display:block;font-size:11px;font-weight:400;opacity:.85}
+.quicknote .muted{flex:none;font-size:13px;color:#444}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1201,6 +1207,7 @@ function reduce(events){
         if(d.kind==='E'&&typeof d.who==='number')sn.expelled[d.team].push(d.who);
         if(d.kind==='D'&&typeof d.who==='number')s.matchOut[d.team].push(d.who);
         break;
+      case 'AC_COACH': var ac=s.sets[d.set]; s.acc=(s.acc||[]).concat([{id:ev.id,set:d.set,team:d.team,raw:{t1:ac.score.t1,t2:ac.score.t2}}]); break;
       case 'INJURY': var ij=s.sets[d.set]; s.injuries.push({team:d.team,no:d.no,set:d.set,raw:{t1:ij.score.t1,t2:ij.score.t2}}); break;
       case 'INCOMPLETE':
         var ic=s.sets[d.set],op=other(d.team);
@@ -1381,7 +1388,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1546';
+var BUILD='1105-1550';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2079,6 +2086,7 @@ function notesList(s,A,B){
   [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push('第 '+n+' 局 '+ab({t1:p[0],t2:p[1]})+tag(k)+'球員 '+x.out+(x.injury?' 宣告為受傷且被':' 被')+'球員 '+x.in+' 例外替補')}})})});
   (s.redes||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+'自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
   s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+x.no+' 號傷停')});
+  (s.acc||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+'助理教練(AC)成為執行教練(C)')});
   if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score,wn=setsWon(s);
     notes.push(ii.scope==='match'?'在第 '+ii.set+' 局後，由於'+tag(il)+'球員未完整，'+tag(iw)+'贏得本場比賽 '+wn[iw]+':'+wn[il]:'第 '+ii.set+' 局 '+ab(ii.raw).replace('，','')+'，由於'+tag(il)+'球員不完整，'+tag(iw)+'贏得本局 '+isc[iw]+':'+isc[il]);}
   if(s.preForfeit)notes.push('因 B 隊「'+tName(s,other(s.preForfeit.winner))+'」'+s.preForfeit.reason+'，由 A 隊「'+tName(s,s.preForfeit.winner)+'」以 2:0 (25:0 25:0) 獲勝');
@@ -2236,7 +2244,8 @@ function ppSanctions(s){
 }
 function ppRemarks(s){
   var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),rows=nt.map(function(x){return '<li>'+esc(x)+'</li>'}).join('');
-  return '<div class="ppr prem"><h3>記事欄</h3>'+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
+  var qk=matchOver(s)||s.preForfeit?'':'<div class="quicknote"><span class="muted">快速加入</span>'+[A,other(A)].map(function(k){var x=(s.acc||[]).filter(function(q){return q.team===k})[0];return x?'<button class="qn on '+k+'" data-act="accdel" data-v="'+x.id+'">'+esc(tName(s,k))+' AC 代 C ✓<small>點一下取消</small></button>':'<button class="qn '+k+'" data-act="accadd" data-team="'+k+'">'+esc(tName(s,k))+'<br>AC 代 C</button>'}).join('')+'</div>';
+  return '<div class="ppr prem"><h3>記事欄</h3>'+qk+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
 }
 function pendingHtml(s,win){
   var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];
@@ -2845,6 +2854,8 @@ app.addEventListener('click',function(e){
       var upn=(ui.importAsk||[]).length;
       (ui.importAsk||[]).forEach(function(im){db.matches=db.matches.map(function(x){return x.id===im.id?im:x})});
       ui.importAsk=null; ui.importMsg='已更新 '+upn+' 場比賽'; save(); break;
+    case 'accadd': dispatch('AC_COACH',{set:n,team:k}); ui.toast={t:'已加入記事：'+tName(s,k)+' 助理教練代理教練',until:Date.now()+3000}; break;
+    case 'accdel': dispatch('UNDO',{target:b.getAttribute('data-v')}); break;
     case 'hints': prefs.hints=b.getAttribute('data-v')!=='off'; savePrefs(); break;
     case 'theme': prefs.theme=b.getAttribute('data-v'); savePrefs(); applyTheme(); break;
     case 'ver': ui.diag=!ui.diag; break;
