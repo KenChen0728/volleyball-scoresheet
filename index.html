@@ -855,6 +855,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .sheet .imp[aria-pressed=true]{outline:3px solid var(--accent);outline-offset:-3px}
 .narrow>section{display:flex;flex-direction:column;gap:6px;flex:none}
 .narrow>.seg{flex:none}
+.tosscolors{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;max-width:480px;width:100%;align-self:center;flex:none}
+.tosscolors button{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:44px;padding:8px 4px;font-size:15px;font-weight:700}
+.tosscolors .jsys{display:flex;gap:6px}
+.tosscolors .jsy{width:32px;height:30px}
+@media (min-width:700px){.tosscolors{max-width:640px}}
+@media (orientation:landscape) and (max-height:500px){.tosscolors button{flex-direction:row;justify-content:center;gap:8px;padding:4px}}
 .hfoot{flex:none;display:flex;flex-direction:column;gap:10px}
 .htrack{position:relative;flex:1;min-height:0;display:flex;gap:24px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .htrack::-webkit-scrollbar{display:none}
@@ -1290,7 +1296,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-1106';
+var BUILD='1105-1108';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1816,6 +1822,7 @@ function tossHtml(s){
   var h='<p class="stephint">'+(n===1?'點先發球隊伍的排球。左邊是 A 隊，要換邊按中間的按鈕。':n===2?'第 2 局自動換邊，同一端發球，不用挑邊。':'決勝局重新挑邊：點先發球隊伍的排球，要換邊按中間的按鈕。A、B 隊不變。')+'</p>';
   h+='<div class="toss">'+tossCard(s,L,L===A,fixed)+'<button class="swap" data-act="swap" aria-label="兩隊換邊"'+(fixed?' disabled':'')+'>⇄</button>'+tossCard(s,R,R===A,fixed)+'</div>';
   h+='<div class="scorer">記錄台</div>';
+  if(n===1&&!c.started)h+='<div class="tosscolors">'+[L,R].map(function(k){var q=s.teams[k];return '<button data-act="sheet" data-v="color" data-team="'+k+'" aria-label="'+esc(tName(s,k))+' 球衣顏色"><span class="jsys">'+jerseyIcon(jersey(q.color||JERSEY_DEFAULT[k]).j)+jerseyIcon(jersey(q.liberoColor||q.color||JERSEY_DEFAULT[k]).j,true)+'</span><span>換球衣顏色</span></button>'}).join('')+'</div>';
   if(c.started)return h+'<div class="note">已開局，挑邊不能再修改。</div><button class="go full" data-act="page" data-v="play">回到比賽</button>';
   return h+'<div class="foot">'+(setDone(s)?'<button class="primary full" data-act="page" data-v="lineup">下一步：填陣容</button>':'')+(n===1?'<button class="ghost full pfbtn" data-act="sheet" data-v="pf">隊伍沒到或人數不足（賽前沒收）</button>':'')+'</div>';
 }
