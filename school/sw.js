@@ -1,5 +1,5 @@
 /* 離線快取：開 App 時先向網站確認新版，最多等 WAIT 毫秒。沒回應或回應不正常就用快取，網站之後回應了再更新快取，下次打開就是新版 */
-var CACHE='vbschool-bcef5d2e';
+var CACHE='vbschool-83d451d2';
 var PREFIX='vbschool-';
 var WAIT=1500;
 var FILES=["./", "index.html", "manifest.webmanifest", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "help/h-back.webp", "help/h-bound.webp", "help/h-force.webp", "help/h-libin.webp", "help/h-libon.webp", "help/h-new.webp", "help/h-play.webp", "help/h-roster.webp", "help/h-set.webp", "help/h-setnext.webp", "help/h-sub.webp", "help/h-timeout.webp"];

@@ -9,17 +9,20 @@ await p.goto(URL);
 const A=(a,extra='')=>p.click(`[data-a="${a}"]${extra}`);
 const st=()=>p.evaluate(()=>{const d=JSON.parse(localStorage.getItem('vb-school-v1'));const m=d.matches.find(x=>x.id===d.cur);return m&&window.__vb.reduce(m)});
 const pt=async k=>{await p.click(`.pt[data-k="${k}"]`);await p.waitForTimeout(370)};
+const rc=(k,g,i)=>`.rcell[data-k="${k}"][data-gp="${g}"][data-v="${i}"]`;
+const put=async(k,g,i,n)=>{await p.click(rc(k,g,i));for(const d of String(n))await p.click(`[data-a="rkey"][data-v="${d}"]`)};
+const val=async(k,g,i)=>(await p.textContent(rc(k,g,i))).trim();
+const fill=async(k,ns,ls)=>{for(let i=0;i<ns.length;i++)await put(k,'p',i,ns[i]);for(let i=0;i<ls.length;i++)await put(k,'l',i,ls[i])};
 // 新比賽＋名單
 await A('new');await A('newgo');
-ok(await p.isVisible('[data-r="t1"]'),'名單頁');
-await A('rosgo');ok((await p.textContent('#roserr')).includes('至少要 6 位'),'少於 6 人擋下');
-const fill=async(k,ns,ls)=>{for(let i=0;i<ns.length;i++)await p.fill(`[data-r="${k}"][data-g="p"][data-i="${i}"]`,''+ns[i]);for(let i=0;i<ls.length;i++)await p.fill(`[data-r="${k}"][data-g="l"][data-i="${i}"]`,''+ls[i])};
+ok(await p.isVisible('.rcell'),'名單頁');await p.click('[data-a="rdone"]');
+await A('rosgo');ok((await p.textContent('#roserr')).includes('至少要 6 位'),'少於 6 人擋下');await p.click(rc('t1','p',0));
 await fill('t1',[1,2,3,4,5,6,8,9,10,11,12,13],[7,14]);await fill('t2',[21,22,23,24,25,26,28],[27]);
-ok(await p.locator('[data-r="t1"][data-g="p"]').count()===12&&await p.locator('[data-r="t1"][data-g="l"]').count()===2,'12+2 格');
-await p.fill('[data-r="t2"][data-g="p"][data-i="6"]','21');ok(await p.inputValue('[data-r="t2"][data-g="p"][data-i="6"]')===''&&(await p.textContent('#roserr')).includes('21 號'),'兩位數重複馬上清掉');
-await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','5');await p.keyboard.press('Tab');ok(await p.inputValue('[data-r="t1"][data-g="l"][data-i="1"]')==='','一位數重複離開才清');
-await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','5');await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','51');ok(await p.inputValue('[data-r="t1"][data-g="l"][data-i="1"]')==='51','5 可以接著打成 51');await p.fill('[data-r="t1"][data-g="l"][data-i="1"]','14');
-await p.fill('[data-r="t2"][data-g="p"][data-i="6"]','28');await A('rosgo');
+ok(await p.locator('.rcell[data-k="t1"][data-gp="p"]').count()===12&&await p.locator('.rcell[data-k="t1"][data-gp="l"]').count()===2,'12+2 格');
+await p.click(rc('t2','p',6));await p.click('[data-a="rkey"][data-v="del"]');await p.click('[data-a="rkey"][data-v="del"]');for(const d of '21')await p.click(`[data-a="rkey"][data-v="${d}"]`);ok(await val('t2','p',6)===''&&(await p.textContent('#roserr')).includes('21 號'),'兩位數重複馬上清掉');
+await p.click(rc('t1','l',1));await p.click('[data-a="rkey"][data-v="del"]');await p.click('[data-a="rkey"][data-v="del"]');await p.click('[data-a="rkey"][data-v="5"]');await p.click('[data-a="rnext"]');ok(await val('t1','l',1)==='','一位數重複離開才清');
+await put('t1','l',1,'5');await p.click('[data-a="rkey"][data-v="1"]');ok(await val('t1','l',1)==='51','5 可以接著打成 51');await p.click(rc('t1','l',1));await p.click('[data-a="rkey"][data-v="del"]');await p.click('[data-a="rkey"][data-v="del"]');await put('t1','l',1,'14');
+await put('t2','p',6,'28');await A('rdone');await A('rosgo');
 // 先發
 await A('setgo');ok((await p.textContent('#seterr')).includes('先發球'),'要先選發球');
 await p.click('.tossb[data-v="t1"]');
@@ -66,7 +69,7 @@ await finish('t1');ok((await p.textContent('.sheet.center')).includes('換場'),
 await p.waitForTimeout(850);await A('swap');await finish('t1');await p.waitForTimeout(850);await A('end');
 ok((await p.textContent('.result')).includes('2:1'),'三局結束');
 // 五局制
-await A('home');await A('new');await p.click('[data-a="fmt"][data-v="5"]');await A('newgo');await fill('t1',[1,2,3,4,5,6],[]);await fill('t2',[11,12,13,14,15,16],[]);await A('rosgo');
+await A('home');await A('new');await p.click('[data-a="fmt"][data-v="5"]');await A('newgo');await fill('t1',[1,2,3,4,5,6],[]);await fill('t2',[11,12,13,14,15,16],[]);await A('rdone');await A('rosgo');
 for(let n=1;n<=3;n++){if(n===1){await p.click('.tossb[data-v="t1"]');for(const x of [1,2,3,4,5,6,11,12,13,14,15,16])await p.click(`[data-a="lupick"][data-v="${x}"]`)}await A('setgo');await finish('t1');await p.waitForTimeout(850);await A('end')}
 ok((await p.textContent('.result')).includes('3:0'),'五局三勝');
 ok(!errs.length,'無錯誤 '+errs.join('|'));
