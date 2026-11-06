@@ -224,6 +224,26 @@ for t in T:
     if wr[0] < t[1] < wr[1] and G['res']['box'][0] - 6 < t[0] < G['res']['box'][2]: t[1] = R(t[1] + (wc_ - 780.9))
 G['res']['winner'][2] = wc_
 
+# 7. 比賽成績底下跟「※每場賽後」那格分開，留一段空白，和左邊證明欄一樣（底線 780.6）。開始／結束那列變矮，勝隊那列往上移（11/7 使用者）
+rx0, rx1 = G['res']['box'][0], G['res']['box'][2]; ybot = 780.6; ymid_old = 764.52; ymid = 754.2; ytop = 729.82
+for l in HL:
+    if abs(l[0] - ymid_old) < .1 and l[1] < rx0 + 1 and l[2] > rx1 - 1: l[0] = ymid
+HL[:] = [l for l in HL if not (abs(l[0] - ybot) < .1 and abs(l[1] - 630.9) < .2 and l[2] < 640)]
+HL.append([ybot, R(rx0 - .25), R(rx1 - .2), 0.48])
+for l in VL:
+    if abs(l[0] - rx0) < .1 and l[2] > 785: l[2] = R(ybot + .2)
+    if any(abs(l[0] - x) < .1 for x in G['res']['times'][2:]) and ytop - 1 < l[1] < ytop + 1 and l[2] > ymid + 1: l[2] = R(ymid + .3)
+right = [l for l in VL if abs(l[0] - rx1) < .1 and l[1] < ybot < l[2]]
+for l in right:
+    VL.append([l[0], 791.04 - .2, l[2], l[3]]); l[2] = R(ybot + .2)
+d1 = (ytop + ymid) / 2 - (ytop + ymid_old) / 2; nwc = R((ymid + ybot) / 2)
+for t in T:
+    if rx0 - 6 < t[0] < rx1 and ytop < t[1] < ymid_old: t[1] = R(t[1] + d1)
+    elif rx0 - 6 < t[0] < rx1 and ymid_old < t[1] < 791: t[1] = R(t[1] + (nwc - G['res']['winner'][2]))
+for h_ in G['res']['hm']: h_[2] = R(h_[2] + d1)
+G['res']['winner'][2] = nwc; G['res']['win'] = [ymid, ybot]; G['res']['times'][1] = ymid; G['res']['box'][3] = ybot
+print('比賽成績底下留空白', 'times', ytop, ymid, 'win', ymid, ybot, 'd1', round(d1, 2))
+
 tpl = {'W': d['W'], 'H': d['H'], 'h': HL, 'v': VL, 'b': BX, 'd': DS, 't': T}
 js = 'var CT3=' + json.dumps(tpl, ensure_ascii=False, separators=(',', ':')) + ';\nvar CTG=' + json.dumps(G, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(out, 'w', encoding='utf8').write(js)
