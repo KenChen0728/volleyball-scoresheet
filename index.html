@@ -1250,6 +1250,12 @@ button.dim{opacity:.45}
 /* v49 存成圖片／PDF */
 .sheetfoot .row>.xpbtn{flex:none;align-self:stretch;padding:0 14px}
 .sheet .mbtn small{display:block;font-weight:400;font-size:13px;margin-top:2px}
+/* v50 主畫面的資料夾做成卡片，看得出可以點 */
+.hrow.cupcard{display:flex;flex-direction:row;align-items:center;gap:12px;width:100%;padding:12px 14px;margin:8px 0;min-height:64px;border:1px solid var(--line);border-radius:12px;background:var(--soft);text-align:left;color:var(--ink)}
+.cupcard .cupic{width:30px;height:30px;flex:none;color:var(--accent)}
+.cupcard .cuptx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cupcard .cuptx strong{font-size:18px}
+.cupcard .cupgo{flex:none;font-weight:700;font-size:15px;color:var(--muted)}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1593,7 +1599,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2051';
+var BUILD='1106-2108';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2010,7 +2016,7 @@ function mergeCups(list){
   return n;
 }
 function cupHomeHtml(){
-  var rows=db.cups.map(function(c){var n=cupRows(c.id).length;return '<button class="hrow" data-act="cupopen" data-id="'+esc(c.id)+'"><strong>'+esc(c.name)+'</strong><span class="muted">'+c.teams.length+' 隊・'+n+' 場比賽</span></button>'}).join('');
+  var rows=db.cups.map(function(c){var n=cupRows(c.id).length;return '<button class="hrow cupcard" data-act="cupopen" data-id="'+esc(c.id)+'"><svg class="cupic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg><span class="cuptx"><strong>'+esc(c.name)+'</strong><span class="muted">'+c.teams.length+' 隊・'+n+' 場比賽</span></span><span class="cupgo" aria-hidden="true">打開 ›</span></button>'}).join('');
   return '<section><div class="shead"><h2>賽事資料夾</h2><button class="linkbtn" data-act="cupcreate">新增資料夾</button></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="muted">同一個盃賽的名單和比賽放在一起，可以分男女組。</p>')+'</section>';
 }
 function cupHtml(){
