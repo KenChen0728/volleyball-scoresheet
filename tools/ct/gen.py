@@ -191,6 +191,19 @@ for o in [t for t in T if t[5] == 'or']:
     for t in T:
         if t[5] in ('A', 'B') and abs(t[3] - o[3]) < .1 and 0 < abs(t[0] - o[0]) < 4 and abs(t[1] - o[1]) < 12: print('A or B 對齊', t[5], t[0], '->', o[0]); t[0] = o[0]
 
+# 4. 名單表頭：以「球隊」為中心左右對稱。「球隊」放在左右邊線正中間（也是下面名單表格的中線），右邊的 A or B、圓圈、隊名位置照左邊鏡射
+rb = G['roster']['box']; C = R((rb[0] + rb[2]) / 2)
+qd = [t for t in T if t[5] == '球隊' and 320 < t[1] < 345][0]; qd[0] = R(C - qd[2] / 2)
+cir = sorted([t for t in T if t[5] == '○' and 320 < t[1] < 345 and t[0] > 900], key=lambda t: t[0])
+lcx = cir[0][0] + cir[0][2] / 2; cir[1][0] = R(2 * C - lcx - cir[1][2] / 2)
+stk = [t for t in T if t[5] in ('A', 'or', 'B') and abs(t[3] - 6.96) < .1 and 318 < t[1] < 346 and t[0] > 900]
+lx = min(t[0] for t in stk); orw = [t for t in stk if t[5] == 'or'][0][2]; rx = R(2 * C - (lx + orw / 2) - orw / 2)
+for t in stk:
+    if t[0] > C: t[0] = rx
+G['roster']['cb'][0] = R(2 * C - lcx)
+gap = 2.5; G['roster']['ta'] = [G['roster']['ta'][0], R(qd[0] - gap)]; G['roster']['tb'] = [R(qd[0] + qd[2] + gap), R(2 * C - G['roster']['ta'][0])]
+print('名單表頭對稱', 'C', C, '球隊 x0', qd[0], '右圓', G['roster']['cb'][0], '右 A or B x0', rx, 'ta', G['roster']['ta'], 'tb', G['roster']['tb'])
+
 tpl = {'W': d['W'], 'H': d['H'], 'h': HL, 'v': VL, 'b': BX, 'd': DS, 't': T}
 js = 'var CT3=' + json.dumps(tpl, ensure_ascii=False, separators=(',', ':')) + ';\nvar CTG=' + json.dumps(G, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(out, 'w', encoding='utf8').write(js)
