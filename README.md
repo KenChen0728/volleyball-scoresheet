@@ -66,10 +66,17 @@ git push
 
 ## 退回寬版調整前（完整版和學校版一起）
 
-視窗返回上一層、橫向畫面兩側對稱、自由球員和隊長移到兩側之前的版本留在 `backup/before-wide-v41` 分支。要退回：
+橫的畫面改過兩次，舊版各留一個分支：
+
+- `backup/before-wide-v42`：依畫面高度調整之前。自由球員、隊長已經在兩側，但下方記錄表從高度 621 起就出現，記錄表頁要上下滑
+- `backup/before-wide-v41`：更早，視窗返回上一層、兩側對稱、自由球員和隊長移到兩側之前
+
+要退回時（以前者為例）：
 
 ```
-git checkout backup/before-wide-v41 -- index.html sw.js school
+git checkout backup/before-wide-v42 -- index.html sw.js school
 git commit -m "退回寬版調整前"
 git push
 ```
+
+橫的畫面怎麼排（給維護者）：高度 520 以下是手機排法；521 以上兩側隊伍欄排暫停、替補、自由、隊長，自由和隊長對齊球場下緣；高度 800 以上（或高度 690 以上且畫面不太寬）才在下方放記錄表，先讓球場維持比例，剩下的高度才給記錄表。

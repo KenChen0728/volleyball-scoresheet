@@ -1110,8 +1110,8 @@ button.dim{opacity:.45}
 @media (orientation:landscape) and (max-height:520px){.sheet>.linkbtn:last-child{position:static;box-shadow:none;background-color:transparent}}
 /* v41 下一層視窗的返回鍵 */
 .sheet>.sheetback{align-self:flex-start;flex:none;width:auto;min-height:38px;padding:0 12px;font-size:15px;background:var(--soft);border-color:var(--soft);color:var(--ink)}
-/* v41 橫的畫面（夠高時）：兩側左右對稱，暫停替補上下排，下排按鈕放大 */
-@media (orientation:landscape) and (min-width:640px) and (min-height:621px){
+/* v41 橫的畫面（手機以外）：兩側左右對稱，暫停替補上下排，下排按鈕放大 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px){
   .wplay>.wcol:nth-child(3) .wnums{flex-direction:row-reverse}
   .wcol .tg{grid-template-columns:1fr;gap:8px}
   .wcol .tg button{min-height:58px;font-size:20px;display:flex;justify-content:space-between;align-items:center;padding:0 18px}
@@ -1119,7 +1119,7 @@ button.dim{opacity:.45}
   .wcol .setbox{flex:0 0 66px}
   .wcol .setbox small{font-size:15px}
   .wcol .setbox b{font-size:42px}
-  .wcol .strip{margin-top:10px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"a l" "b c";gap:10px 10px;align-items:center;justify-items:start}
+  .wcol .strip{margin-top:auto;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"a l" "b c";gap:10px 10px;align-items:center;justify-items:start}
   .wcol .strip::before{content:"自由";grid-area:a}
   .wcol .strip::after{content:"隊長";grid-area:b}
   .wcol .strip::before,.wcol .strip::after{font-size:15px;font-weight:700;color:var(--muted);width:36px}
@@ -1135,6 +1135,43 @@ button.dim{opacity:.45}
   .wmid .pbtns{max-width:none;gap:8px}
   .wmid .pbtns button{min-height:62px;font-size:19px}
 }
+/* v42 橫的畫面：球場、下方按鈕、記錄表各占一列；兩側隊伍欄只排在球場旁邊 */
+@media (orientation:landscape) and (min-width:640px){
+  .wplay{grid-template-rows:minmax(0,1fr) auto}
+  .wplay>.wcol{grid-row:1/3}
+  .wplay>.wtop{grid-column:2;grid-row:1}
+  .wplay>.wctl{grid-column:2;grid-row:2}
+  .wplay>.wsheet{grid-column:1/-1;grid-row:3}
+}
+@media (orientation:landscape) and (min-width:640px) and (max-width:760px) and (min-height:621px){
+  .wplay{grid-template-rows:minmax(0,1fr) auto clamp(150px,30vh,300px)}
+}
+/* v42 手機以外：自由、隊長對齊球場下緣；球場依高度加寬，不留大片空白 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px){
+  .wplay>.wcol{grid-row:1}
+  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,min(1000px,calc((100vh - 269px) * 2.1))) minmax(150px,210px)}
+  .wsheet{display:none}
+}
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px) and (max-height:620px){
+  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,min(1000px,calc((100vh - 233px) * 2.1))) minmax(150px,210px)}
+}
+/* v42 沒有自由球員時（學校版不顯示空格），不留「自由」這一行 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px){
+  .wcol .strip:has(>.ls:empty){grid-template-areas:"b c"}
+  .wcol .strip.mir:has(>.ls:empty){grid-template-areas:"c b"}
+  .wcol .strip:has(>.ls:empty)::before,.wcol .strip>.ls:empty{display:none}
+}
+/* v42 下方記錄表只在高度夠時出現，先讓球場維持原本比例，剩下的高度才給記錄表 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:800px),(orientation:landscape) and (min-width:761px) and (min-height:690px) and (max-aspect-ratio:3/2){
+  .wsheet{display:block}
+  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,780px) minmax(150px,210px);grid-template-rows:minmax(0,1fr) auto clamp(150px,calc(100% - 207px - min(371px,(100vw - 468px) / 2.1)),300px)}
+}
+/* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
+@media (orientation:landscape) and (min-width:640px) and (min-height:521px){
+  .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
+  .page>.sv-wrap svg{width:100%;height:100%}
+}
+.sheetfoot .row>.fsbtn{flex:none;align-self:stretch}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1472,7 +1509,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1626';
+var BUILD='1106-1709';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2371,6 +2408,7 @@ function resultHtml(s,pv){
   var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>':'';
   function fs(svg){return ui.fs?'<div class="fsv" role="dialog" aria-label="全螢幕記錄表"><div class="fsin"><div class="fssheet">'+svg+'</div><button class="fsclose" data-act="fsclose">✕ 關閉全螢幕</button></div></div>':''}
   var back=pv||over?'':'<div class="foot sheetfoot"><button class="sv" data-act="sheetclose">返回比賽</button></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
   if(tab==='note')return head+ppRemarks(s)+back;
@@ -2404,7 +2442,7 @@ function playHtml(s){
   if(false)[L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
   var foot='<div class="foot">'+main+'</div>';
-  if(isWide())return '<div class="wplay">'+wideCol(s,L)+'<div class="wmid">'+midh+court+warn+timerBar(s)+foot+lock+tools+'</div>'+wideCol(s,R)+'<div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
+  if(isWide())return '<div class="wplay">'+wideCol(s,L)+'<div class="wmid wtop">'+midh+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
   return '<div class="board">'+sideScore(s,L)+setBox(s,L)+midh+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
     '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);

@@ -402,9 +402,9 @@ n===1&&c.rally===0?'每一球打完，按得分的隊伍':'';
 
 ＝＝＝ 比賽畫面：橫放不放記錄表，球場放大；直拿平板放在按鈕下面 ＝＝＝
 <<<<
-'</div>'+wideCol(s,R)+'<div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
 ====
-'</div>'+wideCol(s,R)+'</div>';
+'</div></div>';
 >>>>
 
 ＝＝＝ 沒有自由球員時不佔位置 ＝＝＝
