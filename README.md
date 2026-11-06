@@ -68,6 +68,7 @@ git push
 
 橫的畫面改過幾次，舊版各留一個分支：
 
+- `backup/before-wide-v45`：局數移到上方色帶之前
 - `backup/before-wide-v44`：隊名置中、第幾局移到上方色帶之前
 - `backup/before-wide-v43`：最上面隊名改成隊色長條之前
 - `backup/before-wide-v42`：依畫面高度調整之前。自由球員、隊長已經在兩側，但下方記錄表從高度 621 起就出現，記錄表頁要上下滑

@@ -1166,7 +1166,7 @@ button.dim{opacity:.45}
 /* v42 下方記錄表只在高度夠時出現，先讓球場維持原本比例，剩下的高度才給記錄表 */
 @media (orientation:landscape) and (min-width:761px) and (min-height:800px),(orientation:landscape) and (min-width:761px) and (min-height:690px) and (max-aspect-ratio:3/2){
   .wsheet{display:block}
-  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,780px) minmax(150px,210px);grid-template-rows:auto minmax(0,1fr) auto clamp(150px,calc(100% - 237px - min(371px,(100vw - 468px) / 2.1)),300px)}
+  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,780px) minmax(150px,210px);grid-template-rows:auto minmax(0,1fr) auto clamp(150px,calc(100% - 237px - min(384px,(100vw - 468px) / 2.1)),300px)}
 }
 /* v42 最上面一列：兩隊隊名做成隊色長條，第幾局、誰發球放正中間 */
 @media (orientation:landscape) and (min-width:640px){
@@ -1197,7 +1197,7 @@ button.dim{opacity:.45}
 .bar:has(>.barmid)::before{content:"";flex:1}
 .bar>.barmid{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:baseline;gap:8px;font-size:22px}
 .bar>.barmid small{font-size:14px;font-weight:700;color:rgba(255,255,255,.8)}
-@media (max-width:819px){.bar>.barmid{position:static;transform:none;font-size:19px}.bar:has(>.barmid)::before{display:none}}
+@media (max-width:919px){.bar>.barmid{position:static;transform:none;font-size:19px}.bar:has(>.barmid)::before{display:none}}
 @media (orientation:landscape) and (min-width:640px){
   .wbar{justify-content:center}
   .wbar+.mid~.wbar{flex-direction:row}
@@ -1210,6 +1210,13 @@ button.dim{opacity:.45}
   .whead .srvmark{--ball:30px}
   .whead .srvmark i{font-size:22px}
   .whead .srvmark b{font-size:28px}
+}
+/* v45 局數移到上方色帶，夾在「第幾局」兩邊；兩側只留分數，置中放大 */
+.bar>.barmid .bsets{font-family:var(--num);font-size:30px;line-height:1;margin:0 10px;align-self:center}
+@media (orientation:landscape) and (min-width:640px){
+  .wcol .setbox{display:none}
+  .wcol .wnums{justify-content:center}
+  .wcol .wscore{font-size:clamp(72px,14vh,124px)}
 }
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
@@ -1686,7 +1693,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1755';
+var BUILD='1106-1822';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1993,7 +2000,7 @@ function barHtml(s){
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
   var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
-  return '<header class="bar">'+back+(cen?'<h1 class="barmid">'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
+  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
 }
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
