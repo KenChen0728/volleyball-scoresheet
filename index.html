@@ -1246,7 +1246,7 @@ button.dim{opacity:.45}
 /* v48 比賽結果表：左上日期時間，右上地點、場地、場次 */
 .ppr h3.phead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
 .ppr .pinfo{font-size:15px;font-weight:400;color:var(--pi);text-align:left;line-height:1.2}
-.ppr .pinfo.r{text-align:right}
+.ppr .pinfo.r{justify-self:end;text-align:justify;text-align-last:justify}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1590,7 +1590,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2008';
+var BUILD='1106-2015';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
