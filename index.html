@@ -1108,6 +1108,22 @@ button.dim{opacity:.45}
 .sheet button:is([data-act=close],[data-act=penclose],[data-act=pmback]):not(.primary):not(.linkbtn):not(.go){background:var(--soft);border-color:var(--soft);color:var(--ink)}
 /* v41 手機橫放：文字連結不固定在底部，免得蓋住選項 */
 @media (orientation:landscape) and (max-height:520px){.sheet>.linkbtn:last-child{position:static;box-shadow:none;background-color:transparent}}
+/* v41 下一層視窗的返回鍵 */
+.sheet>.sheetback{align-self:flex-start;flex:none;width:auto;min-height:38px;padding:0 12px;font-size:15px;background:var(--soft);border-color:var(--soft);color:var(--ink)}
+/* v41 橫的畫面（夠高時）：兩側左右對稱，暫停替補上下排，下排按鈕放大 */
+@media (orientation:landscape) and (min-width:640px) and (min-height:621px){
+  .wplay>.wcol:nth-child(3) .wnums{flex-direction:row-reverse}
+  .wcol .tg{grid-template-columns:1fr;gap:8px}
+  .wcol .tg button{min-height:58px;font-size:19px}
+  .wcol .strip{gap:8px}
+  .wcol .strip .lc,.wcol .strip .capbox{flex:none;width:62px;height:62px}
+  .wcol .strip .ls{gap:6px}
+  .wcol .strip .lc b,.wcol .strip .capbox b{font-size:23px}
+  .wcol .strip .capbox b.circ{width:36px;height:36px;font-size:19px}
+  .wcol .strip .lc span,.wcol .strip .capbox span{font-size:12px}
+  .wmid .pbtns{max-width:none;gap:8px}
+  .wmid .pbtns button{min-height:62px;font-size:19px}
+}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1445,7 +1461,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1611';
+var BUILD='1106-1618';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2483,12 +2499,12 @@ function penHtml(s){
     var ir=cnt('IR'),dw=cnt('DW'),yw=cnt('W');
     if(p.who!=null){var pg=sanGone(s,k,p.who);
       h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+p.who+' 號 判罰</h2><p class="muted">照裁判的判決點選。'+(pg==='E'?'這局已出局，只能再判出場。':'')+'</p><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw||pg?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"'+(pg?' disabled':'')+'><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"'+(pg?' disabled':'')+'><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>一手舉兩張</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>兩手各一張</small></button></div><button data-act="penclose">取消</button>';
-      return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';}
+      return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(p.back?BACK_BTN:'')+h+'</div>';}
     h='<h2>判罰</h2><p class="muted">照裁判的判決點選。'+(ir||dw||yw?'標示已用的項目，一隊一場只能記一次。':'')+'</p>'+teams+'<div class="muted">球隊</div><div class="pk3"><button data-act="pendo" data-team="'+k+'" data-v="IR"'+(ir?' disabled':'')+'>不當請求'+(ir?'（已用）':'')+'</button><button class="yl" data-act="pendo" data-team="'+k+'" data-v="DW"'+(dw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>延誤警告'+(dw?'（已用）':'')+'</button><button class="rd" data-act="pendo" data-team="'+k+'" data-v="DP"><span class="ic"><i class="cd cr"></i></span>延誤懲罰</button></div>'+
       '<div class="muted">個人</div><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>一手舉兩張</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>兩手各一張</small></button></div>'+
       '<div class="row"><button data-act="penkind" data-team="'+k+'" data-v="LOG">判罰紀錄（'+s.sanctions.length+'）</button><button class="primary" data-act="penclose">關閉</button></div>';
   }
-  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(p.back?BACK_BTN:'')+h+'</div>';
 }
 function recordsHtml(s){
   var A=s.sets[1].left,ir=s.sanctions.filter(function(x){return x.kind==='IR'});
@@ -2633,6 +2649,7 @@ function modalHtml(s){
   }
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
+var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 回到「其他」</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
   var k=x.team,t=s.teams[k],h='';
@@ -2790,7 +2807,7 @@ function sheetHtml(s,m){
       return '<button class="imp" data-act="import-pick" data-team="'+k+'" data-i="'+i+'"><span>'+esc(p.name)+'</span><small>'+p.team.players.length+' 人'+(p.date?'・'+esc(p.date.slice(5)):'')+'</small></button>';
     }).join('')+'<button class="ghost" data-act="close">關閉</button>';
   }
-  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+(x.back?BACK_BTN:'')+h+'</div>';
 }
 /* 文字欄位改完只更新狀態，不重畫整頁，避免手指同時按下的按鈕被換掉 */
 function refreshStatus(){
@@ -2881,6 +2898,7 @@ app.addEventListener('click',function(e){
   var act=b.getAttribute('data-act'),k=b.getAttribute('data-team'),noAttr=b.getAttribute('data-no'),no=(noAttr===null||noAttr==='')?null:Number(noAttr);
   if(act==='reload'){location.reload();return}
   if(staleTab)return;
+  var fromMenu=ui.sheet&&ui.sheet.type==='more'?ui.sheet:null;
   if(act==='rpraw'){var raw0='';try{raw0=localStorage.getItem(KEY)||''}catch(err){raw0=JSON.stringify(db)}saveFile('排球記錄表原始資料_'+today()+'.json',raw0,'application/json');return}
   var m=current(),s=m?reduce(m.events):null,t=(s&&k)?s.teams[k]:null,n=s?s.setNo:1,c=s?s.sets[n]:null;
   var po=(s&&view==='setup'&&ui.page==='play')?pendingOut(s):null;
@@ -3218,8 +3236,11 @@ app.addEventListener('click',function(e){
       if(!matchOver(after)){dispatch('SET_ADVANCED',{blank:true}); ui.luTeam=null; ui.lib=null; ui.sub=null; ui.page=reduce(m.events).setNo===2?'lineup':'toss'}
       ui.rtab=null;
       break;
+    case 'sheetback': var bk=(ui.sheet&&ui.sheet.back)||(ui.pen&&ui.pen.back)||null; ui.pen=null; ui.sheet=bk; break;
     default: return;
   }
+  // 從「其他」打開的下一層視窗，記住上一層，可以按返回
+  if(fromMenu){if(ui.sheet&&ui.sheet!==fromMenu)ui.sheet.back=fromMenu;else if(!ui.sheet&&ui.pen&&!ui.pen.back)ui.pen.back=fromMenu}
   render();
 });
 function commitNumber(k,t){
