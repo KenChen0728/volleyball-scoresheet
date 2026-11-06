@@ -1593,7 +1593,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2030';
+var BUILD='1106-2051';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -3286,9 +3286,12 @@ app.addEventListener('click',function(e){
     case 'cupstart':
       var cs=theCup(),inf=defaultInfo(),picks=ui.cupSheet.pick.slice();
       inf.name=cs.name; inf.division=cupView.div==='未分組'?'':cupView.div;
+      /* 同一個資料夾上一場的地點、場地先帶入，可以再改 */
+      var prev=db.matches.filter(function(q){return q.cup===cs.id}).map(function(q){return safeReduce(q)}).filter(Boolean)[0];
+      if(prev){if(prev.info.place)inf.place=prev.info.place;if(prev.info.court)inf.court=prev.info.court}
       var cm=createMatch(inf); cm.cup=cs.id; db.currentId=cm.id;
       picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:x.team,fromName:x.team.name},cm)});
-      save(); resetUi(); ui.page='roster'; ui.from='cup'; view='setup'; break;
+      save(); resetUi(); ui.page='info'; ui.from='cup'; view='setup'; break;
     case 'cupadd': ui.cupSheet={type:'add'}; break;
     case 'cupaddm': var am=db.matches.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; if(am){am.cup=cupView.id;save()} break;
     case 'cupsave':
