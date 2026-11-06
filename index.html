@@ -1587,9 +1587,10 @@ function validate(t){
   return [
     {ok:!!t.name.trim(),short:'隊名'},
     {ok:regular>=MIN_ON_COURT,short:'還差 '+(MIN_ON_COURT-regular)+' 位球員'},
-    {ok:t.captain!==null,short:'隊長'}
+    {ok:t.captain!==null,short:'隊長',soft:true} // 11/6 使用者：沒隊長不擋開賽，比賽時隊長格閃，點了補
   ];
 }
+function hardMiss(t){return validate(t).filter(function(v){return !v.ok&&!v.soft})}
 
 /* ========== 介面狀態（不存檔、不算事件） ========== */
 var view='home';
@@ -1599,7 +1600,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2123';
+var BUILD='1106-2229';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2136,7 +2137,7 @@ function rosterHtml(s,m){
 }
 function rosterNext(s){
   if(s.sets[1].started)return '';
-  var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
+  var ok=['t1','t2'].every(function(k){return !hardMiss(s.teams[k]).length});
   return ok?'<button class="primary full" data-act="page" data-v="toss">下一步：挑邊</button>':'';
 }
 function subHtml(s){
@@ -2167,8 +2168,8 @@ function kpHtml(s){
 }
 function footHtml(k,t,s){
   if(t.locked)return '<div class="muted">已開局，名單不能再改</div>';
-  var miss=validate(t).filter(function(c){return !c.ok});
-  return '<div class="muted">'+(miss.length?'還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
+  var miss=validate(t).filter(function(c){return !c.ok}),soft=miss.length&&miss.every(function(c){return c.soft});
+  return '<div class="muted">'+(soft?'還沒有隊長，比賽時也能補':miss.length?'還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
 }
 var BALL='<svg class="ball" viewBox="-100 -100 200 200" width="76" height="76" aria-hidden="true"><g transform="translate(0,0) scale(1.0)"><clipPath id="vb"><circle r="97"/></clipPath><clipPath id="vbs"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00L130.00 -225.17L260.00 -0.00L109.24 90.78C42.09 75.11 5.52 42.44 -0.00 0.00Z"/></clipPath><g clip-path="url(#vb)"><g transform="rotate(0)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(120)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(240)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(0)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(120)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(240)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g></g><circle r="97" fill="none" stroke="#12324F" stroke-width="7"/></g></svg>';
 function sideLeft(s){
@@ -2219,7 +2220,7 @@ function lineupHtml(s){
 }
 function gcapHtml(s,k){
   var c=s.sets[s.setNo],t=s.teams[k],lu=c.lineups[k];
-  if(lu.indexOf(null)>=0||lu.indexOf(t.captain)>=0)return '';
+  if(t.captain===null||lu.indexOf(null)>=0||lu.indexOf(t.captain)>=0)return ''; // 名單沒隊長：下方提醒，比賽時點隊長格補
   var none=c.gameCaptain[k]===null;
   return '<div class="muted">'+(none?'隊長不在先發，場上隊長可以現在選，也可以等二裁核對時再選：':'場上隊長（再點一次取消）：')+'</div><div class="benchrow">'+lu.map(function(no){
     var on=c.gameCaptain[k]===no;
@@ -2240,9 +2241,9 @@ function lineupFoot(s){
   var n=s.setNo,c=s.sets[n],k=ui.luTeam;
   if(c.started)return '<div class="row"><button data-act="fixopen" data-team="'+k+'">修正 '+esc(tName(s,k))+' 陣容</button><button class="go" data-act="page" data-v="play">回到比賽</button></div>';
   if(c.locked.t1&&c.locked.t2){
-    var gap=[];
-    if(n===1)['t1','t2'].forEach(function(x){var ms=validate(s.teams[x]).filter(function(v){return !v.ok});if(ms.length)gap.push(tName(s,x)+'缺'+ms.map(function(v){return v.short}).join('、'))});
-    return (gap.length?'<div class="warning">'+esc(gap.join('；'))+'，請回名單補齊</div>':'')+'<div class="row"><button class="ghost" style="flex:none" data-act="lu-unlock" data-team="'+k+'">修改</button><button class="go" data-act="start"'+(gap.length?' disabled':'')+'>開始第 '+n+' 局</button></div>';
+    var gap=[],L0=c.left||'t1',nocap=[L0,other(L0)].filter(function(x){return s.teams[x].captain===null}).map(function(x){return tName(s,x)});
+    if(n===1)['t1','t2'].forEach(function(x){var ms=hardMiss(s.teams[x]);if(ms.length)gap.push(tName(s,x)+'缺'+ms.map(function(v){return v.short}).join('、'))});
+    return (gap.length?'<div class="warning">'+esc(gap.join('；'))+'，請回名單補齊</div>':'')+(nocap.length?'<div class="note capnote">'+esc(nocap.join('、'))+' 還沒有隊長。可以先開始，比賽時點閃的「隊長」格指定</div>':'')+'<div class="row"><button class="ghost" style="flex:none" data-act="lu-unlock" data-team="'+k+'">修改</button><button class="go" data-act="start"'+(gap.length?' disabled':'')+'>開始第 '+n+' 局</button></div>';
   }
   if(c.locked[k])return '<button class="ghost full" data-act="lu-unlock" data-team="'+k+'">修改這張陣容單</button>';
   var miss=lineupIssues(s,k);
@@ -2285,8 +2286,8 @@ function libStrip(s,k,mir){
     else if(!can){dis=true}
     return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+cls+(on?' sel':'')+'" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="自由球員 L'+(i+1)+' '+no+' 號'+(sm?' '+sm:'')+'"><span class="lno">L'+(i+1)+'</span><b>'+no+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</button>';
   });
-  var cap=actingCap(c,t,k),capOn=c.cur[k].indexOf(t.captain)>=0;
-  var cb='<button class="capbox '+k+(cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+' 場上隊長 '+(cap==null?'未指定':cap+' 號')+'"><span class="lno">隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
+  var cap=actingCap(c,t,k),capOn=c.cur[k].indexOf(t.captain)>=0,noCap=t.captain===null;
+  var cb='<button class="capbox '+k+(noCap||cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+(noCap?' 還沒有隊長，點一下指定':' 場上隊長 '+(cap==null?'未指定':cap+' 號'))+'"><span class="lno">隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
   return '<div class="strip '+k+(mir?' mir':'')+'"><div class="ls">'+slots.join('')+'</div>'+cb+'</div>';
 }
 function teamTools(s,k){
@@ -2732,8 +2733,8 @@ function playHtml(s){
   var court='<div class="pcourt'+(ui.lib?' libmode':'')+'" role="group" aria-label="球場，記錄台在下方">'+cells+'</div>';
   var tools='<div class="pbtns"><button class="penbtn" data-act="penopen"><span class="ic"><i class="cd cy"></i><i class="cd cr"></i></span>判罰</button><button data-act="sheetopen">記錄表</button><button data-act="sheet" data-v="more">其他</button></div>';
   var subDone=[L,R].filter(function(k){return c.subRally[k]===c.rally&&c.rally>0})[0];
-  var lfr=libFront(s),capMiss=[L,R].filter(function(k){return actingCap(c,s.teams[k],k)===null})[0];
-  var lockT=ui.toast&&Date.now()<ui.toast.until?ui.toast.t:lfr?tName(s,lfr.k)+' 自由球員'+(lfr.sv?'輪到發球':'到前排')+'，點閃的 L 換回 '+lfr.no+' 號':capMiss&&!c.live?tName(s,capMiss)+' 請點紅色「隊長」格，指定場上隊長':c.live?'球在進行中，得分後才能暫停和替補':c.replayLock?'公正重發。裁判仍給暫停或替補時照常記錄':subDone?tName(s,subDone)+' 這次已替補過，打完下一球才能再替補':n===1&&c.rally===0?'裁判鳴哨發球時按「發球」，打完按得分的隊伍':'';
+  var lfr=libFront(s),capMiss=[L,R].filter(function(k){return s.teams[k].captain===null||actingCap(c,s.teams[k],k)===null})[0];
+  var lockT=ui.toast&&Date.now()<ui.toast.until?ui.toast.t:lfr?tName(s,lfr.k)+' 自由球員'+(lfr.sv?'輪到發球':'到前排')+'，點閃的 L 換回 '+lfr.no+' 號':capMiss&&!c.live?tName(s,capMiss)+(s.teams[capMiss].captain===null?' 還沒有隊長，請點紅色「隊長」格指定':' 請點紅色「隊長」格，指定場上隊長'):c.live?'球在進行中，得分後才能暫停和替補':c.replayLock?'公正重發。裁判仍給暫停或替補時照常記錄':subDone?tName(s,subDone)+' 這次已替補過，打完下一球才能再替補':n===1&&c.rally===0?'裁判鳴哨發球時按「發球」，打完按得分的隊伍':'';
   var lock='<div class="muted lockline'+(ui.toast&&Date.now()<ui.toast.until?' toast':lfr||(capMiss&&!c.live)?' toast lfr':' hint')+'">'+esc(lockT)+'</div>';
   if(ui.lib)lock='<div class="subhint libhint '+ui.lib.team+'">點後排要換下的球員</div>';
   if(false)[L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
@@ -2769,7 +2770,7 @@ function lastUndoable(m){
   m.events.forEach(function(e){if(!dead[e.id]&&e.type!=='UNDO')live.push(e)});
   var skip=['INFO_SET','TEAM_COLOR_SET','LIBERO_COLOR_SET','STAFF_SET','PLAYER_NAME_SET','TEAM_NAME_SET']; // 記事、時間、顏色不是比賽動作，不能擋住復原
   var e=null;for(var i=live.length-1;i>=0;i--){if(skip.indexOf(live[i].type)<0){e=live[i];break}}
-  return e&&['AMEND','SET_STARTED','LINEUP_CORRECTED','POINT','SIDES_SWAPPED','SERVE','REPLAY','TIMEOUT','SUB','LIBERO_IN','LIBERO_OUT','LIBERO_SWAP','LIBERO_REDESIGNATED','GAME_CAPTAIN_SET','SANCTION','INJURY'].indexOf(e.type)>=0?e:null;
+  return e&&['AMEND','SET_STARTED','LINEUP_CORRECTED','POINT','SIDES_SWAPPED','SERVE','REPLAY','TIMEOUT','SUB','LIBERO_IN','LIBERO_OUT','LIBERO_SWAP','LIBERO_REDESIGNATED','GAME_CAPTAIN_SET','CAPTAIN_SET','SANCTION','INJURY'].indexOf(e.type)>=0?e:null;
 }
 /* 得分後畫面會換成確認按鈕，同一個位置的第二下不能算數 */
 function armGuard(){
@@ -2792,6 +2793,7 @@ function undoText(s,e){
     case 'AMEND':return '更正';
     case 'LINEUP_CORRECTED':return '修正陣容';
     case 'GAME_CAPTAIN_SET':return n+'場上隊長';
+    case 'CAPTAIN_SET':return n+'隊長';
     case 'SET_STARTED':return '開局';
   }
   return '上一步';
@@ -3126,9 +3128,12 @@ function sheetHtml(s,m){
       stepBack='';
       h='<h2>確定修正？</h2><p class="subhint">'+(oi>=0?ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號與 '+ROMAN[oi]+' 位 '+x.no+' 號互換':ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號改為 '+x.no+' 號')+'</p><p class="muted">比分和輪轉不變。</p><div class="row"><button data-act="fixback">返回</button><button class="go" data-act="fixdo">確定修正</button></div>';
     }
+  }else if(x.type==='tcap'){
+    var tps=t.players.map(function(p){return p.no}).filter(function(q){return s.matchOut[k].indexOf(q)<0}).sort(function(a,b){return a-b});
+    h='<h2>'+esc(tName(s,k))+' 隊長</h2><p class="muted">'+(t.captain===null?'名單上還沒有隊長。點隊長的背號，會補進名單。':'隊長是 '+t.captain+' 號，點別的背號可以改。')+'</p><div class="bench"><div class="benchrow">'+tps.map(function(q){return '<button class="chip '+k+'" data-act="tcset" data-team="'+k+'" data-no="'+q+'" aria-pressed="'+(t.captain===q)+'"><b'+(t.captain===q?' class="circ"':'')+'>'+q+'</b></button>'}).join('')+'</div></div><button data-act="close">關閉</button>';
   }else if(x.type==='gcap'){
     var cu=s.sets[s.setNo].cur[k],gc=s.sets[s.setNo].gameCaptain[k];
-    h='<h2>'+esc(tName(s,k))+' 場上隊長</h2><p class="muted">隊長不在場上時，由一位場上球員代替，點他的背號。</p><div class="bench"><div class="benchrow">'+cu.map(function(n){return '<button class="chip '+k+'" data-act="gcset" data-team="'+k+'" data-no="'+n+'" aria-pressed="'+(gc===n)+'"><b>'+n+'</b></button>'}).join('')+'</div></div><button data-act="close">關閉</button>';
+    h='<h2>'+esc(tName(s,k))+' 場上隊長</h2><p class="muted">'+(t.captain!==null?'隊長 '+t.captain+' 號不在場上，由一位場上球員代替，點他的背號。':'隊長不在場上時，由一位場上球員代替，點他的背號。')+'</p><div class="bench"><div class="benchrow">'+cu.map(function(n){return '<button class="chip '+k+'" data-act="gcset" data-team="'+k+'" data-no="'+n+'" aria-pressed="'+(gc===n)+'"><b>'+n+'</b></button>'}).join('')+'</div></div><button data-act="close">關閉</button>';
   }else if(x.type==='staff'){
     h='<h2>職員（全部選填）</h2><div class="fields">'+STAFF.map(function(f){return field('s-'+f[0],f[1],t.staff[f[0]],t.locked,{kind:'staff',team:k,field:f[0]})}).join('')+'</div><button class="primary" data-act="close">完成</button>';
   }else if(x.type==='color'){
@@ -3567,7 +3572,8 @@ app.addEventListener('click',function(e){
       ui.sub=null; ui.noServe=Date.now()+700; break;
     case 'subinj': ui.sub.inj=!ui.sub.inj; break;
     case 'subin': dispatch('SUB',{set:n,team:k,idx:ui.sub.idx,out:c.cur[k][ui.sub.idx],in:no,exc:ui.sub.exc,injury:!!(ui.sub.exc&&ui.sub.inj)}); ui.sub.ids.push(m.events[m.events.length-1].id); ui.sub.idx=null; break;
-    case 'gcappick': if(b.getAttribute('data-on')){ui.toast={t:'隊長 '+s.teams[k].captain+' 號在場上，不用指定',until:Date.now()+2500};break} ui.sheet={type:'gcap',team:k}; break;
+    case 'gcappick': if(b.getAttribute('data-on')){ui.toast={t:'隊長 '+s.teams[k].captain+' 號在場上，不用指定',until:Date.now()+2500};break} ui.sheet={type:t.captain===null?'tcap':'gcap',team:k}; break;
+    case 'tcset': if(t.captain!==no)dispatch('CAPTAIN_SET',{team:k,no:no}); var tcs=reduce(m.events); ui.sheet=actingCap(tcs.sets[n],tcs.teams[k],k)===null?{type:'gcap',team:k,back:{type:'tcap',team:k}}:null; break;
     case 'capmode':
       var cn=b.getAttribute('data-v');
       dispatch('INFO_SET',{field:'c'+cn,value:b.getAttribute('data-m')==='on'?(capOf(s,Number(cn))||target(s,Number(cn))+2):''});
