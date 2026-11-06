@@ -1218,6 +1218,32 @@ button.dim{opacity:.45}
   .wcol .wnums{justify-content:center}
   .wcol .wscore{font-size:clamp(72px,14vh,124px)}
 }
+/* v46 比賽中（橫的畫面）：開始、經過、結束的時間跟著畫面寬度放大 */
+@media (min-width:920px){
+  .bar:has(>.barmid) .bartime{font-size:clamp(12px,1.05vw,16px);gap:clamp(9px,1vw,16px);align-items:baseline}
+  .bar:has(>.barmid) .bartime b{font-size:clamp(17px,1.6vw,26px)}
+}
+/* v47 直的畫面：隊名做成隊色長條放在比分上方，「25 分」移到上方色帶，中間只留誰發球 */
+.bar h1 .btgt{margin-left:8px;padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.12);font-size:14px;font-weight:700;color:rgba(255,255,255,.85);vertical-align:3px}
+.board>.wbar{--c:var(--t1);grid-row:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:30px;padding:0 8px;border-radius:6px;background:var(--c);color:#fff}
+.board>.wbar.t2{--c:var(--t2)}
+.board>.wbar:first-child{grid-column:1/3}
+.board>.wbar+.wbar{grid-column:4/6}
+.board>.wbar .wab{width:20px;height:20px;font-size:12px;background:#fff;color:var(--c);flex:none}
+.board>.wbar strong{font-size:15px;font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.board:has(>.wbar) .ss .tn{display:none}
+/* v47 橫的畫面兩側已有「自由」「隊長」標題，格子裡不再寫 L1、L2、隊長 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px){
+  .wcol .strip .lno{display:none}
+  .wcol .strip .lc b,.wcol .strip .capbox b{font-size:26px}
+  .wcol .strip .capbox b.circ{width:42px;height:42px;font-size:22px}
+}
+.board>.wbar .wab{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:800;line-height:1}
+.bar h1:has(>.btgt){flex:none;overflow:visible}
+@media (max-width:429px){.bar:has(.btgt) .bartime:not(.breakt) span:first-child{display:none}}
+.board:has(>.wbar)>.mid,.board:has(>.wbar)>.ss,.board:has(>.wbar)>.setbox{grid-row:2}
+/* v47 球場格子左上角的位置（羅馬數字）放大 */
+.pc .pos{font-size:clamp(14px,3.2vh,26px);font-weight:800;top:3px;left:7px;line-height:1}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1693,7 +1719,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1822';
+var BUILD='1106-1955';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1841,7 +1867,7 @@ addEventListener('popstate',function(){
 });
 function render(){
   var had=kbd&&document.activeElement&&document.activeElement!==document.body,fk=had?focusKey():null;
-  paint();markSwipe();backSync();
+  paint();markSwipe();backSync();fitPaper();
   if(kbd&&(had||topLayer()))restoreFocus(fk);
 }
 
@@ -1936,6 +1962,15 @@ document.addEventListener('keydown',function(e){
   e.preventDefault();helpTo(ui.help.i+(e.key==='ArrowRight'?1:-1));
 });
 addEventListener('resize',helpPlace);
+/* 橫的畫面：結果、判罰、記事欄這類表格依可用空間等比例放大，不留大片空白 */
+function fitPaper(){
+  var el=document.querySelector('.page>.ppr');if(!el)return;
+  el.style.zoom='';if(!isWide())return;
+  var pg=el.parentNode,ft=pg.querySelector('.sheetfoot'),r=el.getBoundingClientRect(),pr=pg.getBoundingClientRect();
+  var bottom=ft?ft.getBoundingClientRect().top-12:pr.bottom-12,f=Math.min((pr.width-24)/r.width,(bottom-r.top)/r.height,2.2);
+  if(f>1.05)el.style.zoom=f.toFixed(3);
+}
+var fitT;addEventListener('resize',function(){clearTimeout(fitT);fitT=setTimeout(fitPaper,120)});
 /* 輪轉動畫：畫面會整個重畫，所以先記下每格的位置，畫好後從舊位置滑到新位置。只動畫面，資料在這之前已經存好，也不擋下一次按 */
 var lastRot=null;
 function flipPrep(s){
@@ -2000,7 +2035,7 @@ function barHtml(s){
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
   var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
-  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
+  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
 }
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
@@ -2364,10 +2399,10 @@ function libStrip(s,k,mir){
     else if(inC){act='libback';dis=!can;
       return '<button class="lc '+k+' outp" data-act="libback" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="'+out.no+' 號被自由球員 L'+(i+1)+' '+no+' 號換下'+(can?'，點一下換回':wait?'，下一球可換':'')+'"><span>換下</span><b>'+out.no+'</b></button>'}
     else if(!can){dis=true}
-    return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+cls+(on?' sel':'')+'" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="自由球員 L'+(i+1)+' '+no+' 號'+(sm?' '+sm:'')+'"><span>L'+(i+1)+'</span><b>'+no+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</button>';
+    return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+cls+(on?' sel':'')+'" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="自由球員 L'+(i+1)+' '+no+' 號'+(sm?' '+sm:'')+'"><span class="lno">L'+(i+1)+'</span><b>'+no+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</button>';
   });
   var cap=actingCap(c,t,k),capOn=c.cur[k].indexOf(t.captain)>=0;
-  var cb='<button class="capbox '+k+(cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+' 場上隊長 '+(cap==null?'未指定':cap+' 號')+'"><span>隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
+  var cb='<button class="capbox '+k+(cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+' 場上隊長 '+(cap==null?'未指定':cap+' 號')+'"><span class="lno">隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
   return '<div class="strip '+k+(mir?' mir':'')+'"><div class="ls">'+slots.join('')+'</div>'+cb+'</div>';
 }
 function teamTools(s,k){
@@ -2493,7 +2528,7 @@ function playHtml(s){
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
   var foot='<div class="foot">'+main+'</div>';
   if(isWide())return '<div class="wplay"><div class="whead">'+wideBar(s,L)+'<div class="mid">'+srvm+'</div>'+wideBar(s,R)+'</div>'+wideCol(s,L)+'<div class="wmid wtop">'+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div></div>';
-  return '<div class="board">'+sideScore(s,L)+setBox(s,L)+midh+setBox(s,R)+sideScore(s,R)+'</div>'+court+
+  return '<div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
     '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+foot;
 }
@@ -2692,7 +2727,7 @@ function modalHtml(s){
   }
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
-var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 回到「其他」</button>';
+var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
   var k=x.team,t=s.teams[k],h='';

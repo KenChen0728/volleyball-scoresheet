@@ -411,7 +411,7 @@ n===1&&c.rally===0?'每一球打完，按得分的隊伍':'';
 <<<<
   var slots=[0,1].map(function(i){
     var no=t.liberos[i];
-    if(no==null)return '<div class="lc '+k+' empty" aria-hidden="true"><span>L'+(i+1)+'</span><b class="none">無</b></div>';
+    if(no==null)return '<div class="lc '+k+' empty" aria-hidden="true"><span class="lno">L'+(i+1)+'</span><b class="none">無</b></div>';
 ====
   var slots=[0,1].filter(function(i){return t.liberos[i]!=null}).map(function(i){
     var no=t.liberos[i];
