@@ -1607,7 +1607,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0214';
+var BUILD='1107-0220';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2497,7 +2497,7 @@ function ctFit(x0,x1,y,t,max,anc,wt){t=String(t==null?'':t).trim();if(!t)return 
 function ctL(a,b,c,d,w){return '<line x1="'+(Math.round(a*10)/10)+'" y1="'+(Math.round(b*10)/10)+'" x2="'+(Math.round(c*10)/10)+'" y2="'+(Math.round(d*10)/10)+'" stroke="'+INK+'" stroke-width="'+(w||.9)+'"/>'}
 function ctC(x,y,r,w){return '<circle cx="'+(Math.round(x*10)/10)+'" cy="'+(Math.round(y*10)/10)+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="'+(w||.9)+'"/>'}
 function ctX(x,y,r){return ctL(x-r,y-r,x+r,y+r,1)+ctL(x-r,y+r,x+r,y-r,1)}
-function ctTick(xr,yt){return ctT(xr-6.7,yt+3.7,'✓',5.2,'middle',INK,700)} // 表上每格右上角印了小號碼，勾打在它左邊
+function ctTick(xr,yt){return ctT(xr-2.8,yt+4.1,'✓',6.8,'middle',INK,700)} // 勾打在格子右上角印好的小號碼上（11/5 使用者：紙本是把數字打勾）
 /* 「a:b」寫在表上印好的冒號兩邊 */
 function ctSc(x,w,y,v,fs){var p=String(v).split(':');if(p.length!==2)return ctT(x,y,v,fs);var q=Math.max(5.5,w*.27);return ctT(x-q,y,p[0],fs)+ctT(x+q,y,p[1],fs)}
 function ctHM(t){var p=String(t||'').split(':');return p.length===2?[p[0],p[1]]:['','']}
