@@ -1607,7 +1607,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0220';
+var BUILD='1107-0242';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2487,8 +2487,15 @@ function ctTpl(){
   T.b.forEach(function(r){o+='<rect x="'+r[0]+'" y="'+r[1]+'" width="'+(r[2]-r[0])+'" height="'+(r[3]-r[1])+'" stroke-width=".72"/>'});
   T.d.forEach(function(r){o+='<line x1="'+r[0]+'" y1="'+r[1]+'" x2="'+r[2]+'" y2="'+r[1]+'" stroke-width=".48" stroke-dasharray="1.2 1.4"/>'});
   o+='</g><g fill="#000">';
-  T.t.forEach(function(r){var one=r[5].length===1;
+  var ir=CTG.san.ir;
+  T.t.forEach(function(r){var one=r[5].length===1,cx=r[0]+r[2]/2;
+    /* 圓圈用向量畫，不靠字型（各裝置的「○」大小、位置都不一樣），圈裡的字和打的 X 才會對準圓心 */
+    if(r[5]==='○'){o+='<circle cx="'+Math.round(cx*100)/100+'" cy="'+r[1]+'" r="'+Math.round(r[3]*43)/100+'" fill="none" stroke="#000" stroke-width="'+Math.min(1.1,Math.max(.55,Math.round(r[3]*4.2)/100))+'"/>';return}
+    /* 不當請求表頭：原表的 A、B 比圓大，另外畫（11/7 使用者） */
+    if((r[5]==='A:'||r[5]==='A'||r[5]==='B')&&ir.some(function(c){return Math.abs(cx-c[0])<6&&Math.abs(r[1]-c[1])<3.5}))return;
     o+='<text x="'+(one?Math.round((r[0]+r[2]/2)*10)/10:r[0])+'" y="'+r[1]+'" font-size="'+r[3]+'" font-family="'+CT_FONTS[r[4]]+'"'+(CT_BOLD[r[4]]?' font-weight="700"':'')+(one?' text-anchor="middle"':' textLength="'+r[2]+'" lengthAdjust="spacingAndGlyphs"')+' dominant-baseline="central">'+esc(r[5])+'</text>'});
+  ir.forEach(function(c,i){o+='<text x="'+c[0]+'" y="'+(c[1]+.2)+'" font-size="7.4" font-family="'+CT_FONTS[2]+'" font-weight="700" text-anchor="middle" dominant-baseline="central">'+(i?'B':'A')+'</text>'});
+  o+='<text x="'+(ir[0][0]+7.4)+'" y="'+ir[0][1]+'" font-size="9" font-family="'+CT_FONTS[2]+'" font-weight="700" text-anchor="middle" dominant-baseline="central">:</text>';
   return ctTplHtml=o+'</g>';
 }
 /* 填寫用的小工具：藍色、系統字 */
@@ -2501,41 +2508,47 @@ function ctTick(xr,yt){return ctT(xr-2.8,yt+4.1,'✓',6.8,'middle',INK,700)} // 
 /* 「a:b」寫在表上印好的冒號兩邊 */
 function ctSc(x,w,y,v,fs){var p=String(v).split(':');if(p.length!==2)return ctT(x,y,v,fs);var q=Math.max(5.5,w*.27);return ctT(x-q,y,p[0],fs)+ctT(x+q,y,p[1],fs)}
 function ctHM(t){var p=String(t||'').split(':');return p.length===2?[p[0],p[1]]:['','']}
+/* 「開始　：」「結束　：」印好的冒號中心（時間寫在它左右，11/7 使用者） */
+function ctColon(bt){var best=null;CT3.t.forEach(function(r){if(r[5]==='：'&&Math.abs(r[1]-bt[2])<2&&r[0]+r[2]<=bt[0]+1.5&&r[0]>=bt[0]-16)best=r[0]+r[2]/2});return best}
+/* 得分欄印好的上下框線 */
+function ctPBox(p){if(p._tb)return p._tb;var c=p.cols,x0=c[0],x1=c[c.length-1],ks=Object.keys(p.cells).map(Number),y1=p.cells[1][1],y2=p.cells[Math.min(12,Math.max.apply(null,ks))][1],t=-1e9,b=1e9;
+  CT3.h.forEach(function(l){if(l[1]<=x0+1&&l[2]>=x1-1){if(l[0]<y1&&l[0]>t)t=l[0];if(l[0]>y2&&l[0]<b)b=l[0]}});return p._tb=[t,b]}
 /* 一隊的一格局：b 是六欄的位置，p 是得分欄 */
 function ctBlock(s,n,k,b,p,o){
   var c=s.sets[n],d=o.data,R=b.rows,C=b.cols,RC=b.rcols,rots=R.length-7,h='',i,T=sheetTeams(s,n);
   function rc(ri){return (R[ri]+R[ri+1])/2}
-  if(b.name)h+=ctFit(b.name[0]+1,b.name[1]-1,b.name[2],s.teams[k].name,8.5,'middle',600);
+  if(b.name)h+=ctFit(b.name[0]+1,b.name[1]-1,b.name[2],s.teams[k].name,11,'middle',600);
   if(o.letter&&b.circ)h+=ctT(b.circ[0],b.circ[1]+.6,k===T.A?'A':'B',11.5,'middle',INK,600);
   if(b.fa&&c.serve){var sv=c.serve===k?b.fa:b.jie;h+=ctX(sv[0],sv[1],sv[2]-.6)}
-  if(o.time&&b.time){var tv=o.time==='end'?setEndHM(s,n):(setStartHM(s,n)||'');h+=ctFit(b.time[0],b.time[1],b.time[2],tv,8.5,'middle')}
-  if(b.chg&&o.chg!=null)h+=ctT(b.chg[0],b.chg[1]+.6,o.chg,String(o.chg).length>1?8:9.5);
+  if(o.time&&b.time){var tv=o.time==='end'?setEndHM(s,n):(setStartHM(s,n)||''),tc=ctColon(b.time),hm2=ctHM(tv);
+    if(tc!=null&&hm2[1])h+=ctT(tc-8.2,b.time[2],hm2[0],9.5)+ctT(tc+8.2,b.time[2],hm2[1],9.5);else h+=ctFit(b.time[0],b.time[1],b.time[2],tv,8.5,'middle')}
+  if(b.chg&&o.chg!=null)h+=ctT(b.chg[0],b.chg[1]+.4,o.chg,String(o.chg).length>1?9:11);
   for(i=0;i<6;i++){
     var cx=(C[i]+C[i+1])/2,cw=C[i+1]-C[i],lu=c.lineups[k][i],sr=d.subRows[k][i],a=sr[0],bb=sr[1];
-    if(lu!=null)h+=ctT(cx,rc(2),lu,11.5);
-    if(a){h+=ctT(cx,rc(3),a.in+(a.exc?'*':''),11.5);if(bb&&bb.in===lu)h+=ctC(cx,rc(3),7.4)}
-    if(a)h+=ctSc(cx,cw,rc(4),a.score,8.8);
-    if(bb)h+=ctSc(cx,cw,rc(5),bb.score,8.8);
+    if(lu!=null)h+=ctT(cx,rc(2),lu,13);
+    if(a){h+=ctT(cx,rc(3),a.in+(a.exc?'*':''),13);if(bb&&bb.in===lu)h+=ctC(cx,rc(3),8.2)}
+    if(a)h+=ctSc(cx,cw,rc(4),a.score,10);
+    if(bb)h+=ctSc(cx,cw,rc(5),bb.score,10);
     var es=svEntries(c,k,i,d);
     es.forEach(function(v,b0){var r0=b0%rots,hf=Math.floor(b0/rots);if(hf>1)return;
       var x0=RC[2*i+hf],x1=RC[2*i+hf+1],y0=R[6+r0],y1=R[7+r0],mx=(x0+x1)/2+.6,my=(y0+y1)/2+2;
       if(v==='X'){h+=ctL(x0+1.4,y0+1.4,x1-1.4,y1-1.4,.9)+ctL(x1-1.4,y0+1.4,x0+1.4,y1-1.4,.9);return}
-      h+=ctTick(x1,y0)+ctT(mx,my,v,String(v).length>1?8:9.5);
-      if(c.ended&&d===c&&i===c.rot[k]&&b0===es.length-1&&v===c.score[k])h+=ctC(mx,my,5.6);
+      h+=ctTick(x1,y0)+ctT(mx,my,v,String(v).length>1?9:10.5);
+      if(c.ended&&d===c&&i===c.rot[k]&&b0===es.length-1&&v===c.score[k])h+=ctC(mx,my,5.9);
     });
     if(d===c&&c.started&&!c.ended&&c.serving===k&&i===c.rot[k]&&es.length<rots*2){var b1=es.length;h+=ctTick(RC[2*i+Math.floor(b1/rots)+1],R[6+b1%rots])}
   }
-  /* 得分欄：劃掉已得分、判罰得分畫圈、局末畫線和沙漏 */
+  /* 得分欄：劃掉已得分、判罰得分畫圈、局末最後一分底下畫橫槓，剩下的打 X */
   var cells=p.cells,maxv=Object.keys(cells).length,per=maxv===8?8:12,ncol=maxv===8?1:4,rh=cells[2][1]-cells[1][1],sz=maxv===8?4.6:Math.min(3.6,rh*.38);
   if(o.m)for(var v=o.m[0];v<=o.m[1]&&v<=maxv;v++){var q=cells[v];if(!q)continue;h+=ctL(q[0]-sz,q[1]+sz,q[0]+sz,q[1]-sz,.9);if(c.penPts[k].indexOf(v)>=0)h+=ctC(q[0],q[1],sz*1.45)}
   for(var col=0;col<ncol;col++){
     var q0=col*per+1,q1=(col+1)*per,xl=p.cols[col],xr=p.cols[col+1];
-    if(o.hg&&c.ended){var from=Math.max(q0,(o.m?o.m[1]:0)+1);if(from<=q1){var ya=cells[from][1]-rh/2+.7,yb=cells[q1][1]+rh/2-.7,xa=xl+1.3,xb=xr-1.3;h+='<path d="M'+xa+' '+ya+'L'+xb+' '+ya+'L'+xa+' '+yb+'L'+xb+' '+yb+'Z" fill="none" stroke="'+INK+'" stroke-width=".8"/>'}}
+    if(o.hg&&c.ended){var from=Math.max(q0,(o.m?o.m[1]:0)+1);if(from<=q1){var tb=ctPBox(p),ya=from===q0?tb[0]:cells[from-1][1]+rh/2-.5,yb=tb[1];h+=ctL(xl,ya,xr,yb,.8)+ctL(xr,ya,xl,yb,.8)}} // 單純打 X，連到角落（11/7 使用者）
     if(o.hg&&c.ended&&o.m&&o.m[1]>=q0&&o.m[1]<=q1&&o.m[1]>=o.m[0]){var yl=cells[o.m[1]][1]+rh/2-.5;h+=ctL(xl+.6,yl,xr-.6,yl,1.5)}
     if(o.pre){var pf=Math.max(q0,1),pt=Math.min(q1,o.pre);if(pf<=pt)h+=ctL((xl+xr)/2,cells[pf][1]-rh/2+1,(xl+xr)/2,cells[pt][1]+rh/2-1,1)}
   }
   /* 暫停：寫在表上印好的冒號兩邊 */
-  [0,1].forEach(function(q){var v=d.toRows[k][q];if(v&&p.to[q]){var pp=String(v).split(':');h+=ctT(p.to[q][0]-8.5,p.to[q][1],pp[0],9)+ctT(p.to[q][0]+8.5,p.to[q][1],pp[1],9)}});
+  [0,1].forEach(function(q){var v=d.toRows[k][q];if(v&&p.to[q]){var pp=String(v).split(':');h+=ctT(p.to[q][0]-8.5,p.to[q][1],pp[0],10.5)+ctT(p.to[q][0]+8.5,p.to[q][1],pp[1],10.5)}});
   return h;
 }
 function ctSets(s){
@@ -2554,24 +2567,24 @@ function ctSets(s){
 function ctROC(d){var p=String(d||'').split('-');return p.length===3?[String(Number(p[0])-1911),p[1],p[2]]:['','','']}
 function ctHead(s){
   var I=s.info,g=CTG.head,A=sheetTeams(s,1).A,B=other(A),o='';
-  o+=ctFit(g.name[0],g.name[1],g.name[2],I.name,12,'start')+ctFit(g.city[0],g.city[1],g.city[2],I.city,12,'start')+ctFit(g.place[0],g.place[1],g.place[2],I.place,12,'start');
-  o+=ctFit(g.court[0],g.court[1],g.court[2],String(I.court||'').replace(/^第\s*/,'').replace(/\s*(場地|場)$/,''),12);
-  o+=ctFit(g.group[0],g.group[1],g.group[2],I.group,11)+ctFit(g.game[0],g.game[1],g.game[2],I.game,11);
-  var bx=I.division==='男子組'?g.male:I.division==='女子組'?g.female:null;if(bx)o+=ctT((bx[0]+bx[2])/2,(bx[1]+bx[3])/2+.5,'✓',15,'middle',INK,700);
+  o+=ctFit(g.name[0],g.name[1],g.name[2],I.name,14,'start')+ctFit(g.city[0],g.city[1],g.city[2],I.city,14,'start')+ctFit(g.place[0],g.place[1],g.place[2],I.place,14,'start');
+  o+=ctFit(g.court[0],g.court[1],g.court[2],String(I.court||'').replace(/^第\s*/,'').replace(/\s*(場地|場)$/,''),14);
+  o+=ctFit(g.group[0],g.group[1],g.group[2],I.group,13)+ctFit(g.game[0],g.game[1],g.game[2],I.game,13);
+  var bx=I.division==='男子組'?g.male:I.division==='女子組'?g.female:null;if(bx)o+=ctL(bx[0],bx[1],bx[2],bx[3],1.2)+ctL(bx[2],bx[1],bx[0],bx[3],1.2); // 台灣是打 X，對角連到框框的角（11/7 使用者）
   o+=ctT(g.ca[0],g.ca[1]+.8,'A',13,'middle',INK,600)+ctT(g.cb[0],g.cb[1]+.8,'B',13,'middle',INK,600);
-  o+=ctFit(g.ta[0],g.ta[1],g.ta[2],s.teams[A].name,14,'middle',600)+ctFit(g.tb[0],g.tb[1],g.tb[2],s.teams[B].name,14,'middle',600);
+  o+=ctFit(g.ta[0],g.ta[1],g.ta[2],s.teams[A].name,15,'middle',600)+ctFit(g.tb[0],g.tb[1],g.tb[2],s.teams[B].name,15,'middle',600);
   var d=ctROC(I.date),t=ctHM(I.time);
-  o+=ctFit(g.y[0],g.y[1],g.y[2],d[0],12)+ctFit(g.m[0],g.m[1],g.y[2],d[1],12)+ctFit(g.d[0],g.d[1],g.y[2],d[2],12);
-  o+=ctFit(g.hh[0],g.hh[1],g.ty,t[0],12)+ctFit(g.mm[0],g.mm[1],g.ty,t[1],12);
+  o+=ctFit(g.y[0],g.y[1],g.y[2],d[0],14)+ctFit(g.m[0],g.m[1],g.y[2],d[1],14)+ctFit(g.d[0],g.d[1],g.y[2],d[2],14);
+  o+=ctFit(g.hh[0],g.hh[1],g.ty,t[0],14)+ctFit(g.mm[0],g.mm[1],g.ty,t[1],14);
   return o;
 }
 function ctSan(s){
   var g=CTG.san,A=sheetTeams(s,1).A,C=g.cols,R=g.rows,o='',ir=s.sanctions.filter(function(q){return q.kind==='IR'}),list=s.sanctions.filter(function(q){return q.kind!=='IR'});
-  [A,other(A)].forEach(function(k,i){if(ir.some(function(q){return q.team===k}))o+=ctX(g.ir[i][0],g.ir[i][1],g.ir[i][2]+.5)});
+  [A,other(A)].forEach(function(k,i){if(ir.some(function(q){return q.team===k}))o+=ctX(g.ir[i][0],g.ir[i][1],5.2)}); // X 以圓心為中心
   for(var i=0;i<R.length-1&&i<list.length;i++){var q=list[i],y=(R[i]+R[i+1])/2;
     var v=(q.kind==='DW'||q.kind==='DP')?'D':q.who,col=q.kind==='DW'||q.kind==='W'?0:q.kind==='DP'||q.kind==='P'?1:q.kind==='E'?2:3;
-    o+=ctT((C[col]+C[col+1])/2,y,v,10.5,'middle',INK,600)+ctT((C[4]+C[5])/2,y,q.team===A?'A':'B',10.5)+ctT((C[5]+C[6])/2,y,q.set,10.5);
-    var sc=String(q.score).split(':');o+=ctT(239.5-9.5,y,sc[0],9.5)+ctT(239.5+9.5,y,sc[1],9.5)}
+    o+=ctT((C[col]+C[col+1])/2,y,v,12,'middle',INK,600)+ctT((C[4]+C[5])/2,y,q.team===A?'A':'B',12)+ctT((C[5]+C[6])/2,y,q.set,12);
+    var sc=String(q.score).split(':');o+=ctT(239.5-9.5,y,sc[0],11)+ctT(239.5+9.5,y,sc[1],11)}
   return o;
 }
 function ctNotesLines(s){
@@ -2581,7 +2594,7 @@ function ctNotesLines(s){
 }
 function ctNotes(s){
   var g=CTG.notes.lines,t=ctNotesLines(s).join('；'),o='';if(!t)return '';
-  for(var fs=10;fs>=5.5;fs-=.5){
+  for(var fs=11;fs>=5.5;fs-=.5){
     var out=[],i=0,ok=true;
     for(var li=0;li<g.length;li++){var max=(g[li][1]-g[li][0])/fs,u=0,cur='';
       while(i<t.length){var w=t.charCodeAt(i)>255?1:.58;if(u+w>max)break;cur+=t.charAt(i);u+=w;i++}
@@ -2593,13 +2606,13 @@ function ctNotes(s){
 }
 function ctProof(s){
   var g=CTG.proof,I=s.info,o='';
-  ['ref1','ref2','scorer','ascorer'].forEach(function(f,i){o+=ctFit(g.name[0],g.name[1],(g.rows[i][0]+g.rows[i][1])/2,I[f],12.5,'middle',500)});
-  o+=ctFit(g.lj1[0],g.lj1[1],g.lj1[2],I.lj1,12.5,'middle')+ctFit(g.lj2[0],g.lj2[1],g.lj2[2],I.lj2,12.5,'middle');
+  ['ref1','ref2','scorer','ascorer'].forEach(function(f,i){o+=ctFit(g.name[0],g.name[1],(g.rows[i][0]+g.rows[i][1])/2,I[f],13,'middle',500)});
+  o+=ctFit(g.lj1[0],g.lj1[1],g.lj1[2],I.lj1,13,'middle')+ctFit(g.lj2[0],g.lj2[1],g.lj2[2],I.lj2,13,'middle');
   return o;
 }
 function ctRes(s){
   var g=CTG.res,C=g.cols,R=g.rows,T=sheetTeams(s,1),A=T.A,B=T.B,I=s.info,o='',sum={},mins=0,any=false,ty=(g.team[0]+g.team[1])/2;
-  function cell(i,y,v,fs){return ctT((C[i]+C[i+1])/2,y,v,fs||10.5)}
+  function cell(i,y,v,fs){return ctT((C[i]+C[i+1])/2,y,v,fs||12)}
   /* 比賽成績標題兩邊寫日期時間、場地場次（使用者 11/6 要的） */
   var dt=[xpROC(I.date),I.time||''].filter(Boolean).join(' '),crt=I.court?(/場/.test(I.court)?I.court:'第'+String(I.court).replace(/^第/,'')+'場地'):'',gm=I.game?I.game+(/場/.test(I.game)?'':'場次'):'',l2=[crt,gm].filter(Boolean).join(' ');
   o+=ctFit(C[0]+4,712,555,dt,9,'start');
@@ -2611,24 +2624,27 @@ function ctRes(s){
     var m=setMins(s,n);mins+=m||0;if(m!=null)anyMin=true;[A,B].forEach(function(k){var q=sum[k];q.to+=c.timeouts[k].length;q.su+=c.subs[k].length;q.w+=c.winner===k?1:0;q.pt+=c.score[k]});
     [c.timeouts[A].length,c.subs[A].length,c.winner===A?1:0,c.score[A]].forEach(function(v,i){o+=cell(i,y,v)});
     [c.score[B],c.winner===B?1:0,c.subs[B].length,c.timeouts[B].length].forEach(function(v,i){o+=cell(5+i,y,v)});
-    var pa=g.paren[ri];if(m!=null)o+=ctT((pa[0]+pa[1])/2,pa[2],m,10)});
-  if(any){var y4=(R[3]+R[4])/2,a=sum[A],b=sum[B];[a.to,a.su,a.w,a.pt].forEach(function(v,i){o+=cell(i,y4,v,11)});[b.pt,b.w,b.su,b.to].forEach(function(v,i){o+=cell(5+i,y4,v,11)});var p4=g.paren[3];if(anyMin)o+=ctT((p4[0]+p4[1])/2,p4[2],mins,10)}
+    var pa=g.paren[ri];if(m!=null)o+=ctT((pa[0]+pa[1])/2,pa[2],m,11.5)});
+  if(any){var y4=(R[3]+R[4])/2,a=sum[A],b=sum[B];[a.to,a.su,a.w,a.pt].forEach(function(v,i){o+=cell(i,y4,v,13)});[b.pt,b.w,b.su,b.to].forEach(function(v,i){o+=cell(5+i,y4,v,13)});var p4=g.paren[3];if(anyMin)o+=ctT((p4[0]+p4[1])/2,p4[2],mins,11.5)}
   /* 開始、結束、全場時間：寫在「時」「分」前面 */
   var st=I.actual||'',en=[3,2,1].filter(function(n){return s.sets[n].endAt})[0],ehm=en?setEndHM(s,en):'',dd=hmDiff(st,ehm);if(dd>720)dd=null;
   var tt=dd==null?['','']:[String(Math.floor(dd/60)),('0'+dd%60).slice(-2)];
-  [[st?ctHM(st):['',''],0],[ehm?ctHM(ehm):['',''],1],[tt,2]].forEach(function(q){var hm=g.hm[q[1]],x0=g.labs[q[1]];o+=ctFit(x0+1,hm[0]-1,hm[2],q[0][0],11)+ctFit(hm[0]+12,hm[1]-1,hm[2],q[0][1],11)});
-  if(matchOver(s)){var w=setsWon(s),win=w.t1>w.t2?'t1':'t2';o+=ctFit(g.winner[0],g.winner[1],g.winner[2],s.teams[win].name||tName(s,win),15,'middle',700)+ctT(g.winner[3]+7,g.winner[2],w[other(win)],15,'middle',INK,700)}
+  [[st?ctHM(st):['',''],0],[ehm?ctHM(ehm):['',''],1],[tt,2]].forEach(function(q){var hm=g.hm[q[1]],x0=g.labs[q[1]];o+=ctFit(x0+1,hm[0]-1,hm[2],q[0][0],13)+ctFit(hm[0]+12,hm[1]-1,hm[2],q[0][1],13)});
+  if(matchOver(s)){var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',wp=ctWinPos(g);o+=ctFit(g.winner[0],g.winner[1],wp[2],s.teams[win].name||tName(s,win),15,'middle',700)+ctT(wp[0],wp[2],w[other(win)],wp[1],'middle',INK,700)}
   return o;
 }
+/* 勝隊欄：原表印了「2：」，輸的局數寫在冒號另一邊，和 2 對稱、同高（11/7 使用者） */
+function ctWinPos(g){var two=null,col=null;CT3.t.forEach(function(r){if(Math.abs(r[1]-g.winner[2])<6&&r[0]>g.winner[1]){if(r[5]==='2')two=r;if(r[5]==='：')col=r}});
+  if(!two||!col)return [g.winner[3]+7,15,g.winner[2]];var cc=col[0]+col[2]/2,tc=two[0]+two[2]/2;return [cc+(cc-tc),two[3],two[1]]}
 function ctRoster(s){
   var g=CTG.roster,T=sheetTeams(s,1),A=T.A,B=T.B,R=g.rows,C=g.cols,o='';
   o+=ctT(g.ca[0],g.ca[1]+.8,'A',12.5,'middle',INK,600)+ctT(g.cb[0],g.cb[1]+.8,'B',12.5,'middle',INK,600);
   o+=ctFit(g.ta[0],g.ta[1],g.ty,s.teams[A].name,11,'middle',600)+ctFit(g.tb[0],g.tb[1],g.ty,s.teams[B].name,11,'middle',600);
   [A,B].forEach(function(k,j){var t=s.teams[k],libs=sheetLibs(t),regs=t.players.filter(function(p){return libs.indexOf(p.no)<0}),lp=t.players.filter(function(p){return libs.indexOf(p.no)>=0}),c0=C[j*2],c1=C[j*2+1],c2=C[j*2+2];
-    function row(p,y){if(!p)return;if(t.captain===p.no)o+=ctC((c0+c1)/2,y,7.2);o+=ctT((c0+c1)/2,y,p.no,10.5,'middle',INK,600)+ctFit(c1+3,c2-3,y,p.name||'',10.5,'middle')}
+    function row(p,y){if(!p)return;if(t.captain===p.no)o+=ctC((c0+c1)/2,y,7.8);o+=ctT((c0+c1)/2,y,p.no,12,'middle',INK,600)+ctFit(c1+3,c2-3,y,p.name||'',12,'middle')}
     for(var i=0;i<12;i++)row(regs[i],(R[i]+R[i+1])/2);
     for(i=0;i<2;i++)row(lp[i],(g.lrows[i]+g.lrows[i+1])/2);
-    STAFF.forEach(function(f,i){var v=t.staff&&t.staff[f[0]];if(v)o+=ctFit(j?g.scols[2]+3:g.scols[0]+3,j?g.scols[3]-3:g.scols[1]-3,(g.staff[i]+g.staff[i+1])/2,v,10.5,'middle')});
+    STAFF.forEach(function(f,i){var v=t.staff&&t.staff[f[0]];if(v)o+=ctFit(j?g.scols[2]+3:g.scols[0]+3,j?g.scols[3]-3:g.scols[1]-3,(g.staff[i]+g.staff[i+1])/2,v,12,'middle')});
   });
   return o;
 }
