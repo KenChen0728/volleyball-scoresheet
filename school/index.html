@@ -1244,6 +1244,10 @@ button.dim{opacity:.45}
 .board:has(>.wbar)>.mid,.board:has(>.wbar)>.ss,.board:has(>.wbar)>.setbox{grid-row:2}
 /* v47 球場格子左上角的位置（羅馬數字）放大 */
 .pc .pos{font-size:clamp(14px,3.2vh,26px);font-weight:800;top:3px;left:7px;line-height:1}
+/* v48 比賽結果表：左上日期時間，右上地點、場地、場次 */
+.ppr h3.phead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.ppr .pinfo{font-size:15px;font-weight:400;color:var(--pi);text-align:left;line-height:1.2}
+.ppr .pinfo.r{text-align:right}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1719,7 +1723,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1955';
+var BUILD='1106-2008';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2457,7 +2461,10 @@ function ppResult(s){
   var st=s.info.actual||'',en=last?setEndHM(s,last):'',d=hmDiff(st,en);if(d>720)d=null;
   var total=d==null?'':('0'+Math.floor(d/60)).slice(-2)+' 時 '+('0'+d%60).slice(-2)+' 分';
   var a=sum[A],b=sum[B];
-  return '<div class="ppr pres"><h3>比賽結果</h3><div class="pvs"><b>'+esc(tName(s,A))+'</b><i>A</i><i>B</i><b>'+esc(tName(s,B))+'</b></div><table><tr class="ph"><th>暫停</th><th>替補</th><th>勝</th><th>得分</th><th class="pset">局（分鐘）</th><th>得分</th><th>勝</th><th>替補</th><th>暫停</th></tr>'+rows+'<tr class="ptot"><td>'+a.to+'</td><td>'+a.su+'</td><td>'+a.w+'</td><td>'+a.pt+'</td><td class="pset"><small>各局加總</small><br>'+mins+' 分</td><td>'+b.pt+'</td><td>'+b.w+'</td><td>'+b.su+'</td><td>'+b.to+'</td></tr></table><div class="ptm"><div><small>開始</small>'+esc(st)+'</div><div><small>結束</small>'+esc(en)+'</div><div><small>全場時間</small>'+total+'</div></div><div class="pwin"><span>勝隊</span><b>'+(matchOver(s)?esc(tName(s,win)):'')+'</b><b>'+(matchOver(s)?w[win]+' : '+w[other(win)]:'')+'</b></div></div>';
+  var I=s.info,dp=String(I.date||'').split('-'),dt=dp.length===3?(Number(dp[0])-1911)+'/'+dp[1]+'/'+dp[2]:'';
+  var crt=I.court?I.court+(/場/.test(I.court)?'':'場地'):'',gm=I.game?I.game+(/場/.test(I.game)?'':'場次'):'';
+  var il=[dt,I.time||''].filter(Boolean).join(' '),ir=[esc(I.place||''),esc([crt,gm].filter(Boolean).join(' '))].filter(Boolean).join('<br>');
+  return '<div class="ppr pres"><h3 class="phead"><span class="pinfo">'+esc(il)+'</span><span>比賽結果</span><span class="pinfo r">'+ir+'</span></h3><div class="pvs"><b>'+esc(tName(s,A))+'</b><i>A</i><i>B</i><b>'+esc(tName(s,B))+'</b></div><table><tr class="ph"><th>暫停</th><th>替補</th><th>勝</th><th>得分</th><th class="pset">局（分鐘）</th><th>得分</th><th>勝</th><th>替補</th><th>暫停</th></tr>'+rows+'<tr class="ptot"><td>'+a.to+'</td><td>'+a.su+'</td><td>'+a.w+'</td><td>'+a.pt+'</td><td class="pset"><small>各局加總</small><br>'+mins+' 分</td><td>'+b.pt+'</td><td>'+b.w+'</td><td>'+b.su+'</td><td>'+b.to+'</td></tr></table><div class="ptm"><div><small>開始</small>'+esc(st)+'</div><div><small>結束</small>'+esc(en)+'</div><div><small>全場時間</small>'+total+'</div></div><div class="pwin"><span>勝隊</span><b>'+(matchOver(s)?esc(tName(s,win)):'')+'</b><b>'+(matchOver(s)?w[win]+' : '+w[other(win)]:'')+'</b></div></div>';
 }
 function ppSanctions(s){
   var A=sheetTeams(s,1).A,ir=s.sanctions.filter(function(x){return x.kind==='IR'}),list=s.sanctions.filter(function(x){return x.kind!=='IR'}),rows='',i;
