@@ -1093,6 +1093,22 @@ button.dim{opacity:.45}
 .pm3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pmb{min-height:64px;font-size:19px;font-weight:800}
 .pmb:disabled{opacity:.4}
+/* v41 橫的畫面：跳出的視窗放在畫面正中間，不用左右看 */
+@media (min-width:760px){
+  .sheet{left:50%;right:auto;top:50%;bottom:auto!important;transform:translate(-50%,-50%);width:min(460px,calc(100vw - 32px));max-height:calc(100% - 24px - var(--safe-top) - env(safe-area-inset-bottom,0px));border-radius:14px;border:1px solid var(--line);padding-top:16px;padding-bottom:16px;box-shadow:0 18px 48px rgba(0,0,0,.42)}
+  .sheet::before{display:none}
+}
+/* v41 橫的畫面：下方記錄表縮小，球場放大；要細看按「記錄表」全螢幕 */
+@media (orientation:landscape) and (min-width:640px) and (min-height:621px){
+  .wplay{grid-template-rows:minmax(0,1fr) clamp(150px,30vh,300px)}
+  .wmid .pcourt{flex:1 1 0;min-height:0;grid-template-rows:repeat(3,minmax(0,1fr))}
+  .wmid .pcourt .pc b{font-size:clamp(30px,5.2vh,48px)}
+  .wsheet{cursor:zoom-in}
+}
+/* v41 關閉鍵加底色，和其他選項分得出來 */
+.sheet button:is([data-act=close],[data-act=penclose],[data-act=pmback]):not(.primary):not(.linkbtn):not(.go){background:var(--soft);border-color:var(--soft);color:var(--ink)}
+/* v41 手機橫放：文字連結不固定在底部，免得蓋住選項 */
+@media (orientation:landscape) and (max-height:520px){.sheet>.linkbtn:last-child{position:static;box-shadow:none;background-color:transparent}}
 
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
@@ -1191,7 +1207,6 @@ button.dim{opacity:.45}
   .kp.bench.onleft{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px}
 }
 @media (orientation:landscape) and (min-width:760px){
-  .sheet{width:calc(360px + env(safe-area-inset-right,0px));padding-left:14px}
 }
 .pmb{padding:0 2px;white-space:nowrap}
 /* 矮的手機：比賽資料的下一步固定看得到；上面已經有回主畫面，下面那顆收起來 */
@@ -1559,7 +1574,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-0156';
+var BUILD='1106-1611';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){

@@ -1092,6 +1092,22 @@ button.dim{opacity:.45}
 .pm3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pmb{min-height:64px;font-size:19px;font-weight:800}
 .pmb:disabled{opacity:.4}
+/* v41 橫的畫面：跳出的視窗放在畫面正中間，不用左右看 */
+@media (min-width:760px){
+  .sheet{left:50%;right:auto;top:50%;bottom:auto!important;transform:translate(-50%,-50%);width:min(460px,calc(100vw - 32px));max-height:calc(100% - 24px - var(--safe-top) - env(safe-area-inset-bottom,0px));border-radius:14px;border:1px solid var(--line);padding-top:16px;padding-bottom:16px;box-shadow:0 18px 48px rgba(0,0,0,.42)}
+  .sheet::before{display:none}
+}
+/* v41 橫的畫面：下方記錄表縮小，球場放大；要細看按「記錄表」全螢幕 */
+@media (orientation:landscape) and (min-width:640px) and (min-height:621px){
+  .wplay{grid-template-rows:minmax(0,1fr) clamp(150px,30vh,300px)}
+  .wmid .pcourt{flex:1 1 0;min-height:0;grid-template-rows:repeat(3,minmax(0,1fr))}
+  .wmid .pcourt .pc b{font-size:clamp(30px,5.2vh,48px)}
+  .wsheet{cursor:zoom-in}
+}
+/* v41 關閉鍵加底色，和其他選項分得出來 */
+.sheet button:is([data-act=close],[data-act=penclose],[data-act=pmback]):not(.primary):not(.linkbtn):not(.go){background:var(--soft);border-color:var(--soft);color:var(--ink)}
+/* v41 手機橫放：文字連結不固定在底部，免得蓋住選項 */
+@media (orientation:landscape) and (max-height:520px){.sheet>.linkbtn:last-child{position:static;box-shadow:none;background-color:transparent}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1429,7 +1445,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1105-2304';
+var BUILD='1106-1611';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2193,7 +2209,8 @@ function svBlock(s,n,x,k,o){
     es.forEach(function(v,b0){
       var r0=b0%rots,hf=Math.floor(b0/rots);if(hf>1)return;
       var bx=cx+boxW*hf,by=yr+r0*hr,fs=cw<50?(String(v).length>1?15:19):(String(v).length>1?19:22);
-      if(v!=='X')h+=svTick(bx+boxW,by,boxW);
+      if(v==='X'){h+=svL(bx+2,by+2,bx+boxW-2,by+hr-2,1.8,INK)+svL(bx+boxW-2,by+2,bx+2,by+hr-2,1.8,INK);return}
+      h+=svTick(bx+boxW,by,boxW);
       h+=svT(bx+boxW/2,by+hr/2+2,v,fs,INK);
       if(c.ended&&d===c&&i===c.rot[k]&&b0===es.length-1&&v===c.score[k])h+=svC(bx+boxW/2,by+hr/2+2,cw<50?11:15,INK,1.8);
     });
@@ -2360,7 +2377,7 @@ function playHtml(s){
   if(false)[L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
   var foot='<div class="foot">'+main+'</div>';
-  if(isWide())return '<div class="wplay">'+wideCol(s,L)+'<div class="wmid">'+midh+court+warn+timerBar(s)+foot+lock+tools+'</div>'+wideCol(s,R)+'<div class="wsheet">'+setSvg(s,n)+'</div></div>';
+  if(isWide())return '<div class="wplay">'+wideCol(s,L)+'<div class="wmid">'+midh+court+warn+timerBar(s)+foot+lock+tools+'</div>'+wideCol(s,R)+'<div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
   return '<div class="board">'+sideScore(s,L)+setBox(s,L)+midh+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
     '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);

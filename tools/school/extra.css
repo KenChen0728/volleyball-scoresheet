@@ -96,7 +96,6 @@
   .kp.bench.onleft{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px}
 }
 @media (orientation:landscape) and (min-width:760px){
-  .sheet{width:calc(360px + env(safe-area-inset-right,0px));padding-left:14px}
 }
 .pmb{padding:0 2px;white-space:nowrap}
 /* 矮的手機：比賽資料的下一步固定看得到；上面已經有回主畫面，下面那顆收起來 */
