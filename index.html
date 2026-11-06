@@ -1247,6 +1247,9 @@ button.dim{opacity:.45}
 .ppr h3.phead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
 .ppr .pinfo{font-size:15px;font-weight:400;color:var(--pi);text-align:left;line-height:1.2}
 .ppr .pinfo.r{justify-self:end;text-align:justify;text-align-last:justify}
+/* v49 存成圖片／PDF */
+.sheetfoot .row>.xpbtn{flex:none;align-self:stretch;padding:0 14px}
+.sheet .mbtn small{display:block;font-weight:400;font-size:13px;margin-top:2px}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1590,7 +1593,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2015';
+var BUILD='1106-2021';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2448,6 +2451,192 @@ function r6Svg(s){
   h+=svL(3,30,W-3,30,1.6)+svL(3,52,W-3,52,1)+svL(3,head,W-3,head,1.6);
   return svWrap(W,H,h,'R6 自由球員管控表');
 }
+/* ===== 存成圖片／PDF：整張總表、各局、R6 ===== */
+var XP_FONT="-apple-system,'PingFang TC','Noto Sans TC','Microsoft JhengHei',Arial,sans-serif";
+function xpInner(html,x,y,w,h){
+  var a=html.indexOf('<svg'),b=html.lastIndexOf('</svg>');if(a<0)return '';
+  return '<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'"'+html.slice(a+4,b+6);
+}
+function xpVB(html){var m=/viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(html);return m?{w:+m[1],h:+m[2]}:{w:1,h:1}}
+function xpUnits(t){var u=0;String(t).split('').forEach(function(ch){u+=ch.charCodeAt(0)>255?1:.58});return u}
+function xpWrapLines(t,max){var out=[],cur='',u=0;String(t).split('').forEach(function(ch){var w=ch.charCodeAt(0)>255?1:.58;if(u+w>max&&cur){out.push(cur);cur='';u=0}cur+=ch;u+=w});if(cur)out.push(cur);return out}
+function xpROC(d){var p=String(d||'').split('-');return p.length===3?(Number(p[0])-1911)+'/'+p[1]+'/'+p[2]:''}
+function xpFit(t,w,max){return Math.min(max,w/Math.max(xpUnits(t),1))}
+/* 標題列 */
+function xpHead(s,x,y,w,h){
+  var I=s.info,A=sheetTeams(s,1).A,B=other(A),o=svR(x,y,w,h,2.4);
+  var nm=I.name||'排球比賽';o+=svT(x+16,y+h/2,nm,xpFit(nm,560,30),'#000',800,'start');
+  var crt=I.court?I.court+(/場/.test(I.court)?'':'場地'):'',gm=I.game?I.game+(/場/.test(I.game)?'':'場次'):'';
+  var info=[['組別',I.division||''],['場次',gm],['場地',crt],['地點',I.place||''],['日期',xpROC(I.date)],['預定',I.time||''],['開始',I.actual||'']],cx=x+620;
+  info.forEach(function(p){o+=svT(cx,y+22,p[0],13,'#000',700,'start');var v=p[1];o+=svT(cx,y+48,v,xpFit(v||' ',150,20),INK,400,'start');cx+=p[0]==='地點'?230:130});
+  var tx=x+w-16,bn=tName(s,B),an=tName(s,A);
+  o+=svT(tx,y+h/2,bn,xpFit(bn,220,24),INK,700,'end');tx-=Math.min(220,xpUnits(bn)*24)+24;
+  o+=svC(tx,y+h/2,15,'#000',1.8)+svT(tx,y+h/2+1,'B',18,'#000',700);tx-=30;
+  o+=svT(tx,y+h/2,'對',18,'#000',700,'middle');tx-=30;
+  o+=svC(tx,y+h/2,15,'#000',1.8)+svT(tx,y+h/2+1,'A',18,'#000',700);tx-=24;
+  o+=svT(tx,y+h/2,an,xpFit(an,220,24),INK,700,'end');
+  return o;
+}
+/* 兩隊名單 */
+function xpRoster(s,x,y,w,h){
+  var A=sheetTeams(s,1).A,B=other(A),o=svR(x,y,w,h,2.4),hw=w/2;
+  [A,B].forEach(function(k,i){
+    var t=s.teams[k],bx=x+hw*i,libs=sheetLibs(t),regs=t.players.filter(function(p){return libs.indexOf(p.no)<0}),lp=t.players.filter(function(p){return libs.indexOf(p.no)>=0});
+    if(i)o+=svL(bx,y,bx,y+h,2.4);
+    var yy=y,th=34;o+=svT(bx+hw/2,yy+th/2,(k===A?'A  ':'B  ')+tName(s,k),20,'#000',800)+svL(bx,yy+th,bx+hw,yy+th,1.6);yy+=th;
+    var rh=(h-th-26-26-26*2)/6,cw=hw/2;
+    for(var r=0;r<6;r++)for(var c=0;c<2;c++){var p=regs[c*6+r],xx=bx+cw*c,y2=yy+rh*r;
+      o+=svL(xx,y2+rh,xx+cw,y2+rh,.6,'#999');if(c)o+=svL(xx,y2,xx,y2+rh,.6,'#999');o+=svL(xx+46,y2,xx+46,y2+rh,.6,'#999');
+      if(p){if(t.captain===p.no)o+=svC(xx+23,y2+rh/2,Math.min(13,rh/2-2),'#000',1.4);o+=svT(xx+23,y2+rh/2+1,p.no,16,INK,600)+svT(xx+54,y2+rh/2,p.name||'',xpFit(p.name||' ',cw-62,16),INK,400,'start')}}
+    yy+=rh*6;o+=svL(bx,yy,bx+hw,yy,1.4)+svT(bx+hw/2,yy+13,'自由球員（L）',14,'#000',700);yy+=26;o+=svL(bx,yy,bx+hw,yy,.8);
+    [0,1].forEach(function(c){var p=lp[c],xx=bx+cw*c;if(c)o+=svL(xx,yy,xx,yy+26,.6,'#999');o+=svL(xx+46,yy,xx+46,yy+26,.6,'#999');if(p)o+=svT(xx+23,yy+14,p.no,16,INK,600)+svT(xx+54,yy+13,p.name||'',xpFit(p.name||' ',cw-62,16),INK,400,'start')});
+    yy+=26;o+=svL(bx,yy,bx+hw,yy,1.4);
+    STAFF.forEach(function(f,j){var xx=bx+cw*(j%2),y2=yy+26*Math.floor(j/2),v=(t.staff&&t.staff[f[0]])||'';o+=svT(xx+8,y2+13,f[1],13,'#000',700,'start')+svT(xx+82,y2+13,v,xpFit(v||' ',cw-90,15),INK,400,'start');if(j%2)o+=svL(xx,y2,xx,y2+26,.6,'#999');o+=svL(bx,y2+26,bx+hw,y2+26,.6,'#999')});
+  });
+  return o;
+}
+/* 判罰 */
+function xpSan(s,x,y,w,h){
+  var A=sheetTeams(s,1).A,o=svR(x,y,w,h,2.4),ir=s.sanctions.filter(function(q){return q.kind==='IR'}),list=s.sanctions.filter(function(q){return q.kind!=='IR'});
+  o+=svT(x+70,y+28,'判罰',24,'#000',800);o+=svL(x+140,y,x+140,y+56,1.6);
+  o+=svT(x+(140+w)/2,y+16,'不當請求',13,'#000',700);
+  [[A,'A',-48],[other(A),'B',48]].forEach(function(p){var cx=x+(140+w)/2+p[2],on=ir.some(function(q){return q.team===p[0]});o+=svC(cx,y+38,12,'#000',1.4)+svT(cx,y+39,p[1],14,'#000',700);if(on)o+=svL(cx-12,y+26,cx+12,y+50,1.8,INK)+svL(cx+12,y+26,cx-12,y+50,1.8,INK)});
+  o+=svT(x+(140+w)/2,y+39,'：',14);
+  var top=y+56;o+=svL(x,top,x+w,top,2);
+  var cols=[['警告','W'],['懲罰','P'],['出局','E'],['出場','D'],['隊',''],['局',''],['比分','']],cw=w/7;
+  cols.forEach(function(c,i){o+=svT(x+cw*i+cw/2,top+(c[1]?14:22),c[0],13,'#000',700);if(c[1])o+=svT(x+cw*i+cw/2,top+32,c[1],12,'#000',700);if(i)o+=svL(x+cw*i,top,x+cw*i,y+h-30,.8)});
+  top+=44;o+=svL(x,top,x+w,top,1.4);
+  var n=Math.max(1,Math.floor((h-30-(top-y))/30)),rh=(h-30-(top-y))/n;
+  for(var i=0;i<n;i++){var q=list[i],yy=top+rh*i;o+=svL(x,yy+rh,x+w,yy+rh,.6,'#999');
+    if(!q){o+=svT(x+cw*6.5,yy+rh/2,':',14,INK);continue}
+    var v=(q.kind==='DW'||q.kind==='DP')?'D':q.who,col=q.kind==='DW'||q.kind==='W'?0:q.kind==='DP'||q.kind==='P'?1:q.kind==='E'?2:3;
+    o+=svT(x+cw*col+cw/2,yy+rh/2,v,15,INK,600)+svT(x+cw*4.5,yy+rh/2,q.team===A?'A':'B',15,INK)+svT(x+cw*5.5,yy+rh/2,q.set,15,INK)+svT(x+cw*6.5,yy+rh/2,q.score,14,INK)}
+  o+=svT(x+8,y+h-15,'欄內填背號，或 C 教練、AC 助理教練、T 防護員、M 隊醫，延誤判罰填 D。',11,'#000',400,'start');
+  return o;
+}
+/* 記事欄 */
+function xpNotes(s,x,y,w,h){
+  var A=sheetTeams(s,1).A,o=svR(x,y,w,h,2.4)+svT(x+w/2,y+24,'記事欄',22,'#000',800)+svL(x,y+48,x+w,y+48,1.6);
+  var lines=[];notesList(s,A,other(A)).forEach(function(t){lines=lines.concat(xpWrapLines(String(t),(w-24)/16))});
+  var lh=26,n=Math.floor((h-56)/lh);
+  for(var i=0;i<n;i++){var yy=y+56+lh*i;o+=svL(x+8,yy+lh,x+w-8,yy+lh,.6,'#999');if(lines[i])o+=svT(x+12,yy+lh/2+1,lines[i],16,INK,400,'start')}
+  if(lines.length>n)o+=svT(x+w-12,y+h-10,'（還有 '+(lines.length-n)+' 行，見 App 記事欄）',11,'#000',400,'end');
+  return o;
+}
+/* 比賽結果 */
+function xpRes(s,x,y,w,h){
+  var T=sheetTeams(s,1),A=T.A,B=T.B,I=s.info,o=svR(x,y,w,h,2.4),sum={},mins=0,last=null,wn=setsWon(s),win=wn.t1>wn.t2?'t1':'t2',over=matchOver(s);
+  [A,B].forEach(function(k){sum[k]={to:0,su:0,w:0,pt:0}});
+  o+=svT(x+w/2,y+26,'比賽結果',22,'#000',800)+svL(x,y+52,x+w,y+52,1.6);
+  var y1=y+52,th=40;o+=svT(x+w*.25,y1+th/2,tName(s,A),xpFit(tName(s,A),w*.35,18),INK,700)+svT(x+w*.75,y1+th/2,tName(s,B),xpFit(tName(s,B),w*.35,18),INK,700);
+  o+=svC(x+w/2-16,y1+th/2,13,'#000',1.6)+svT(x+w/2-16,y1+th/2+1,'A',15,'#000',700)+svC(x+w/2+16,y1+th/2,13,'#000',1.6)+svT(x+w/2+16,y1+th/2+1,'B',15,'#000',700);
+  y1+=th;o+=svL(x,y1,x+w,y1,1.6);
+  var cw=[1,1,1,1,2.2,1,1,1,1],tot=cw.reduce(function(a,b){return a+b}),cx=[x],i;for(i=0;i<9;i++)cx.push(cx[i]+w*cw[i]/tot);
+  function cell(i,yy,hh,t,fs,col,wt){return svT((cx[i]+cx[i+1])/2,yy+hh/2,t,fs||16,col||INK,wt)}
+  var hd=['暫停','替補','勝','得分','局（分鐘）','得分','勝','替補','暫停'],rh=34;
+  hd.forEach(function(t,i){o+=cell(i,y1,rh,t,13,'#000',700)});
+  var hh=34;rh=Math.max(30,(h-(y1-y)-hh-56-64)/4);
+  for(i=1;i<9;i++)o+=svL(cx[i],y1,cx[i],y1+hh+rh*4,.8);
+  y1+=hh;o+=svL(x,y1,x+w,y1,1.2);
+  [1,2,3].forEach(function(n){var c=s.sets[n],on=c.ended,m=on?setMins(s,n):null;
+    if(on){mins+=m||0;[A,B].forEach(function(k){var q=sum[k];q.to+=c.timeouts[k].length;q.su+=c.subs[k].length;q.w+=c.winner===k?1:0;q.pt+=c.score[k]})}
+    var a=[c.timeouts[A].length,c.subs[A].length,c.winner===A?1:0,c.score[A]],b=[c.score[B],c.winner===B?1:0,c.subs[B].length,c.timeouts[B].length];
+    if(on){a.forEach(function(v,i){o+=cell(i,y1,rh,v)});b.forEach(function(v,i){o+=cell(5+i,y1,rh,v)})}
+    o+=cell(4,y1,rh,n+'（'+(on&&m!=null?m:'　')+'）');y1+=rh;o+=svL(x,y1,x+w,y1,.8);
+  });
+  var a=sum[A],b=sum[B];[a.to,a.su,a.w,a.pt].forEach(function(v,i){o+=cell(i,y1,rh,v)});[b.pt,b.w,b.su,b.to].forEach(function(v,i){o+=cell(5+i,y1,rh,v)});
+  o+=svT((cx[4]+cx[5])/2,y1+rh*.3,'各局加總',11,'#000')+svT((cx[4]+cx[5])/2,y1+rh*.68,mins+' 分',15,INK);
+  y1+=rh;o+=svL(x,y1,x+w,y1,1.6);
+  var st=I.actual||'',en=last=[3,2,1].filter(function(n){return s.sets[n].endAt})[0],ehm=en?setEndHM(s,en):'',d=hmDiff(st,ehm);if(d>720)d=null;
+  var tt=d==null?'':('0'+Math.floor(d/60)).slice(-2)+' 時 '+('0'+d%60).slice(-2)+' 分',tw=w/3;
+  [['開始',st],['結束',ehm],['全場時間',tt]].forEach(function(p,i){o+=svT(x+tw*i+tw/2,y1+14,p[0],12,'#000')+svT(x+tw*i+tw/2,y1+38,p[1],17,INK);if(i)o+=svL(x+tw*i,y1,x+tw*i,y1+56,.8)});
+  y1+=56;o+=svL(x,y1,x+w,y1,1.6);
+  var wy=(y1+y+h)/2;o+=svT(x+14,wy,'勝隊',20,'#000',800,'start');
+  if(over){o+=svT(x+w/2,wy,tName(s,win),xpFit(tName(s,win),w*.45,20),INK,700)+svT(x+w-14,wy,wn[win]+' : '+wn[other(win)],22,INK,800,'end')}
+  return o;
+}
+/* 簽名欄 */
+function xpSign(s,x,y,w,h){
+  var o=svR(x,y,w,h,2.4)+svT(x+w/2,y+24,'簽名',22,'#000',800)+svL(x,y+48,x+w,y+48,1.6);
+  var L=['第一裁判','第二裁判','記錄員','助理記錄員','A 隊隊長','A 隊教練','B 隊隊長','B 隊教練'],rh=(h-48)/L.length;
+  L.forEach(function(t,i){var yy=y+48+rh*i;o+=svT(x+10,yy+16,t,13,'#000',700,'start');if(i<L.length-1)o+=svL(x,yy+rh,x+w,yy+rh,i===3?1.4:.6,i===3?'#000':'#999')});
+  return o;
+}
+/* 整張總表 */
+function fullSvg(s){
+  var W=2300,H=1627,M=20,G=16,cw=(W-2*M-G)/2,o='';
+  o+=xpHead(s,M,M,W-2*M,70);
+  var y=M+70+12,s1=setSvg(s,1),s2=setSvg(s,2),s3=setSvg(s,3);
+  o+=xpInner(s1,M,y,cw,458)+xpInner(s2,M+cw+G,y,cw,458);y+=458+12;
+  o+=xpInner(s3,M,y,cw,382)+xpRoster(s,M+cw+G,y,cw,382);y+=382+12;
+  var hh=H-M-y,x=M,ws=[520,640,640,W-2*M-520-640-640-3*G];
+  o+=xpSan(s,x,y,ws[0],hh);x+=ws[0]+G;o+=xpNotes(s,x,y,ws[1],hh);x+=ws[1]+G;o+=xpRes(s,x,y,ws[2],hh);x+=ws[2]+G;o+=xpSign(s,x,y,ws[3],hh);
+  o+=svT(W-M,H-7,'南社盃排球記錄系統　'+new Date().toLocaleString('zh-TW',{hour12:false}),11,'#666',400,'end');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'"><rect width="'+W+'" height="'+H+'" fill="#fff"/>'+o+'</svg>';
+}
+function xpItemSvg(s,item){
+  if(item==='all')return fullSvg(s);
+  var h=item==='r6'?r6Svg(s):setSvg(s,Number(item)),v=xpVB(h);
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+v.w+' '+v.h+'" width="'+v.w+'" height="'+v.h+'" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'"><rect width="'+v.w+'" height="'+v.h+'" fill="#fff"/>'+xpInner(h,0,0,v.w,v.h)+'</svg>';
+}
+function xpName(item){return item==='all'?'整張記錄表':item==='r6'?'R6自由球員':'第'+item+'局'}
+function xpCanvas(svg,maxPx){
+  return new Promise(function(ok,no){
+    var v=xpVB(svg),sc=Math.min(3,Math.sqrt(maxPx/(v.w*v.h))),W=Math.round(v.w*sc),H=Math.round(v.h*sc),img=new Image();
+    img.onload=function(){try{var cv=document.createElement('canvas');cv.width=W;cv.height=H;var g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.drawImage(img,0,0,W,H);ok(cv)}catch(e){no(e)}};
+    img.onerror=function(){no(new Error('svg'))};
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  });
+}
+function xpBlob(cv,type,q){return new Promise(function(ok,no){cv.toBlob(function(b){b?ok(b):no(new Error('blob'))},type,q)})}
+/* 最小的 PDF：一頁一張 JPEG，橫向；整張用 A3，其他用 A4 */
+function xpPdf(p,a3){
+  var enc=new TextEncoder(),parts=[],len=0,off=[],PW=a3?1191:842,PH=a3?842:595,M=14;
+  function add(x){var b=typeof x==='string'?enc.encode(x):x;parts.push(b);len+=b.length}
+  function obj(i,head,stream){off[i]=len;add(i+' 0 obj\n'+head+'\n');if(stream){add('stream\n');add(stream);add('\nendstream\n')}add('endobj\n')}
+  add('%PDF-1.4\n');obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Count 1/Kids[3 0 R]>>');
+  var w=PW-M*2,h=w*p.h/p.w;if(h>PH-M*2){h=PH-M*2;w=h*p.w/p.h}
+  var x=(PW-w)/2,y=(PH-h)/2,cs=enc.encode('q '+w.toFixed(2)+' 0 0 '+h.toFixed(2)+' '+x.toFixed(2)+' '+y.toFixed(2)+' cm /Im Do Q');
+  obj(3,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+PW+' '+PH+']/Resources<</XObject<</Im 5 0 R>>>>/Contents 4 0 R>>');
+  obj(4,'<</Length '+cs.length+'>>',cs);
+  obj(5,'<</Type/XObject/Subtype/Image/Width '+p.w+'/Height '+p.h+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+p.bytes.length+'>>',p.bytes);
+  var xref=len,t='xref\n0 6\n0000000000 65535 f \n';for(var i=1;i<6;i++)t+=('0000000000'+off[i]).slice(-10)+' 00000 n \n';
+  add(t+'trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n'+xref+'\n%%EOF\n');
+  return new Blob(parts,{type:'application/pdf'});
+}
+function xpMsg(t,html){var m=document.getElementById('xpmsg');if(m){if(html)m.innerHTML=t;else m.textContent=t}}
+function xpSaveBlob(name,blob){
+  var file=null;try{file=new File([blob],name,{type:blob.type})}catch(e){}
+  ui.xpReady={name:name,blob:blob};
+  var again='<button class="linkbtn" data-act="xpready">按這裡存下來</button>';
+  if(file&&platform()!=='pc'&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:name}).then(function(){xpMsg('已送出。如果選了「儲存到檔案」或「儲存影像」，請確認有存到。')}).catch(function(e){if(e&&e.name==='AbortError'){xpMsg('');return}xpMsg('做好了，'+again,true)});
+    return;
+  }
+  try{var a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},60000);
+    xpMsg(inAppName()?'這裡可能存不了，請改用 Safari 或 Chrome 打開再存一次':'已存到「下載」資料夾：'+name);
+  }catch(e){xpMsg('這裡不能直接存，'+again,true)}
+}
+function xpDo(s,item,fmt){
+  if(ui.xpBusy)return;ui.xpBusy=true;xpMsg('正在製作'+xpName(item)+'…');
+  var svg=xpItemSvg(s,item),base=fname(s,fmt).replace(/\.(pdf|png|jpg)$/,'')+'_'+xpName(item);
+  xpCanvas(svg,item==='all'?12e6:8e6).then(function(cv){
+    if(fmt==='png')return xpBlob(cv,'image/png').then(function(b){xpSaveBlob(base+'.png',b)});
+    return xpBlob(cv,'image/jpeg',.92).then(function(b){return b.arrayBuffer()}).then(function(buf){xpSaveBlob(base+'.pdf',xpPdf({bytes:new Uint8Array(buf),w:cv.width,h:cv.height},item==='all'))});
+  }).catch(function(){xpMsg('做不出來，請再按一次；還是不行就改用螢幕截圖')}).then(function(){ui.xpBusy=false});
+}
+function xpSheet(s,x){
+  if(x.type==='export'){
+    var it=function(v,t,sub,dis){return '<button class="mbtn" data-act="xpitem" data-v="'+v+'"'+(dis?' disabled':'')+'><strong>'+t+'</strong>'+(sub?'<small class="muted">'+sub+'</small>':'')+'</button>'};
+    return '<div class="shd"><h2>存成圖片／PDF</h2><button data-act="close">關閉</button></div>'+
+      it('all','整張記錄表','三局、結果、判罰、記事欄、名單和簽名欄，A3 一張')+
+      '<div class="mgrid">'+it('1','第 1 局','',!s.sets[1].started)+it('2','第 2 局','',!s.sets[2].started)+it('3','第 3 局','',!s.sets[3].started)+'</div>'+
+      it('r6','R6 自由球員管控表','');
+  }
+  return '<div class="shd"><h2>'+xpName(x.item).replace('第','第 ').replace('局',' 局')+'</h2><button data-act="close">關閉</button></div>'+
+    '<div class="row"><button class="go" data-act="xpsave" data-v="pdf">存成 PDF</button><button class="go" data-act="xpsave" data-v="png">存成圖片</button></div>'+
+    '<p class="muted">'+(platform()==='pc'?'檔案會存到「下載」資料夾。':'按下去會跳出分享選單，可以傳到 LINE、存到「檔案」或「照片」。')+'</p><div id="xpmsg" class="muted" role="status"></div>';
+}
 function ppResult(s){
   var T=sheetTeams(s,1),A=T.A,B=T.B,sum={},last=null,rows='',mins=0,w=setsWon(s),win=w.t1>w.t2?'t1':'t2';
   [A,B].forEach(function(k){sum[k]={to:0,su:0,w:0,pt:0}});
@@ -2502,15 +2691,16 @@ function resultHtml(s,pv){
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
   var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>':'';
   function fs(svg){return ui.fs?'<div class="fsv" role="dialog" aria-label="全螢幕記錄表"><div class="fsin"><div class="fssheet">'+svg+'</div><button class="fsclose" data-act="fsclose">✕ 關閉全螢幕</button></div></div>':''}
-  var back=pv||over?'':'<div class="foot sheetfoot"><button class="sv" data-act="sheetclose">返回比賽</button></div>';
-  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  var xpb=XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':'';
+  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
   if(tab==='s1'||tab==='s2'||tab==='s3')return head+setSvg(s,Number(tab.slice(1)))+wide+back+fs(setSvg(s,Number(tab.slice(1))));
   if(!over)return head+ppResult(s)+back;
-  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
 }
 function playHtml(s){
   if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
@@ -2794,6 +2984,7 @@ function modalHtml(s){
   }
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
+var XP_ON=true;
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
@@ -2832,6 +3023,8 @@ function sheetHtml(s,m){
         '<div class="sw"><span class="muted">Deuce 上限</span><div class="seg"><button data-act="capmode" data-v="'+n+'" data-m="off" aria-pressed="'+!cap+'"'+d+'>無上限</button><button data-act="capmode" data-v="'+n+'" data-m="on" aria-pressed="'+!!cap+'"'+d+'>搶分</button></div></div>'+
         (cap?field('i-c'+n,'搶到',cap,dis,{field:'c'+n,kind:'info',type:'number'}):'<span></span>');
     }).join('')+'</div>'+(ui.ptErr?'<p class="fielderr" role="alert">'+esc(ui.ptErr)+'</p>':'')+'<button class="primary" data-act="close">完成</button>';
+  }else if(x.type==='export'||x.type==='export2'){
+    h=xpSheet(s,x);
   }else if(x.type==='more'){
     var mc=s.sets[s.setNo],mL=mc.left,mR=other(mL);
     var mb=function(act,v,ti,dis){return '<button class="mbtn" data-act="'+act+'" data-v="'+v+'"'+(dis?' disabled':'')+'><strong>'+ti+'</strong></button>'};
@@ -3159,6 +3352,9 @@ app.addEventListener('click',function(e){
       break;
     case 'kpclose': commitNumber(k,t); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
     case 'sheet': ui.sheet={type:b.getAttribute('data-v'),team:k}; ui.pending=null; break;
+    case 'xpitem': ui.sheet={type:'export2',item:b.getAttribute('data-v'),back:ui.sheet}; break;
+    case 'xpsave': xpDo(s,ui.sheet.item,b.getAttribute('data-v')); return;
+    case 'xpready': if(ui.xpReady)xpSaveBlob(ui.xpReady.name,ui.xpReady.blob); return;
     case 'pfreason': ui.sheet.reason=b.getAttribute('data-v'); break;
     case 'pfwin': ui.sheet.win=k; break;
     case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;

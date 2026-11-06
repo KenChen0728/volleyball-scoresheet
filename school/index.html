@@ -1248,6 +1248,9 @@ button.dim{opacity:.45}
 .ppr h3.phead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
 .ppr .pinfo{font-size:15px;font-weight:400;color:var(--pi);text-align:left;line-height:1.2}
 .ppr .pinfo.r{justify-self:end;text-align:justify;text-align-last:justify}
+/* v49 存成圖片／PDF */
+.sheetfoot .row>.xpbtn{flex:none;align-self:stretch;padding:0 14px}
+.sheet .mbtn small{display:block;font-weight:400;font-size:13px;margin-top:2px}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1723,7 +1726,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2015';
+var BUILD='1106-2021';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2500,14 +2503,14 @@ function resultHtml(s,pv){
   var tab=ui.rtab||'res';
   var pend=pv?'<div class="foot pendfoot"><div class="row pendrow"><button data-act="undo">↶ 復原上一步</button><button class="go guarded" data-act="endset" data-team="'+pv+'"'+(Date.now()<(ui.noEnd||0)?' disabled':'')+'>確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div></div>':'';
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
-  var back=pv||over?'':'<div class="foot sheetfoot"><button class="sv" data-act="sheetclose">返回比賽</button></div>';
-  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
 
   if(!over)return head+ppResult(s)+back;
-  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
 }
 function playHtml(s){
   if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
@@ -2734,6 +2737,7 @@ function modalHtml(s){
   }
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
+var XP_ON=false;
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
@@ -2773,6 +2777,8 @@ function sheetHtml(s,m){
         '<div class="sw"><span class="muted">Deuce 上限</span><div class="seg"><button data-act="capmode" data-v="'+n+'" data-m="off" aria-pressed="'+!cap+'"'+d+'>無上限</button><button data-act="capmode" data-v="'+n+'" data-m="on" aria-pressed="'+!!cap+'"'+d+'>搶分</button></div></div>'+
         (cap?field('i-c'+n,'搶到',cap,dis,{field:'c'+n,kind:'info',type:'number'}):'<span></span>');
     }).join('')+'</div>'+(ui.ptErr?'<p class="fielderr" role="alert">'+esc(ui.ptErr)+'</p>':'')+'<button class="primary" data-act="close">完成</button>';
+  }else if(x.type==='export'||x.type==='export2'){
+    h=xpSheet(s,x);
   }else if(x.type==='more'){
     var mc=s.sets[s.setNo],mL=mc.left,mR=other(mL);
     var mb=function(act,v,ti,dis){return '<button class="mbtn" data-act="'+act+'" data-v="'+v+'"'+(dis?' disabled':'')+'><strong>'+ti+'</strong></button>'};
@@ -3101,6 +3107,9 @@ app.addEventListener('click',function(e){
       break;
     case 'kpclose': commitNumber(k,t); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
     case 'sheet': ui.sheet={type:b.getAttribute('data-v'),team:k}; ui.pending=null; break;
+    case 'xpitem': ui.sheet={type:'export2',item:b.getAttribute('data-v'),back:ui.sheet}; break;
+    case 'xpsave': xpDo(s,ui.sheet.item,b.getAttribute('data-v')); return;
+    case 'xpready': if(ui.xpReady)xpSaveBlob(ui.xpReady.name,ui.xpReady.blob); return;
     case 'pfreason': ui.sheet.reason=b.getAttribute('data-v'); break;
     case 'pfwin': ui.sheet.win=k; break;
     case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;

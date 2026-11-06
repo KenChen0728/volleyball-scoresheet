@@ -674,3 +674,10 @@ mt('例外替補','subopen',' data-m="exc"',mc.live)+mt('重新指定自由球�
 ====
 mt('例外替補','subopen',' data-m="exc"',mc.live)+(s.teams.t1.liberos.length||s.teams.t2.liberos.length||s.redes?mt('重新指定自由球員','redopen','',mc.live):'')+
 >>>>
+
+＝＝＝ 學校版不用完整版的「存成圖片／PDF」 ＝＝＝
+<<<<
+var XP_ON=true;
+====
+var XP_ON=false;
+>>>>
