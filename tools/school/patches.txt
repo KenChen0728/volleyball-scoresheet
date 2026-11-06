@@ -451,9 +451,9 @@ c.timeouts[k].length>=2?'這局 2 次暫停已用完':''
 
 ＝＝＝ 比賽資料：賽制、裁判 ＝＝＝
 <<<<
-  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||''};
+  return {name:last.name||'',division:last.division||'',group:last.group||'',game:'',date:today(),time:'',city:last.city||'',place:last.place||'',court:last.court||''};
 ====
-  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||'',fmt:last.fmt||3,referee:last.referee||'',umpire:last.umpire||'',scorer:last.scorer||''};
+  return {name:last.name||'',division:last.division||'',group:last.group||'',game:'',date:today(),time:'',city:last.city||'',place:last.place||'',court:last.court||'',fmt:last.fmt||3,referee:last.referee||'',umpire:last.umpire||'',scorer:last.scorer||''};
 >>>>
 <<<<
     '<div class="wide ptsum"><strong>三局兩勝　'+target(s,1)+'、'+target(s,2)+'、'+target(s,3)+'</strong><span class="muted">'+capText(s)+'</span></div>'+

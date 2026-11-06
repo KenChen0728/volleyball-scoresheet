@@ -79,7 +79,7 @@ label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--mute
 .bar button{min-height:38px;font-size:14px}
 .shell{flex:1;min-height:0;display:flex;flex-direction:column}
 .page{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-block:2px 8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
-.nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav{flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .nav button{border:0;border-radius:0;background:transparent;min-height:58px;padding:4px 2px;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;border-top:3px solid transparent}
 .nav button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nav small{font-weight:500;color:var(--muted);font-size:11px}
@@ -894,7 +894,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 @media (orientation:landscape) and (min-width:640px){
   .shell{flex-direction:row-reverse}
   .nav{width:92px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-top:0;border-right:1px solid var(--line);padding-left:env(safe-area-inset-left,0px)}
-  .nav button{flex:0 1 72px;min-height:52px}
+  .nav button{flex:0 1 72px;min-height:46px}
   .home{flex-direction:row}
   .hero{width:44%;max-width:560px;flex:none;justify-content:center;padding:calc(var(--safe-top) + 24px) 40px 24px max(32px,env(safe-area-inset-left,0px))}
   .heroball{width:300px;height:300px;right:-90px;top:-40px}
@@ -1624,7 +1624,7 @@ function createMatch(info){
 }
 function defaultInfo(){
   var last={};db.matches.some(function(x){var q=safeReduce(x);if(!q||q.info.sample)return false;last=q.info;return true});
-  return {name:last.name||'',division:last.division||'',game:'',date:today(),time:'',place:last.place||'',court:last.court||'',fmt:last.fmt||3,referee:last.referee||'',umpire:last.umpire||'',scorer:last.scorer||''};
+  return {name:last.name||'',division:last.division||'',group:last.group||'',game:'',date:today(),time:'',city:last.city||'',place:last.place||'',court:last.court||'',fmt:last.fmt||3,referee:last.referee||'',umpire:last.umpire||'',scorer:last.scorer||''};
 }
 /* 先前比賽的隊伍：不另外建隊伍庫，直接從歷次比賽抓，同隊名取最新一場 */
 /* 同資料夾的隊伍優先，再來才是先前比賽的隊伍 */
@@ -1740,7 +1740,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2259';
+var BUILD='1107-0214';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1827,7 +1827,13 @@ function applyColors(s){
 }
 if(window.matchMedia){try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){syncBar();render()})}catch(e){}}
 var ROMAN=['I','II','III','IV','V','VI'];
-var STAFF=[['coach','教練'],['execCoach','執行教練'],['teacher','隨隊教師'],['leader','領隊']];
+var STAFF=[['execCoach','執行教練'],['coach','教練'],['leader','領隊'],['manager','管理']]; // 11/7 使用者：照協會記錄表
+function staffOf(t){var a=STAFF.slice();if(t&&t.staff&&t.staff.teacher)a.push(['teacher','隨隊教師（舊）']);return a} // 舊比賽填過的隨隊教師照樣看得到
+/* 裁判（11/7 使用者：多一頁，可以不填；印在記錄表的證明欄） */
+var REFS=[['ref1','第一裁判員'],['ref2','第二裁判員'],['scorer','記錄員'],['ascorer','助理記錄員'],['lj1','司線員 1'],['lj2','司線員 2'],['delegate','裁判委員']];
+function refsHtml(s,inTab){var i=s.info,f='<div class="fields">'+REFS.map(function(x){return field('r-'+x[0],x[1],i[x[0]]||'',false,{field:x[0],kind:'info'})}).join('')+'</div>';
+  if(inTab)return '<div class="narrow"><p class="subhint">裁判名單</p>'+f+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
+  return '<p class="stephint">可以空著，比賽中、比賽後也能補。填了會印在匯出的記錄表上。</p>'+f+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');}
 
 function tName(s,k){return s.teams[k].name||TEAM_LABEL[k]}
 function setDone(s){var c=s.sets[s.setNo];return !!(c.left&&c.serve)}
@@ -2026,6 +2032,7 @@ function helpGroup(s){
   if(ui.page==='play'&&!ui.liveSheet&&!matchOver(s)&&setWinner(s))return 'sets';
   if(ui.page==='play'&&(ui.liveSheet||matchOver(s)))return 'sheet';
   if(ui.page==='toss'&&s.setNo===fmtOf(s)&&!s.sets[s.setNo].started)return 'set3';
+  if(ui.page==='refs')return 'info';
   return ui.page;
 }
 function barTime(s){
@@ -2052,7 +2059,7 @@ function barHtml(s){
   var over=matchOver(s),c=s.sets[s.setNo],started=s.sets[1].started,title;
   if(over)title=tName(s,s.sets[1].left||'t1')+' 對 '+tName(s,other(s.sets[1].left||'t1'));
   else if(ui.page==='play'&&c.started)title='第 '+s.setNo+' 局';
-  else title={info:'比賽資料',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
+  else title={info:'比賽資料',refs:'裁判',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   if(!back&&ui.page==='play'&&c.started&&!over&&ui.liveSheet&&!setWinner(s))back='<button class="barback" data-act="sheetclose">‹ 比賽</button>';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
@@ -2062,24 +2069,28 @@ function barHtml(s){
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
   ok=ok&&ui.page!=='roster';
-  return '<i id="nav-rstat" class="stepn'+(ok?' done':'')+'">'+(ok?'✓':'2')+'</i>';
+  return '<i id="nav-rstat" class="stepn'+(ok?' done':'')+'">'+(ok?'✓':2+NAV_OFF())+'</i>';
+}
+function NAV_OFF(){return XP_ON?1:0
 }
 function navHtml(s){
   var c=s.sets[s.setNo],tossed=setDone(s),begun=s.sets[1].started;
   function st(n,ok,id){ok=ok&&ui.page!==id;return '<i class="stepn'+(ok?' done':'')+'">'+(ok?'✓':n)+'</i>'}
   var items=[
-    ['info','資料',st(1,begun||s.teams.t1.players.length+s.teams.t2.players.length>0,'info'),false],
+    ['info','資料',st(1,begun||s.teams.t1.players.length+s.teams.t2.players.length>0,'info'),false]
+  ].concat(XP_ON?[['refs','裁判',st(2,begun||REFS.some(function(x){return s.info[x[0]]})||s.teams.t1.players.length+s.teams.t2.players.length>0,'refs'),false]]:[]).concat([
     ['roster','名單',rosterStat(s),false],
-    ['toss','挑邊',st(3,tossed,'toss'),false],
-    ['lineup','陣容',st(4,c.started||(c.locked.t1&&c.locked.t2),'lineup'),!tossed],
-    ['play','比賽',st(5,false,'play'),!begun]
-  ];
+    ['toss','挑邊',st(3+NAV_OFF(),tossed,'toss'),false],
+    ['lineup','陣容',st(4+NAV_OFF(),c.started||(c.locked.t1&&c.locked.t2),'lineup'),!tossed],
+    ['play','比賽',st(5+NAV_OFF(),false,'play'),!begun]
+  ]);
   return '<nav class="nav" aria-label="賽前步驟">'+items.map(function(i){
     return '<button data-act="page" data-v="'+i[0]+'" aria-current="'+(ui.page===i[0])+'"'+(i[3]?' disabled':'')+'>'+i[2]+'<span id="nav-'+i[0]+'">'+esc(i[1])+'</span></button>';
   }).join('')+'</nav>';
 }
 function pageHtml(s,m){
   if(ui.page==='info')return infoHtml(s);
+  if(ui.page==='refs'&&XP_ON)return refsHtml(s);
   if(ui.page==='toss')return tossHtml(s);
   if(ui.page==='lineup')return lineupHtml(s);
   if(ui.page==='play')return playHtml(s);
@@ -2110,7 +2121,7 @@ function theCup(){return db.cups.filter(function(c){return c.id===cupView.id})[0
 function cupRows(id){var a=[];db.matches.forEach(function(m){if(m.cup!==id)return;var s=safeReduce(m);if(s)a.push({m:m,s:s})});return a}
 function cupDivOf(s){return s.info.division||'未分組'}
 function teamText(t){
-  var a=[];STAFF.forEach(function(x){if(t.staff&&t.staff[x[0]])a.push(x[1]+'：'+t.staff[x[0]])});
+  var a=[];staffOf(t).forEach(function(x){if(t.staff&&t.staff[x[0]])a.push(x[1]+'：'+t.staff[x[0]])});
   t.players.forEach(function(p){a.push(p.no+' '+(p.name||'')+(t.liberos.indexOf(p.no)>=0?' L':'')+(t.captain===p.no?' 隊長':''))});
   return a.join('\n');
 }
@@ -2125,7 +2136,7 @@ function parseRoster(text,div,name){
     if(c.length<2)c=line.split(/[\s:：]+/);
     var tm=cur,dm=c[0].match(/^(男|女)(子組|排|生組)?$/);
     if(dm&&c.length>=4){tm=cur=get(dm[1]+'子組',c[1]);c=c.slice(2)}
-    var st=STAFF.filter(function(x){return x[1]===c[0]})[0];
+    var st=STAFF.concat([['teacher','隨隊教師']]).filter(function(x){return x[1]===c[0]})[0];
     if(st){if(!tm)tm=cur=get(div,name||'');tm.team.staff[st[0]]=c.slice(1).filter(Boolean).join(' ');return}
     if(c[0]==='隊名'&&c[1]){cur=get(div,c[1]);return}
     if(!/^\d{1,2}$/.test(c[0])){if(c.length===1&&!cur){cur=get(div,c[0]);return}errors.push('第 '+(i+1)+' 行看不懂');return}
@@ -2233,15 +2244,17 @@ function infoHtml(s){
   return (lk?'':'<p class="stephint">這一頁都可以空著，不確定就直接按下一步。</p>')+'<div class="fields">'+
     field('i-name','比賽名稱',i.name,lk,{wide:true,field:'name',kind:'info',ph:'例如：校際盃'})+
     '<div class="wide seg">'+div+'</div>'+
+    (XP_ON?field('i-group','組別',i.group||'',lk,{field:'group',kind:'info',ph:'例如：大專男'}):'')+ // 協會記錄表要的（學校版沒有）
     field('i-game','場次',i.game,lk,{field:'game',kind:'info'})+
     field('i-court','場地',i.court,lk,{field:'court',kind:'info'})+
     field('i-date','日期',i.date,lk,{field:'date',kind:'info',type:'date'})+
     field('i-time','時間',i.time,lk,{field:'time',kind:'info',type:'time'})+
+    (XP_ON?field('i-city','承辦城市',i.city||'',lk,{field:'city',kind:'info'}):'')+
     field('i-place','地點',i.place,lk,{wide:true,field:'place',kind:'info'})+
     '<div class="wide seg">'+[[3,'三局兩勝'],[5,'五局三勝']].map(function(x){return '<button data-act="fmt" data-v="'+x[0]+'" aria-pressed="'+(fmtOf(s)===x[0])+'"'+(lk?' disabled':'')+'>'+x[1]+'</button>'}).join('')+'</div>'+
     '<button class="wide ptbtn" data-act="sheet" data-v="points"><span>每局分數設定</span><small>'+ptText(s)+'</small></button>'+
 
-    '</div>'+(lk?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">回'+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>');
+    '</div>'+(lk?'':XP_ON?'<button class="primary full" data-act="page" data-v="refs">下一步：裁判</button>':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">回'+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>');
 }
 function ptText(s){var c=setList(s).map(function(n){return target(s,n)+(capOf(s,n)?'（搶 '+capOf(s,n)+'）':'')}).join('、');return setList(s).some(function(n){return capOf(s,n)})?c:c+'　Deuce 無上限'}
 function autoSlot(t){
@@ -2509,6 +2522,7 @@ function fixList(s){
 function resultHtml(s,pv){
   var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',over=matchOver(s)&&!pv;
   var tabs=[['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
+  if(XP_ON)tabs.splice(tabs.length-1,0,['ref','裁判']);
   var tab=ui.rtab||'res';
   var pend=pv?'<div class="foot pendfoot"><div class="row pendrow"><button data-act="undo">↶ 復原上一步</button><button class="go guarded" data-act="endset" data-team="'+pv+'"'+(Date.now()<(ui.noEnd||0)?' disabled':'')+'>確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div></div>':'';
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
@@ -2517,6 +2531,7 @@ function resultHtml(s,pv){
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
+  if(tab==='ref'&&XP_ON)return head+refsHtml(s,true)+back;
 
   if(!over)return head+ppResult(s)+back;
   return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
@@ -2892,7 +2907,7 @@ function sheetHtml(s,m){
     var cu=s.sets[s.setNo].cur[k],gc=s.sets[s.setNo].gameCaptain[k];
     h='<h2>'+esc(tName(s,k))+' 場上隊長</h2><p class="muted">'+(t.captain!==null?'隊長 '+t.captain+' 號不在場上，由一位場上球員代替，點他的背號。':'隊長不在場上時，由一位場上球員代替，點他的背號。')+'</p><div class="bench"><div class="benchrow">'+cu.map(function(n){return '<button class="chip '+k+'" data-act="gcset" data-team="'+k+'" data-no="'+n+'" aria-pressed="'+(gc===n)+'"><b>'+n+'</b></button>'}).join('')+'</div></div><button data-act="close">關閉</button>';
   }else if(x.type==='staff'){
-    h='<h2>職員（全部選填）</h2><div class="fields">'+STAFF.map(function(f){return field('s-'+f[0],f[1],t.staff[f[0]],t.locked,{kind:'staff',team:k,field:f[0]})}).join('')+'</div><button class="primary" data-act="close">完成</button>';
+    h='<h2>職員（全部選填）</h2><div class="fields">'+staffOf(t).map(function(f){return field('s-'+f[0],f[1],t.staff[f[0]],t.locked,{kind:'staff',team:k,field:f[0]})}).join('')+'</div><button class="primary" data-act="close">完成</button>';
   }else if(x.type==='color'){
     var cur=t.color||JERSEY_DEFAULT[k],lc=t.liberoColor;
     function grid(act,val){return '<div class="colors">'+JERSEY.map(function(j){
@@ -3064,7 +3079,7 @@ app.addEventListener('click',function(e){
       inf.name=cs.name; inf.division=cupView.div==='未分組'?'':cupView.div;
       /* 同一個資料夾上一場的地點、場地先帶入，可以再改 */
       var prev=db.matches.filter(function(q){return q.cup===cs.id}).map(function(q){return safeReduce(q)}).filter(Boolean)[0];
-      if(prev){if(prev.info.place)inf.place=prev.info.place;if(prev.info.court)inf.court=prev.info.court}
+      if(prev)['place','court','city','group'].forEach(function(f){if(prev.info[f])inf[f]=prev.info[f]});
       var cm=createMatch(inf); cm.cup=cs.id; db.currentId=cm.id;
       picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:x.team,fromName:x.team.name},cm)});
       save(); resetUi(); ui.page='info'; ui.from='cup'; view='setup'; break;
