@@ -1593,7 +1593,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2021';
+var BUILD='1106-2030';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2524,10 +2524,14 @@ function xpNotes(s,x,y,w,h){
   return o;
 }
 /* 比賽結果 */
-function xpRes(s,x,y,w,h){
+function xpRes(s,x,y,w,h,info){
   var T=sheetTeams(s,1),A=T.A,B=T.B,I=s.info,o=svR(x,y,w,h,2.4),sum={},mins=0,last=null,wn=setsWon(s),win=wn.t1>wn.t2?'t1':'t2',over=matchOver(s);
   [A,B].forEach(function(k){sum[k]={to:0,su:0,w:0,pt:0}});
   o+=svT(x+w/2,y+26,'比賽結果',22,'#000',800)+svL(x,y+52,x+w,y+52,1.6);
+  if(info){var dt=[xpROC(I.date),I.time||''].filter(Boolean).join(' '),crt=I.court?I.court+(/場/.test(I.court)?'':'場地'):'',gm=I.game?I.game+(/場/.test(I.game)?'':'場次'):'',l2=[crt,gm].filter(Boolean).join(' ');
+    o+=svT(x+12,y+26,dt,17,INK,400,'start');
+    if(I.place&&l2){o+=svT(x+w-12,y+15,I.place,xpFit(I.place,w*.3,16),INK,400,'end')+svT(x+w-12,y+38,l2,xpFit(l2,w*.3,16),INK,400,'end')}
+    else o+=svT(x+w-12,y+26,I.place||l2,xpFit(I.place||l2||' ',w*.3,16),INK,400,'end')}
   var y1=y+52,th=40;o+=svT(x+w*.25,y1+th/2,tName(s,A),xpFit(tName(s,A),w*.35,18),INK,700)+svT(x+w*.75,y1+th/2,tName(s,B),xpFit(tName(s,B),w*.35,18),INK,700);
   o+=svC(x+w/2-16,y1+th/2,13,'#000',1.6)+svT(x+w/2-16,y1+th/2+1,'A',15,'#000',700)+svC(x+w/2+16,y1+th/2,13,'#000',1.6)+svT(x+w/2+16,y1+th/2+1,'B',15,'#000',700);
   y1+=th;o+=svL(x,y1,x+w,y1,1.6);
@@ -2576,10 +2580,11 @@ function fullSvg(s){
 }
 function xpItemSvg(s,item){
   if(item==='all')return fullSvg(s);
+  if(item==='res')return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 500" width="760" height="500" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'"><rect width="760" height="500" fill="#fff"/>'+xpRes(s,10,10,740,480,true)+'</svg>';
   var h=item==='r6'?r6Svg(s):setSvg(s,Number(item)),v=xpVB(h);
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+v.w+' '+v.h+'" width="'+v.w+'" height="'+v.h+'" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'"><rect width="'+v.w+'" height="'+v.h+'" fill="#fff"/>'+xpInner(h,0,0,v.w,v.h)+'</svg>';
 }
-function xpName(item){return item==='all'?'整張記錄表':item==='r6'?'R6自由球員':'第'+item+'局'}
+function xpName(item){return item==='all'?'整張記錄表':item==='res'?'比賽結果':item==='r6'?'R6自由球員':'第'+item+'局'}
 function xpCanvas(svg,maxPx){
   return new Promise(function(ok,no){
     var v=xpVB(svg),sc=Math.min(3,Math.sqrt(maxPx/(v.w*v.h))),W=Math.round(v.w*sc),H=Math.round(v.h*sc),img=new Image();
@@ -2620,7 +2625,7 @@ function xpSaveBlob(name,blob){
 function xpDo(s,item,fmt){
   if(ui.xpBusy)return;ui.xpBusy=true;xpMsg('正在製作'+xpName(item)+'…');
   var svg=xpItemSvg(s,item),base=fname(s,fmt).replace(/\.(pdf|png|jpg)$/,'')+'_'+xpName(item);
-  xpCanvas(svg,item==='all'?12e6:8e6).then(function(cv){
+  xpCanvas(svg,item==='all'?12e6:item==='res'?4e6:8e6).then(function(cv){
     if(fmt==='png')return xpBlob(cv,'image/png').then(function(b){xpSaveBlob(base+'.png',b)});
     return xpBlob(cv,'image/jpeg',.92).then(function(b){return b.arrayBuffer()}).then(function(buf){xpSaveBlob(base+'.pdf',xpPdf({bytes:new Uint8Array(buf),w:cv.width,h:cv.height},item==='all'))});
   }).catch(function(){xpMsg('做不出來，請再按一次；還是不行就改用螢幕截圖')}).then(function(){ui.xpBusy=false});
@@ -2631,7 +2636,7 @@ function xpSheet(s,x){
     return '<div class="shd"><h2>存成圖片／PDF</h2><button data-act="close">關閉</button></div>'+
       it('all','整張記錄表','三局、結果、判罰、記事欄、名單和簽名欄，A3 一張')+
       '<div class="mgrid">'+it('1','第 1 局','',!s.sets[1].started)+it('2','第 2 局','',!s.sets[2].started)+it('3','第 3 局','',!s.sets[3].started)+'</div>'+
-      it('r6','R6 自由球員管控表','');
+      '<div class="mgrid two">'+it('res','比賽結果','')+it('r6','R6 自由球員','')+'</div>';
   }
   return '<div class="shd"><h2>'+xpName(x.item).replace('第','第 ').replace('局',' 局')+'</h2><button data-act="close">關閉</button></div>'+
     '<div class="row"><button class="go" data-act="xpsave" data-v="pdf">存成 PDF</button><button class="go" data-act="xpsave" data-v="png">存成圖片</button></div>'+
@@ -2691,9 +2696,8 @@ function resultHtml(s,pv){
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
   var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>':'';
   function fs(svg){return ui.fs?'<div class="fsv" role="dialog" aria-label="全螢幕記錄表"><div class="fsin"><div class="fssheet">'+svg+'</div><button class="fsclose" data-act="fsclose">✕ 關閉全螢幕</button></div></div>':''}
-  var xpb=XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':'';
-  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
-  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
   if(tab==='note')return head+ppRemarks(s)+back;
@@ -2985,6 +2989,7 @@ function modalHtml(s){
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
 var XP_ON=true;
+function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':''}
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';

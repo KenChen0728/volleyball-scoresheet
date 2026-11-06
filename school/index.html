@@ -1726,7 +1726,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2021';
+var BUILD='1106-2030';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2503,8 +2503,8 @@ function resultHtml(s,pv){
   var tab=ui.rtab||'res';
   var pend=pv?'<div class="foot pendfoot"><div class="row pendrow"><button data-act="undo">↶ 復原上一步</button><button class="go guarded" data-act="endset" data-team="'+pv+'"'+(Date.now()<(ui.noEnd||0)?' disabled':'')+'>確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div></div>':'';
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
-  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
-  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpb+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
@@ -2738,6 +2738,7 @@ function modalHtml(s){
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
 var XP_ON=false;
+function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':''}
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
