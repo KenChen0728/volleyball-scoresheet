@@ -101,7 +101,7 @@ console.log('三局兩勝');
  ok(await p.locator('.toss').count()===1,'第 3 局重新挑邊');
  await p.locator('.side').first().click();await wait(p);await p.click('.page [data-act=page][data-v=lineup]');await wait(p);
  await nextSet(p);await wait(p,60);if(await p.locator('[data-act=cs-yes]').count()){await p.click('[data-act=cs-yes]');await wait(p,60)}
- ok((await p.locator('.mid small').first().textContent()).includes('15 分'),'第 3 局 15 分');
+ ok((await p.locator('.barmid small, .mid small').first().textContent()).includes('15 分'),'第 3 局 15 分');
  for(let i=0;i<8;i++)await pt(p,'t1');
  ok(await p.locator('[data-act=swap8]').count()===1,'第 3 局 8 分換場');
  await wait(p,720);await p.click('[data-act=swap8]');await wait(p,50);
@@ -112,12 +112,12 @@ console.log('三局兩勝');
 console.log('五局三勝');
 {const p=await fresh(b);await roster(p,{fmt:5});await firstSet(p);
  for(let i=0;i<2;i++){await endSet(p,i%2?'t2':'t1');ok(await p.locator('.lusheet').count()===1,'第 '+(i+2)+' 局不用挑邊');await nextSet(p)}
- ok((await p.locator('.mid small').first().textContent()).includes('25 分'),'第 3 局仍 25 分');
+ ok((await p.locator('.barmid small, .mid small').first().textContent()).includes('25 分'),'第 3 局仍 25 分');
  await endSet(p,'t2');ok(await p.locator('.lusheet').count()===1,'第 4 局不用挑邊');await nextSet(p);
  await endSet(p,'t1');ok(await p.locator('.toss').count()===1,'第 5 局挑邊');
  await p.locator('.side').first().click();await wait(p);await p.click('.page [data-act=page][data-v=lineup]');await wait(p);
  await nextSet(p);await wait(p,60);if(await p.locator('[data-act=cs-yes]').count()){await p.click('[data-act=cs-yes]');await wait(p,60)}
- ok((await p.locator('.mid small').first().textContent()).includes('15 分'),'第 5 局 15 分');
+ ok((await p.locator('.barmid small, .mid small').first().textContent()).includes('15 分'),'第 5 局 15 分');
  ok(await sets(p,'t1')===2&&await sets(p,'t2')===2,'2:2');
  await endSet(p,'t2');
  ok((await p.locator('.good').textContent()).includes('3 : 2'),'3:2 結束');

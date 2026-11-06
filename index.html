@@ -1191,6 +1191,25 @@ button.dim{opacity:.45}
   .wcol .tg button{min-height:52px}
   .wcol .strip .lc,.wcol .strip .capbox{width:56px;height:56px}
 }
+/* v43 比賽中（橫的畫面）：第幾局和幾分放在上方色帶正中間；中間只留誰發球，放大 */
+.bar:has(>.barmid){position:relative}
+.bar:has(>.barmid)::before{content:"";flex:1}
+.bar>.barmid{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:baseline;gap:8px;font-size:22px}
+.bar>.barmid small{font-size:14px;font-weight:700;color:rgba(255,255,255,.8)}
+@media (max-width:819px){.bar>.barmid{position:static;transform:none;font-size:19px}.bar:has(>.barmid)::before{display:none}}
+@media (orientation:landscape) and (min-width:640px){
+  .wbar{justify-content:center}
+  .wbar+.mid~.wbar{flex-direction:row}
+  .whead .mid{max-width:none;padding:0 4px}
+  .whead .srvmark{--ball:44px;gap:6px}
+  .whead .srvmark i{font-size:30px}
+  .whead .srvmark b{font-size:40px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .whead .srvmark{--ball:30px}
+  .whead .srvmark i{font-size:22px}
+  .whead .srvmark b{font-size:28px}
+}
 /* v42 記錄表頁：橫的畫面整張放得下，不用上下滑；全螢幕鍵在返回比賽旁邊 */
 @media (orientation:landscape) and (min-width:640px) and (min-height:521px){
   .page>.sv-wrap{flex:1 1 0;min-height:0;background:none;border-radius:0}
@@ -1534,7 +1553,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1738';
+var BUILD='1106-1755';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1840,7 +1859,8 @@ function barHtml(s){
   else title={info:'比賽資料',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
-  return '<header class="bar">'+back+'<h1>'+esc(title)+'</h1>'+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
+  var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
+  return '<header class="bar">'+back+(cen?'<h1 class="barmid">'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
 }
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
@@ -2457,7 +2477,8 @@ function playHtml(s){
   var srv=courtPlayer(c,c.serving,0),main,warn='';
   if(!c.live)main='<button class="sv" data-act="serve">發球'+(c.replayLock?'（公正重發）':'')+'</button>';
   else main='<div class="sbs"><button class="sb '+L+'" data-act="point" data-team="'+L+'"><span class="sbn">'+esc(tName(s,L))+'</span><span>得分</span></button><button class="rp" data-act="replay">公正<small>重打這球</small></button><button class="sb '+R+'" data-act="point" data-team="'+R+'"><span class="sbn">'+esc(tName(s,R))+'</span><span>得分</span></button></div>';
-  var midh='<div class="mid">第 '+n+' 局<small>'+target(s,n)+' 分'+(capOf(s,n)?'，搶 '+capOf(s,n):'')+'</small><div class="srvmark '+(c.serving===L?'lf':'rt')+' '+c.serving+'" aria-label="'+esc(tName(s,c.serving))+' 發球 '+srv+' 號"><i>'+(c.serving===L?'◀':'')+'</i><span>'+BALL+'</span><b>'+srv+'</b><i>'+(c.serving===L?'':'▶')+'</i></div></div>';
+  var srvm='<div class="srvmark '+(c.serving===L?'lf':'rt')+' '+c.serving+'" aria-label="'+esc(tName(s,c.serving))+' 發球 '+srv+' 號"><i>'+(c.serving===L?'◀':'')+'</i><span>'+BALL+'</span><b>'+srv+'</b><i>'+(c.serving===L?'':'▶')+'</i></div>';
+  var midh='<div class="mid">第 '+n+' 局<small>'+target(s,n)+' 分'+(capOf(s,n)?'，搶 '+capOf(s,n):'')+'</small>'+srvm+'</div>';
   var court='<div class="pcourt'+(ui.lib?' libmode':'')+'" role="group" aria-label="球場，記錄台在下方">'+cells+'</div>';
   var tools='<div class="pbtns"><button class="penbtn" data-act="penopen"><span class="ic"><i class="cd cy"></i><i class="cd cr"></i></span>判罰</button><button data-act="sheetopen">記錄表</button><button data-act="sheet" data-v="more">其他</button></div>';
   var subDone=[L,R].filter(function(k){return c.subRally[k]===c.rally&&c.rally>0})[0];
@@ -2468,7 +2489,7 @@ function playHtml(s){
   if(false)[L,R].forEach(function(k){if(actingCap(c,s.teams[k],k)===null)warn+='<button class="warnbtn" data-act="gcappick" data-team="'+k+'">'+esc(tName(s,k))+' 請指定場上隊長</button>'});
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
   var foot='<div class="foot">'+main+'</div>';
-  if(isWide())return '<div class="wplay"><div class="whead">'+wideBar(s,L)+midh+wideBar(s,R)+'</div>'+wideCol(s,L)+'<div class="wmid wtop">'+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
+  if(isWide())return '<div class="wplay"><div class="whead">'+wideBar(s,L)+'<div class="mid">'+srvm+'</div>'+wideBar(s,R)+'</div>'+wideCol(s,L)+'<div class="wmid wtop">'+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
   return '<div class="board">'+sideScore(s,L)+setBox(s,L)+midh+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
     '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);
