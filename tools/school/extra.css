@@ -17,13 +17,13 @@
 @media (orientation:landscape) and (max-height:620px){.wmid .sb{min-height:50px}}
 /* 橫放時不放記錄表，球場放大 */
 @media (orientation:landscape) and (min-width:640px){
-  .wplay{grid-template-rows:minmax(0,1fr) auto}
+  .wplay{grid-template-rows:auto minmax(0,1fr) auto}
   .wmid .pcourt{flex:1 1 0;min-height:132px;grid-template-rows:repeat(3,minmax(0,1fr))}
   .wmid .foot{margin-top:0}
 }
 /* 沒有記錄表：高度很夠時球場也依高度加寬 */
 @media (orientation:landscape) and (min-width:761px) and (min-height:621px){
-  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,min(1000px,calc((100vh - 269px) * 2.1))) minmax(150px,210px)}
+  .wplay{grid-template-columns:minmax(150px,210px) minmax(0,min(1000px,calc((100vh - 299px) * 2.1))) minmax(150px,210px)}
 }
 /* 綁定 */
 .bindm{position:absolute;right:5px;top:3px;display:flex;align-items:center;gap:1px;font-family:var(--num);font-size:17px;font-weight:700;line-height:1;opacity:.92}
