@@ -1732,7 +1732,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-2108';
+var BUILD='1106-2123';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2046,6 +2046,7 @@ function barHtml(s){
   else if(ui.page==='play'&&c.started)title='第 '+s.setNo+' 局';
   else title={info:'比賽資料',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
+  if(!back&&ui.page==='play'&&c.started&&!over&&ui.liveSheet&&!setWinner(s))back='<button class="barback" data-act="sheetclose">‹ 比賽</button>';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
   var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
   return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
@@ -2232,7 +2233,7 @@ function infoHtml(s){
     '<div class="wide seg">'+[[3,'三局兩勝'],[5,'五局三勝']].map(function(x){return '<button data-act="fmt" data-v="'+x[0]+'" aria-pressed="'+(fmtOf(s)===x[0])+'"'+(lk?' disabled':'')+'>'+x[1]+'</button>'}).join('')+'</div>'+
     '<button class="wide ptbtn" data-act="sheet" data-v="points"><span>每局分數設定</span><small>'+ptText(s)+'</small></button>'+
 
-    '</div>'+(lk?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="home">回主畫面</button>');
+    '</div>'+(lk?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">回'+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>');
 }
 function ptText(s){var c=setList(s).map(function(n){return target(s,n)+(capOf(s,n)?'（搶 '+capOf(s,n)+'）':'')}).join('、');return setList(s).some(function(n){return capOf(s,n)})?c:c+'　Deuce 無上限'}
 function autoSlot(t){
@@ -2618,11 +2619,12 @@ function whoText(w){if(w==='隊'||w==null)return '';if(typeof w==='number')retur
 function sanText(x){var w=whoText(x.who);return SANK[x.san]+(w?' '+w:'')}
 function penHtml(s){
   var p=ui.pen; if(!p)return '';
-  var n=s.setNo,c=s.sets[n],k=p.team,t=k?s.teams[k]:null,A=s.sets[1].left,h;
+  var n=s.setNo,c=s.sets[n],k=p.team,t=k?s.teams[k]:null,A=s.sets[1].left,h,sb=null;
   var teams='<div class="teampick'+(k?' picked':'')+'">'+[c.left||A,other(c.left||A)].map(function(x){return '<button class="'+x+'" data-act="penteam" data-team="'+x+'" aria-pressed="'+(k===x)+'">'+esc(tName(s,x))+'</button>'}).join('')+'</div>';
   if(p.ok){
     var okn={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[p.ok.kind],okw=p.ok.who==='隊'?'':(typeof p.ok.who==='number'?p.ok.who+' 號 ':STAFFWHO.filter(function(q){return q[0]===p.ok.who})[0][1]+' ');
     var oke={DP:esc(tName(s,other(k)))+' 得 1 分。',P:esc(tName(s,other(k)))+' 得 1 分。',E:'本局不能再上場。',D:'本場不能再上場。'}[p.ok.kind]||'';
+    sb='';
     h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+okw+okn+'？</h2><p class="muted">第 '+n+' 局 '+c.score[k]+':'+c.score[other(k)]+(oke?'，'+oke:'')+'</p><div class="row"><button data-act="penno">取消</button><button class="go" data-act="penyes">確定</button></div>';
   }else if(!k){
     h='<h2>'+({INJ:'傷停',INC:'陣容不完整',FF:'棄權'}[p.kind]||'判罰')+'</h2><p class="subhint">先選隊伍</p>'+teams+'<button data-act="penclose">關閉</button>';
@@ -2630,12 +2632,15 @@ function penHtml(s){
     var used=s.injuries.filter(function(i){return i.team===k}).map(function(i){return i.no});
     h='<h2>傷停</h2>'+teams+'<p class="muted">點受傷的球員。能替補就先替補，不能替補才傷停 3 分鐘（規則 17.1）。</p><div class="bench"><div class="benchrow">'+c.cur[k].map(function(no){var u=used.indexOf(no)>=0;return '<button class="chip '+k+'" data-act="injpick" data-team="'+k+'" data-no="'+no+'"><b>'+no+'</b>'+(u?'<small>已傷停</small>':t.liberos.indexOf(no)>=0?'<small>自由</small>':'')+'</button>'}).join('')+'</div></div><button data-act="penclose">關閉</button>';
   }else if(p.kind==='LOG'){
-    h='<h2>判罰紀錄</h2><div class="logbox">'+recordsHtml(s)+'</div><button class="primary" data-act="penback">返回</button>';
+    sb='<button class="sheetback" data-act="penback">‹ 返回</button>';
+    h='<h2>判罰紀錄</h2><div class="logbox">'+recordsHtml(s)+'</div><button data-act="penclose">關閉</button>';
   }else if(p.kind==='INC'&&p.scope){
+    sb='';
     h='<h2>確定判 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 輸'+(p.scope==='set'?'本局':'整場')+'？</h2><p class="muted">'+(p.scope==='set'?'這一局會立刻結束':'比賽會立刻結束')+'，按下後不能復原。</p><div class="row"><button data-act="incno">取消</button><button class="danger" data-act="inc" data-team="'+k+'" data-v="'+p.scope+'">確定</button></div>';
   }else if(p.kind==='INC'){
     h='<h2>陣容不完整</h2>'+(p.resume?'':teams)+'<p class="muted">規則 6.4.3：輸掉該局或該場，對方補足分數，這隊保留已得分數和局數。</p><div class="row"><button class="danger" data-act="incask" data-team="'+k+'" data-v="set">'+esc(tName(s,k))+' 輸本局</button><button class="danger" data-act="incask" data-team="'+k+'" data-v="match">'+esc(tName(s,k))+' 輸整場</button></div><button data-act="penclose">關閉</button>';
   }else if(p.kind==='FF'&&p.ffok){
+    sb='';
     h='<h2>確定 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 棄權？</h2><p class="muted">比賽會立刻結束，按下後不能復原。</p><div class="row"><button data-act="ffno">取消</button><button class="danger" data-act="forfeit" data-team="'+k+'">確定棄權</button></div>';
   }else if(p.kind==='FF'){
     h='<h2>棄權</h2>'+teams+'<p class="muted">規則 6.4.1：比賽判對方獲勝，每局 25:0。</p><div class="row"><button class="danger" data-act="ffask" data-team="'+k+'">'+esc(tName(s,k))+' 棄權</button><button data-act="penclose">關閉</button></div>';
@@ -2643,7 +2648,8 @@ function penHtml(s){
     var gone=function(w){var g=sanGone(s,k,w);return g==='D'||(g==='E'&&p.kind!=='D')?g:''},gtx={D:'已出場',E:'已出局'};
     var pl=t.players.map(function(q){var g=gone(q.no);return '<button class="chip '+k+(g?' off':'')+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"'+(g?' disabled':'')+'><b>'+q.no+'</b>'+(g?'<small>'+gtx[g]+'</small>':'')+'</button>'}).join('');
     var st=STAFFWHO.map(function(x){var g=gone(x[0]);return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'"'+(g?' disabled':'')+'>'+x[1]+(g?' '+gtx[g]:'')+'</button>'}).join('');
-    h='<h2>'+esc(tName(s,k))+' '+PERSON[p.kind]+'：選對象</h2><div class="bench"><div class="benchrow">'+pl+'</div></div><div class="stf">'+st+'</div><button data-act="penback">返回</button>';
+    sb='<button class="sheetback" data-act="penback">‹ 返回</button>';
+    h='<h2>'+esc(tName(s,k))+' '+PERSON[p.kind]+'：選對象</h2><div class="bench"><div class="benchrow">'+pl+'</div></div><div class="stf">'+st+'</div><button data-act="penclose">關閉</button>';
   }else{
     function cnt(q){return s.sanctions.filter(function(x){return x.team===k&&x.kind===q}).length}
     var ir=cnt('IR'),dw=cnt('DW'),yw=cnt('W');
@@ -2654,7 +2660,7 @@ function penHtml(s){
       '<div class="muted">個人</div><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>一手舉兩張</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>兩手各一張</small></button></div>'+
       '<div class="row"><button data-act="penkind" data-team="'+k+'" data-v="LOG">判罰紀錄（'+s.sanctions.length+'）</button><button class="primary" data-act="penclose">關閉</button></div>';
   }
-  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(p.back?BACK_BTN:'')+h+'</div>';
+  return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(sb!==null?sb:(p.back?BACK_BTN:''))+h+'</div>';
 }
 function recordsHtml(s){
   var A=s.sets[1].left,ir=s.sanctions.filter(function(x){return x.kind==='IR'});
@@ -2748,7 +2754,7 @@ function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="ex
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
-  var k=x.team,t=s.teams[k],h='';
+  var k=x.team,t=s.teams[k],h='',stepBack=null;
   if(x.type==='libaway'){
     var ac=s.sets[s.setNo],aE=ac.expelled[k].indexOf(x.no)>=0,aFree=t.liberos.filter(function(q){return ac.cur[k].indexOf(q)<0&&ac.expelled[k].indexOf(q)<0&&s.matchOut[k].indexOf(q)<0});
     h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 自由球員 '+x.no+' 號不能上</h2><p class="muted">'+(aE?'這局被判出局，下一局可以再上。':'本場不能再上（被判出場、受傷或已重新指定）。')+'</p>'+(!aFree.length&&!aE?'<button class="mbtn big" data-act="redopen" data-team="'+k+'"><strong>重新指定自由球員</strong><small>這隊目前沒有自由球員可以上</small></button>':'')+'<button data-act="close">關閉</button>';
@@ -2768,7 +2774,8 @@ function sheetHtml(s,m){
       else if(x.step==='sub')list=lgN.map(function(q){return chip('pmsubin',q)}).join('');
       else if(x.step==='exc')list=(subOptions(s,k,x.idx,true).nos||[]).map(function(q){return chip('pmsubin',q,' data-exc="1"')}).join('');
       h=head+(x.step==='exc'?'<p class="excnote">被例外替補換下的人，本場比賽不能再上場</p>':'')+'<p class="subhint">'+({lib:'自由球員上場',swap:'換成哪一位自由',sub:pno+' 號換下，上場：',exc:pno+' 號例外替補，上場：'}[x.step])+'</p><div class="bench"><div class="benchrow">'+list+'</div></div>'+
-        (x.step==='exc'?'<button class="ghost" data-act="pminj" aria-pressed="'+!!x.inj+'">'+(x.inj?'☑':'☐')+' 宣告受傷</button>':'')+'<button data-act="pmback">返回</button>';
+        (x.step==='exc'?'<button class="ghost" data-act="pminj" aria-pressed="'+!!x.inj+'">'+(x.inj?'☑':'☐')+' 宣告受傷</button>':'')+'<button data-act="close">關閉</button>';
+      stepBack='<button class="sheetback" data-act="pmback">‹ 返回</button>';
     }else if(pL){
       h=head+'<div class="pm3">'+big('pmlout','換回',lOk&&!!pc.libOut[k])+big(free.length===1?'pmlswap':'pmstep','換自由',lOk&&free.length>0,free.length===1?' data-no="'+free[0]+'"':' data-v="swap"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div>'+
         '<button class="linkbtn" data-act="redopen" data-team="'+k+'">不能繼續：重新指定自由球員</button><button data-act="close">關閉</button>';
@@ -2863,9 +2870,10 @@ function sheetHtml(s,m){
     }else if(x.no==null){
       var used=[];fc.subPos[k].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
       var nos=t.players.map(function(p){return p.no}).filter(function(no){return no!==fl[x.pos]&&t.liberos.indexOf(no)<0&&used.indexOf(no)<0&&fc.expelled[k].indexOf(no)<0&&s.matchOut[k].indexOf(no)<0});
-      h='<h2>'+ROMAN[x.pos]+' 位原本是 '+fl[x.pos]+' 號</h2><p class="subhint">點正確的背號</p><div class="bench"><div class="benchrow">'+nos.map(function(no){return '<button class="chip '+k+'" data-act="fixno" data-v="'+no+'"><b>'+no+'</b></button>'}).join('')+'</div></div><button data-act="fixback">返回</button>';
+      h='<h2>'+ROMAN[x.pos]+' 位原本是 '+fl[x.pos]+' 號</h2><p class="subhint">點正確的背號</p><div class="bench"><div class="benchrow">'+nos.map(function(no){return '<button class="chip '+k+'" data-act="fixno" data-v="'+no+'"><b>'+no+'</b></button>'}).join('')+'</div></div><button data-act="close">取消</button>';stepBack='<button class="sheetback" data-act="fixback">‹ 返回</button>';
     }else{
       var oi=fl.indexOf(x.no);
+      stepBack='';
       h='<h2>確定修正？</h2><p class="subhint">'+(oi>=0?ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號與 '+ROMAN[oi]+' 位 '+x.no+' 號互換':ROMAN[x.pos]+' 位 '+fl[x.pos]+' 號改為 '+x.no+' 號')+'</p><p class="muted">比分和輪轉不變。</p><div class="row"><button data-act="fixback">返回</button><button class="go" data-act="fixdo">確定修正</button></div>';
     }
   }else if(x.type==='gcap'){
@@ -2906,7 +2914,7 @@ function sheetHtml(s,m){
       return '<button class="imp" data-act="import-pick" data-team="'+k+'" data-i="'+i+'"><span>'+esc(p.name)+'</span><small>'+p.team.players.length+' 人'+(p.date?'・'+esc(p.date.slice(5)):'')+'</small></button>';
     }).join('')+'<button class="ghost" data-act="close">關閉</button>';
   }
-  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+(x.back?BACK_BTN:'')+h+'</div>';
+  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+(stepBack!==null?stepBack:(x.back?BACK_BTN:''))+h+'</div>';
 }
 /* 文字欄位改完只更新狀態，不重畫整頁，避免手指同時按下的按鈕被換掉 */
 function refreshStatus(){
@@ -3367,7 +3375,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.help [data-act=helpclose]','.fsv [data-act=fsclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
+  var q=['.help [data-act=helpclose]','.fsv [data-act=fsclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }

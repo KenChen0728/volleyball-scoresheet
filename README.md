@@ -68,6 +68,7 @@ git push
 
 橫的畫面改過幾次，舊版各留一個分支：
 
+- `backup/before-nav`：統一「返回」和「關閉」之前
 - `backup/before-export`：加入「存成圖片／PDF」之前
 - `backup/before-wide-v47`：手機直式隊名長條、時間與羅馬數字放大、結果頁放大之前
 - `backup/before-wide-v45`：局數移到上方色帶之前
