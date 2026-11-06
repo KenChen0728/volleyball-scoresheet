@@ -66,7 +66,7 @@ git push
 
 ### 退回寬版調整前
 
-橫向畫面的調整（視窗置中、記錄表縮小、返回上一層、兩側對稱、按鈕放大）之前的版本留在 `backup/before-wide-v41` 分支。要退回：
+視窗返回上一層、橫向畫面兩側對稱和按鈕放大之前的版本留在 `backup/before-wide-v41` 分支。要退回：
 
 ```
 git checkout backup/before-wide-v41 -- index.html sw.js school
