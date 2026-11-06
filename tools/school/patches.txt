@@ -361,9 +361,9 @@ st.started=true; st.serving=st.serve; st.startAt=ev.at;
 st.started=true; st.serving=st.serve; st.startAt=ev.at; st.firstServeAt=ev.at;
 >>>>
 <<<<
-if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot])}
+if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.lastPointAt=ev.at}
 ====
-if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.tape[sn.tape.length-1].pen=true}
+if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.lastPointAt=ev.at;sn.tape[sn.tape.length-1].pen=true}
 >>>>
 <<<<
 to.timeouts[d.team].push(to.score.t1+':'+to.score.t2);

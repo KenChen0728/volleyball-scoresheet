@@ -1534,13 +1534,13 @@ function reduce(events){
         if(d.set===1){s.teams.t1.locked=true;s.teams.t2.locked=true}
         break;
       case 'POINT':
-        applyPoint(s.sets[d.set],d.team);
+        applyPoint(s.sets[d.set],d.team); s.sets[d.set].lastPointAt=ev.at;
         break;
       case 'SANCTION':
         var sn=s.sets[d.set],ot=other(d.team);
         s.log.push({id:ev.id,set:d.set,kind:'J',team:d.team,san:d.kind,who:d.who,score:sn.score[d.team]+':'+sn.score[ot]});
         s.sanctions.push({set:d.set,team:d.team,kind:d.kind,who:d.who,score:sn.score[d.team]+':'+sn.score[ot]});
-        if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.tape[sn.tape.length-1].pen=true}
+        if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.lastPointAt=ev.at;sn.tape[sn.tape.length-1].pen=true}
         if(d.kind==='E'&&typeof d.who==='number')sn.expelled[d.team].push(d.who);
         if(d.kind==='D'&&typeof d.who==='number')s.matchOut[d.team].push(d.who);
         break;
@@ -1740,7 +1740,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0338';
+var BUILD='1107-0412';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2623,7 +2623,7 @@ function nowHM(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d
 function startConfirm(s){
   var n=s.setNo,c=s.sets[n],L=c.left,R=other(L),A=s.sets[1].left;
   function side(k){return '<div class="cf '+k+'"><span class="ltr">'+(A===k?'A':'B')+'</span><strong>'+esc(tName(s,k))+'</strong><span class="'+(c.serve===k?'side on':'side')+'" style="border:0;padding:0;background:none">'+BALL+'</span><small>'+(c.serve===k?'先發球':'&nbsp;')+'</small></div>'}
-  var time=n===1?'<label for="cs-time">實際比賽開始時間<input id="cs-time" type="time" value="'+esc(s.info.actual||nowHM())+'"></label>'+(ui.csErr?'<p class="fielderr" role="alert">開始時間不能空白，已填入現在時間，確認後再按一次。</p>':''):'';
+  var time=n===1?'<label for="cs-time">記錄表上的開始時間<input id="cs-time" type="time" value="'+esc(s.info.actual||nowHM())+'"></label><p class="muted">照老師或第一裁判決定的時間填。之後各局的時間照實際打了多久往後算。</p>'+(ui.csErr?'<p class="fielderr" role="alert">開始時間不能空白，已填入現在時間，確認後再按一次。</p>':''):'';
   return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><h2>第 '+n+' 局開始前確認</h2><div class="cfr">'+side(L)+side(R)+'</div><div class="scorer">記錄台</div>'+time+'<div class="row"><button data-act="cs-no">返回修改</button><button class="go" data-act="cs-yes">確認無誤</button></div></div>';
 }
 function noticeHtml(){
@@ -2690,13 +2690,20 @@ function recordsHtml(s){
   return '<div class="irb"><span>不當請求</span><span>A <i>'+irm(A)+'</i></span><span>B <i>'+irm(other(A))+'</i></span></div>'+(rows?'<table class="res"><tr class="sm"><th>W</th><th>P</th><th>E</th><th>D</th><th>隊</th><th>局</th><th>比數</th></tr>'+rows+'</table>':'');
 }
 function fname(s,ext){return ('ScoreSheet_'+tName(s,'t1')+'_vs_'+tName(s,'t2')+'_'+(s.info.date||'')).replace(/[\\/:*?"<>|\s]/g,'')+'.'+ext}
+/* 記錄表上的時間（11/7 使用者）：第 1 局開始寫裁判決定的時間（開局確認填的），之後都照實際經過的時間往後算：
+   每局結束＝開始＋（這局第一次發球到最後一分）；第 2、3 局開始＝上一局結束＋3 分鐘。提早或晚幾分鐘開打，表上的時間都接得起來 */
+function hmAdd(t,m){var x=hmMin(t);if(x==null)return '';x=((x+m)%1440+1440)%1440;return ('0'+Math.floor(x/60)).slice(-2)+':'+('0'+x%60).slice(-2)}
 function setStartHM(s,n){
   if(n===1)return s.info.actual||'';
   if(s.info['st'+n])return s.info['st'+n];
+  var pe=setEndHM(s,n-1);if(pe)return hmAdd(pe,3);
   var e=s.sets[n-1].endAt;if(!e)return '';
   return hm(new Date(new Date(e).getTime()+180000).toISOString());
 }
-function setEndHM(s,n){return s.info['en'+n]||(s.sets[n].endAt?hm(s.sets[n].endAt):'')}
+function setEndHM(s,n){if(s.info['en'+n])return s.info['en'+n];var c=s.sets[n];if(!c.endAt)return '';
+  var st=setStartHM(s,n),a=c.firstServeAt,b=c.lastPointAt||c.endAt;
+  if(st&&a&&b)return hmAdd(st,Math.max(0,Math.round((new Date(b)-new Date(a))/60000)));
+  return hm(c.endAt)}
 function csvText(m,s){
   var A=s.sets[1].left||'t1',B=other(A),nm={t1:tName(s,'t1'),t2:tName(s,'t2')},dead={},lines=[];
   m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
