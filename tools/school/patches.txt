@@ -194,9 +194,9 @@ function matchOver(s){var w=setsWon(s),q=needWins(s);return w.t1>=q||w.t2>=q}
   setList(s).forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push(
 >>>>
 <<<<
-'」以 2:0 (25:0 25:0) 獲勝');
+  function sets(w){var a=[];[1,2,3].forEach(
 ====
-'」以 '+forfeitScore(s)+' 獲勝');
+  function sets(w){var a=[];setList(s).forEach(
 >>>>
 <<<<
 '」以 2:0 (25:0 25:0) 獲勝。確定後比賽直接結束。</p>'
@@ -482,9 +482,9 @@ function autoSlot(t){
     case 'div': dispatch('INFO_SET',
 >>>>
 <<<<
-placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
+placeholder="點這裡輸入記事，一行一項，匯出時會用「；」接起來">'+esc(s.info.remarks||'')+'</textarea></div>';
 ====
-placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea><div class="fields crew">'+crewFields(s)+'</div></div>';
+placeholder="點這裡輸入記事，一行寫一項">'+esc(s.info.remarks||'')+'</textarea><div class="fields crew">'+crewFields(s)+'</div></div>';
 >>>>
 
 ＝＝＝ 名單：不打姓名，每隊 12 格加 2 個自由球員 ＝＝＝

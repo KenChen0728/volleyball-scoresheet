@@ -1436,7 +1436,8 @@ function reduce(events){
         s.teams.t1.locked=true;s.teams.t2.locked=true;
         break;
       case 'FORFEIT':
-        var fo=other(d.team);
+        var fo=other(d.team),fc=s.sets[s.setNo];
+        s.forfeitAt=fc&&fc.started?{set:s.setNo,raw:{t1:fc.score.t1,t2:fc.score.t2}}:null;
         [1,2,3].forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
         [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
         if(!s.sets[1].left)s.sets[1].left='t1';
@@ -1607,7 +1608,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0412';
+var BUILD='1107-0751';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1761,6 +1762,7 @@ addEventListener('popstate',function(){
 function render(){
   var had=kbd&&document.activeElement&&document.activeElement!==document.body,fk=had?focusKey():null;
   paint();markSwipe();backSync();fitPaper();
+  if(ui.focusRemarks){ui.focusRemarks=false;var ta=document.querySelector('textarea[data-field="remarks"]');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}}
   if(kbd&&(had||topLayer()))restoreFocus(fk);
 }
 
@@ -2329,21 +2331,25 @@ function statTable(s,rows,foot,top){
   return '<table class="res"><tr><th colspan="4">A '+esc(tName(s,A))+'</th><th>'+(top||'')+'</th><th colspan="4">B '+esc(tName(s,B))+'</th></tr><tr class="sm"><th>暫停</th><th>替補</th><th>勝負</th><th>得分</th><th>'+(top?'時間':'局（分鐘）')+'</th><th>得分</th><th>勝負</th><th>替補</th><th>暫停</th></tr>'+rows+(foot||'')+'</table>';
 }
 function notesList(s,A,B){
+  /* 記事欄的句子照使用者常寫的寫法（11/7）：用 A 隊、B 隊；比分一律 A:B 在前 */
   var notes=[],late=hmDiff(s.info.time,s.info.actual);
-  if(late&&late<720)notes.push('本場比賽開賽時間為 '+s.info.actual+'（延後 '+late+' 分鐘）');
-  else if(late>=720)notes.push('本場比賽提前 '+(1440-late)+' 分鐘，開始於 '+s.info.actual);
-  function ab(r){return r?'A:B='+(A==='t1'?r.t1+':'+r.t2:r.t2+':'+r.t1)+'，':''}
-  function tag(k){return tName(s,k)+'（'+(k===A?'A':'B')+' 隊）'}
-  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push('第 '+n+' 局 '+ab({t1:p[0],t2:p[1]})+tag(k)+'球員 '+x.out+(x.injury?' 宣告為受傷且被':' 被')+'球員 '+x.in+' 例外替補')}})})});
-  (s.redes||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+'自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
-  s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+ab(x.raw)+tag(x.team)+x.no+' 號傷停')});
-  (s.acc||[]).forEach(function(x){var o=other(x.team);var ln=new String('第 '+x.set+' 局 '+x.raw[x.team]+':'+x.raw[o]+' '+(x.team===A?'A':'B')+' 隊請求 '+(x.back?'C 代 AC':'AC 代 C'));ln.accId=x.id;notes.push(ln)});
-  if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score,wn=setsWon(s);
-    notes.push(ii.scope==='match'?'在第 '+ii.set+' 局後，由於'+tag(il)+'球員未完整，'+tag(iw)+'贏得本場比賽 '+wn[iw]+':'+wn[il]:'第 '+ii.set+' 局 '+ab(ii.raw).replace('，','')+'，由於'+tag(il)+'球員不完整，'+tag(iw)+'贏得本局 '+isc[iw]+':'+isc[il]);}
-  if(s.preForfeit)notes.push('因 B 隊「'+tName(s,other(s.preForfeit.winner))+'」'+s.preForfeit.reason+'，由 A 隊「'+tName(s,s.preForfeit.winner)+'」以 2:0 (25:0 25:0) 獲勝');
-  if(s.forfeit)notes.push(tName(s,s.forfeit)+' 棄權');
+  if(late&&late<720)notes.push('因'+(s.info.lateWhy||'前場比賽延誤')+'，本場比賽於 '+s.info.actual+' 開始'); // 提早開打照表定時間寫，不記
+  function sc(r){return A==='t1'?r.t1+':'+r.t2:r.t2+':'+r.t1}
+  function ab(n,r){return '第 '+n+' 局 A:B '+sc(r)+'，'}
+  function L(k){return k===A?'A 隊':'B 隊'}
+  function sets(w){var a=[];[1,2,3].forEach(function(n){var c=s.sets[n];if(c.ended)a.push(c.score[w]+':'+c.score[other(w)])});var wn=setsWon(s);return '以 '+wn[w]+':'+wn[other(w)]+'（'+a.join('、')+'）獲勝'}
+  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc){var p=x.score.split(':');notes.push(ab(n,{t1:p[0],t2:p[1]})+L(k)+' '+x.out+' 號受傷，由 '+x.in+' 號例外替補')}})})});
+  (s.redes||[]).forEach(function(x){notes.push(ab(x.set,x.raw)+L(x.team)+'自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
+  s.injuries.forEach(function(x){notes.push(ab(x.set,x.raw)+L(x.team)+' '+x.no+' 號受傷暫停比賽')});
+  (s.acc||[]).forEach(function(x){var ln=new String(ab(x.set,x.raw)+L(x.team)+'請求 '+(x.back?'C 代 AC':'AC 代 C'));ln.accId=x.id;notes.push(ln)});
+  if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score;
+    notes.push(ab(ii.set,ii.raw)+'因 '+L(il)+'陣容不完整，由 '+L(iw)+(ii.scope==='match'?sets(iw):'以 '+isc[iw]+':'+isc[il]+' 贏得本局'))}
+  if(s.preForfeit){var pw=s.preForfeit.winner;notes.push('因 '+L(other(pw))+(s.preForfeit.reason||'逾時未出賽')+'，由 '+L(pw)+sets(pw))}
+  if(s.forfeit){var fa=s.forfeitAt;notes.push((fa?ab(fa.set,fa.raw):'')+'因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
   return notes;
 }
+/* 記錄員自己寫的記事，一行算一項 */
+function remarkItems(s){return String(s.info.remarks||'').split(/\n+/).map(function(t){return t.trim().replace(/[；;。]+$/,'')}).filter(Boolean)}
 /* ========== 記錄表（版面對照 AVC eScoresheet）：一律由事件推算，白底藍字，不隨深淺主題改變 ========== */
 var INK='#1616c8';
 function svL(a,b,c,d,w,col){return '<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" stroke="'+(col||'#000')+'" stroke-width="'+(w||1)+'"/>'}
@@ -2591,16 +2597,20 @@ function ctSan(s){
   return o;
 }
 function ctNotesLines(s){
-  var A=sheetTeams(s,1).A,list=notesList(s,A,other(A)).map(String),extra=s.sanctions.filter(function(q){return q.kind!=='IR'}).length-(CTG.san.rows.length-1);
+  var A=sheetTeams(s,1).A,list=notesList(s,A,other(A)).map(String).concat(remarkItems(s)),extra=s.sanctions.filter(function(q){return q.kind!=='IR'}).length-(CTG.san.rows.length-1);
   if(extra>0)list.push('判罰另有 '+extra+' 筆，記錄表的判罰欄寫不下，請看 App 的判罰頁');
   return list;
 }
 function ctNotes(s){
   /* 記事欄：一項接一項寫下去（用「；」隔開），不是一項一列。字多先縮小，最小 7；還放不下就把字擠窄一點（11/7 使用者） */
   var g=CTG.notes.lines,t=ctNotesLines(s).join('；'),o='';if(!t)return '';
+  /* 英數字（A:B、12:10）不拆到兩行；標點不放在行首 */
+  var tk=t.match(/[!-~]+ ?|[\s\S]/g)||[];
+  function tw(x){var u=0;for(var c=0;c<x.length;c++)u+=x.charCodeAt(c)>255?1:.58;return u}
   function lay(fs,sq){var out=[],i=0;for(var li=0;li<g.length;li++){var max=(g[li][1]-g[li][0])/(fs*sq),u=0,cur='';
-      while(i<t.length){var w=t.charCodeAt(i)>255?1:.58;if(u+w>max)break;cur+=t.charAt(i);u+=w;i++}out.push([cur,u*fs*sq])}
-    return {out:out,done:i>=t.length}}
+      while(i<tk.length){var w=tw(tk[i]);if(u+w>max&&!(cur&&/^[；，、。）：]/.test(tk[i])&&u+w<=max+1.05))break;cur+=tk[i];u+=w;i++}
+      if(!cur&&i<tk.length){cur=tk[i];u=tw(cur);i++}out.push([cur.replace(/ $/,''),u*fs*sq])}
+    return {out:out,done:i>=tk.length}}
   var fs,sq=1,L;
   for(fs=11;fs>=7;fs-=.5){L=lay(fs,1);if(L.done)break}
   if(!L.done){fs=7;for(sq=.95;sq>=.749;sq-=.05){L=lay(fs,sq);if(L.done)break}sq=Math.max(sq,.75)}
@@ -2766,8 +2776,8 @@ function ppSanctions(s){
 }
 function ppRemarks(s){
   var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),done=matchOver(s),rows=nt.map(function(x){return '<li>'+esc(x)+(x.accId&&!done?' <button class="accx" data-act="accdel" data-v="'+esc(x.accId)+'" aria-label="刪除這行">✕</button>':'')+'</li>'}).join('');
-  var qk=matchOver(s)||s.preForfeit?'':'<div class="quicknote"><span class="muted">快速加入</span>'+[A,other(A)].map(function(k){var nb=(s.acc||[]).filter(function(q){return q.team===k}).length%2===1;return '<button class="qn '+k+'" data-act="accadd" data-team="'+k+'" data-v="'+(nb?'back':'')+'">'+esc(tName(s,k))+'<br>'+(nb?'C 代 AC':'AC 代 C')+'</button>'}).join('')+'</div>';
-  return '<div class="ppr prem"><h3>記事欄</h3>'+qk+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，例如開賽延誤原因">'+esc(s.info.remarks||'')+'</textarea></div>';
+  var qk=matchOver(s)||s.preForfeit?'':'<div class="quicknote"><span class="muted">快速加入</span>'+[A,other(A)].map(function(k){var nb=(s.acc||[]).filter(function(q){return q.team===k}).length%2===1;return '<button class="qn '+k+'" data-act="accadd" data-team="'+k+'" data-v="'+(nb?'back':'')+'">'+esc(tName(s,k))+'<br>'+(nb?'C 代 AC':'AC 代 C')+'</button>'}).join('')+'<button class="qn" data-act="rmscore">申訴、其他<br>帶入比分</button></div>';
+  return '<div class="ppr prem"><h3>記事欄</h3>'+qk+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，一行一項，匯出時會用「；」接起來">'+esc(s.info.remarks||'')+'</textarea></div>';
 }
 function pendingHtml(s,win){
   var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];
@@ -2887,11 +2897,12 @@ function undoText(s,e){
   }
   return '上一步';
 }
+var LATE_WHY=['前場比賽延誤','賽事延誤'];
 function nowHM(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
 function startConfirm(s){
   var n=s.setNo,c=s.sets[n],L=c.left,R=other(L),A=s.sets[1].left;
   function side(k){return '<div class="cf '+k+'"><span class="ltr">'+(A===k?'A':'B')+'</span><strong>'+esc(tName(s,k))+'</strong><span class="'+(c.serve===k?'side on':'side')+'" style="border:0;padding:0;background:none">'+BALL+'</span><small>'+(c.serve===k?'先發球':'&nbsp;')+'</small></div>'}
-  var time=n===1?'<label for="cs-time">記錄表上的開始時間<input id="cs-time" type="time" value="'+esc(s.info.actual||nowHM())+'"></label><p class="muted">照老師或第一裁判決定的時間填。之後各局的時間照實際打了多久往後算。</p>'+(ui.csErr?'<p class="fielderr" role="alert">開始時間不能空白，已填入現在時間，確認後再按一次。</p>':''):'';
+  var time=n===1?'<label for="cs-time">記錄表上的開始時間<input id="cs-time" type="time" value="'+esc(ui.csTime||s.info.actual||nowHM())+'"></label><p class="muted">照老師或第一裁判決定的時間填。之後各局的時間照實際打了多久往後算。</p>'+(s.info.time?'<p class="subhint">比表定 '+esc(s.info.time)+' 晚開始時，記事欄寫的延誤原因</p><div class="seg" style="flex:none">'+LATE_WHY.map(function(r){return '<button data-act="cswhy" data-v="'+r+'" aria-pressed="'+((ui.csWhy||s.info.lateWhy||LATE_WHY[0])===r)+'">'+r+'</button>'}).join('')+'</div>':'')+(ui.csErr?'<p class="fielderr" role="alert">開始時間不能空白，已填入現在時間，確認後再按一次。</p>':''):'';
   return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><h2>第 '+n+' 局開始前確認</h2><div class="cfr">'+side(L)+side(R)+'</div><div class="scorer">記錄台</div>'+time+'<div class="row"><button data-act="cs-no">返回修改</button><button class="go" data-act="cs-yes">確認無誤</button></div></div>';
 }
 function noticeHtml(){
@@ -3021,11 +3032,7 @@ function reportHtml(s,m){
   var mins=[1,2,3].reduce(function(a,n){return a+(s.sets[n].ended?setMin(s.sets[n]):0)},0);
   var foot='<tr><td>'+sum.A.to+'</td><td>'+sum.A.su+'</td><td>'+sum.A.w+'</td><td>'+sum.A.pt+'</td><td>合計（'+mins+'）</td><td>'+sum.B.pt+'</td><td>'+sum.B.w+'</td><td>'+sum.B.su+'</td><td>'+sum.B.to+'</td></tr>';
   var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',over=matchOver(s),lastEnd=[3,2,1].filter(function(n){return s.sets[n].endAt}).map(function(n){return setEndHM(s,n)})[0];
-  var notes=[];
-  [1,2,3].forEach(function(n){[A,B].forEach(function(k){s.sets[n].subs[k].forEach(function(x){if(x.exc)notes.push('第 '+n+' 局 '+tName(s,k)+' 例外替補 '+x.out+' 換 '+x.in+'（'+x.score+'）')})})});
-  (s.redes||[]).forEach(function(x){notes.push('第 '+x.set+' 局 '+tName(s,x.team)+' 自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
-  s.injuries.forEach(function(x){notes.push('第 '+x.set+' 局 '+tName(s,x.team)+' '+x.no+' 號傷停')});
-  if(s.forfeit)notes.push(tName(s,s.forfeit)+' 棄權');
+  var notes=notesList(s,A,B).map(String).concat(remarkItems(s));
   return '<div class="rv"><div class="rvbar"><button data-act="rpclose">關閉</button><button class="go" data-act="rpprint">列印／存 PDF</button><button data-act="rpcsv">下載 CSV</button><button data-act="rpjson">下載備份</button><button data-act="rpcopy">複製 CSV</button><span id="rvmsg" class="muted"></span></div><div class="rvscroll"><article class="paper"><header class="ph"><h1>排球比賽記錄表</h1><div><span>比賽名稱：'+esc(i.name)+'</span><span>地點：'+esc(i.place)+'</span><span>場地：'+esc(i.court)+'</span><span>組別：'+esc(i.division)+'</span><span>場次：'+esc(i.game)+'</span><span>日期：'+esc(i.date)+'</span><span>表定時間：'+esc(i.time)+'</span></div></header><div class="pm"><div class="pl">'+h+'</div><aside class="pr"><div class="ros">'+rost(A)+rost(B)+'</div><h3>比賽成績</h3>'+statTable(s,res,foot)+'<div class="ts"><span>開始 '+esc(i.actual||'')+'</span><span>結束 '+(lastEnd||'')+'</span><span>勝隊：'+(over?esc(tName(s,win))+' '+w[win]+':'+w[other(win)]:'')+'</span></div><h3>制裁</h3>'+recordsHtml(s)+'<h3>記事欄</h3><div class="nt">'+esc(notes.join('；'))+'</div><h3>證明</h3><table class="sgn"><tr><th>第一裁判</th><td>'+esc(s.info.ref1||'')+'</td><th>第二裁判</th><td>'+esc(s.info.ref2||'')+'</td></tr><tr><th>記錄員</th><td>'+esc(s.info.scorer||'')+'</td><th>助理記錄</th><td>'+esc(s.info.ascorer||'')+'</td></tr><tr><th>隊長 A</th><td></td><th>隊長 B</th><td></td></tr></table></aside></div></article></div></div>';
 }
 function csvText(m,s){
@@ -3562,11 +3569,13 @@ app.addEventListener('click',function(e){
     case 'lu-lock': dispatch('LINEUP_LOCKED',{set:n,team:k}); var ls=reduce(m.events); if(!ls.sets[n].locked[other(k)])ui.luTeam=other(k); ui.sel=null; autoSelect(ls); break;
     case 'lu-unlock': dispatch('LINEUP_UNLOCKED',{set:n,team:k}); ui.sel=null; autoSelect(reduce(m.events)); break;
     case 'start': if(n===2){dispatch('SET_STARTED',{set:n}); ui.sel=null; ui.page='play'}else ui.cs=true; break;
-    case 'cs-no': ui.cs=false; ui.csErr=false; break;
+    case 'rmscore': var rc=s.sets[s.setNo],rA=s.sets[1].left||'t1',rr=String(s.info.remarks||'').replace(/\s+$/,''); dispatch('INFO_SET',{field:'remarks',value:(rr?rr+'\n':'')+'第 '+s.setNo+' 局 A:B '+rc.score[rA]+':'+rc.score[other(rA)]+'，'}); ui.focusRemarks=true; break;
+    case 'cs-no': ui.cs=false; ui.csErr=false; ui.csTime=null; ui.csWhy=null; break;
+    case 'cswhy': var tw=document.getElementById('cs-time'); if(tw)ui.csTime=tw.value; ui.csWhy=b.getAttribute('data-v'); break;
     case 'cs-yes':
       var ti=document.getElementById('cs-time');
-      if(ti){if(!ti.value){ui.csErr=true;break}dispatch('INFO_SET',{field:'actual',value:ti.value})}
-      ui.cs=false; ui.csErr=false; dispatch('SET_STARTED',{set:n}); ui.sel=null; ui.page='play'; break;
+      if(ti){if(!ti.value){ui.csErr=true;break}dispatch('INFO_SET',{field:'actual',value:ti.value});if(s.info.time)dispatch('INFO_SET',{field:'lateWhy',value:ui.csWhy||s.info.lateWhy||LATE_WHY[0]})}
+      ui.cs=false; ui.csErr=false; ui.csTime=null; ui.csWhy=null; dispatch('SET_STARTED',{set:n}); ui.sel=null; ui.page='play'; break;
     case 'nclose': ui.notice=null; break;
     case 'penopen': ui.pen={team:null,kind:null}; break;
     case 'injopen': ui.sheet=null; ui.pen={team:null,kind:b.getAttribute('data-v')}; break;
