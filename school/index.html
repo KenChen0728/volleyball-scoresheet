@@ -1115,8 +1115,19 @@ button.dim{opacity:.45}
 @media (orientation:landscape) and (min-width:640px) and (min-height:621px){
   .wplay>.wcol:nth-child(3) .wnums{flex-direction:row-reverse}
   .wcol .tg{grid-template-columns:1fr;gap:8px}
-  .wcol .tg button{min-height:58px;font-size:19px}
-  .wcol .strip{gap:8px}
+  .wcol .tg button{min-height:58px;font-size:20px;display:flex;justify-content:space-between;align-items:center;padding:0 18px}
+  .wcol .tg button b{font-family:var(--num);font-size:36px;line-height:1}
+  .wcol .setbox{flex:0 0 66px}
+  .wcol .setbox small{font-size:15px}
+  .wcol .setbox b{font-size:42px}
+  .wcol .strip{margin-top:10px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"a l" "b c";gap:10px 10px;align-items:center;justify-items:start}
+  .wcol .strip::before{content:"自由";grid-area:a}
+  .wcol .strip::after{content:"隊長";grid-area:b}
+  .wcol .strip::before,.wcol .strip::after{font-size:15px;font-weight:700;color:var(--muted);width:36px}
+  .wcol .strip .ls{grid-area:l}
+  .wcol .strip .capbox{grid-area:c}
+  .wcol .strip.mir{grid-template-columns:1fr auto;grid-template-areas:"l a" "c b";justify-items:end}
+  .wcol .strip.mir::before,.wcol .strip.mir::after{text-align:right}
   .wcol .strip .lc,.wcol .strip .capbox{flex:none;width:62px;height:62px}
   .wcol .strip .ls{gap:6px}
   .wcol .strip .lc b,.wcol .strip .capbox b{font-size:23px}
@@ -1590,7 +1601,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1106-1618';
+var BUILD='1106-1626';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
