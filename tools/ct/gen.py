@@ -204,6 +204,26 @@ G['roster']['cb'][0] = R(2 * C - lcx)
 gap = 2.5; G['roster']['ta'] = [G['roster']['ta'][0], R(qd[0] - gap)]; G['roster']['tb'] = [R(qd[0] + qd[2] + gap), R(2 * C - G['roster']['ta'][0])]
 print('名單表頭對稱', 'C', C, '球隊 x0', qd[0], '右圓', G['roster']['cb'][0], '右 A or B x0', rx, 'ta', G['roster']['ta'], 'tb', G['roster']['tb'])
 
+# 5. 各局「開始／結束　：」：小時、冒號、分鐘在字和右邊線之間平均分配（冒號也跟著移，11/7 使用者）
+for sk, sv in S.items():
+    for bk, b in sv.items():
+        if 'time' not in b: continue
+        tm_ = b['time']
+        col = [t for t in T if t[5] == '：' and abs(t[1] - tm_[2]) < 2 and t[0] + t[2] <= tm_[0] + 1.5 and t[0] >= tm_[0] - 16]
+        lab = [t for t in T if t[5] in ('開始', '結束') and abs(t[1] - tm_[2]) < 2 and col and t[0] + t[2] <= col[0][0] + 1 and t[0] >= col[0][0] - 40]
+        if not col or not lab: continue
+        col = col[0]; le = lab[0][0] + lab[0][2]
+        rb = min(x for x, a, bb, w in d['vs'] if x > col[0] + col[2] / 2 and a <= tm_[2] <= bb)
+        wd, wc = 11.0, 3.0; g = (rb - le - 2 * wd - wc) / 4
+        hc = le + g + wd / 2; cc = le + 2 * g + wd + wc / 2; mc = cc + wc / 2 + g + wd / 2
+        col[0] = R(cc - col[2] / 2); b['tpos'] = [R(hc), R(mc)]
+        print('時間平均分配', sk, bk, b['tpos'], '冒號', R(cc))
+# 6. 比賽成績「勝隊：　2：」整列垂直置中
+wr = G['res']['win']; wc_ = R((wr[0] + wr[1]) / 2)
+for t in T:
+    if wr[0] < t[1] < wr[1] and G['res']['box'][0] - 6 < t[0] < G['res']['box'][2]: t[1] = R(t[1] + (wc_ - 780.9))
+G['res']['winner'][2] = wc_
+
 tpl = {'W': d['W'], 'H': d['H'], 'h': HL, 'v': VL, 'b': BX, 'd': DS, 't': T}
 js = 'var CT3=' + json.dumps(tpl, ensure_ascii=False, separators=(',', ':')) + ';\nvar CTG=' + json.dumps(G, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(out, 'w', encoding='utf8').write(js)
