@@ -1740,7 +1740,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0242';
+var BUILD='1107-0255';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1830,7 +1830,7 @@ var ROMAN=['I','II','III','IV','V','VI'];
 var STAFF=[['execCoach','執行教練'],['coach','教練'],['leader','領隊'],['manager','管理']]; // 11/7 使用者：照協會記錄表
 function staffOf(t){var a=STAFF.slice();if(t&&t.staff&&t.staff.teacher)a.push(['teacher','隨隊教師（舊）']);return a} // 舊比賽填過的隨隊教師照樣看得到
 /* 裁判（11/7 使用者：多一頁，可以不填；印在記錄表的證明欄） */
-var REFS=[['ref1','第一裁判員'],['ref2','第二裁判員'],['scorer','記錄員'],['ascorer','助理記錄員'],['lj1','司線員 1'],['lj2','司線員 2'],['delegate','裁判委員']];
+var REFS=[['ref1','第一裁判員'],['ref2','第二裁判員'],['scorer','記錄員'],['ascorer','助理記錄員'],['lj1','司線員 1'],['lj2','司線員 2']]; // 裁判委員不用輸入，記錄表上那格留空給委員自己寫（11/7 使用者）
 function refsHtml(s,inTab){var i=s.info,f='<div class="fields">'+REFS.map(function(x){return field('r-'+x[0],x[1],i[x[0]]||'',false,{field:x[0],kind:'info'})}).join('')+'</div>';
   if(inTab)return '<div class="narrow"><p class="subhint">裁判名單</p>'+f+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
   return '<p class="stephint">可以空著，比賽中、比賽後也能補。填了會印在匯出的記錄表上。</p>'+f+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');}

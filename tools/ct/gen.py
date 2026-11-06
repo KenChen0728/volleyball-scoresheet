@@ -169,6 +169,28 @@ jw = one('：', 100, 791, 300, 825) if find('：', 100, 791, 300, 825) else None
 sig = find('簽章', 300, 791, 480, 825)
 G['foot'] = {'del': [R((jw['x1'] if jw else 190) + 4), R((sig[0]['x0'] if sig else 410) - 8), R((791.04 + 824.28) / 2)]}
 
+# ---------- 使用者要求的版面調整（11/7）：原表這幾處沒對齊，照使用者要的置中、對齊 ----------
+# 1. 組別那一列：場次、男子組、女子組和兩個框框，跟「組別：」一樣垂直置中（框框都改成 18×18）
+rowc = R((grp['top'] + grp['bottom']) / 2)
+for t in T:
+    if t[5] in ('場次：', '男子組', '女子組') and abs(t[1] - (gm['top'] + gm['bottom']) / 2) < .6: t[1] = rowc
+for b in BX:
+    if 70 < b[1] < 80: b[1] = R(rowc - 9); b[3] = R(rowc + 9)
+G['head']['game'][2] = rowc
+# 2. 各局左邊的「第 N 局」在那一欄垂直置中
+for t0 in [t for t in T if t[5] == '第' and t[4] == 0 and abs(t[3] - 14.04) < .1]:
+    grpT = [t for t in T if t[4] == 0 and abs(t[0] - t0[0]) < .5 and abs(t[3] - 14.04) < .1 and t0[1] - 1 <= t[1] <= t0[1] + 45 and t[5] in ('第', '１', '２', '３', '局')]
+    if not any(t[5] == '局' for t in grpT): continue
+    cx = t0[0] + t0[2] / 2; top = t0[1] - t0[3] / 2; bot = max(t[1] for t in grpT) + t0[3] / 2
+    up = max(y for y, a, b, w in d['hs'] if a <= cx <= b and y < top); dn = min(y for y, a, b, w in d['hs'] if a <= cx <= b and y > bot)
+    dy = (up + dn) / 2 - (top + bot) / 2
+    for t in grpT: t[1] = R(t[1] + dy)
+    print('第N局 置中', [t[5] for t in grpT], 'dy', round(dy, 2))
+# 3. 「A or B」三行左邊對齊（名單右上那組的 B 原本偏右）
+for o in [t for t in T if t[5] == 'or']:
+    for t in T:
+        if t[5] in ('A', 'B') and abs(t[3] - o[3]) < .1 and 0 < abs(t[0] - o[0]) < 4 and abs(t[1] - o[1]) < 12: print('A or B 對齊', t[5], t[0], '->', o[0]); t[0] = o[0]
+
 tpl = {'W': d['W'], 'H': d['H'], 'h': HL, 'v': VL, 'b': BX, 'd': DS, 't': T}
 js = 'var CT3=' + json.dumps(tpl, ensure_ascii=False, separators=(',', ':')) + ';\nvar CTG=' + json.dumps(G, ensure_ascii=False, separators=(',', ':')) + ';\n'
 open(out, 'w', encoding='utf8').write(js)
