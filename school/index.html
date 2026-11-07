@@ -1563,7 +1563,12 @@ function reduce(events){
         break;
       case 'FORFEIT':
         var fo=other(d.team),fc=s.sets[s.setNo];
-        s.forfeitAt=fc&&fc.started?{set:s.setNo,raw:{t1:fc.score.t1,t2:fc.score.t2}}:null;
+        s.forfeitAt=fc&&fc.started&&!fc.ended?{set:s.setNo,raw:{t1:fc.score.t1,t2:fc.score.t2}}:s.sets[1].started?{set:fc&&fc.ended?s.setNo+1:s.setNo,before:true}:null;
+        if(s.sets[1].started){ /* 打到一半棄權（11/7 使用者決定）：打完的局照實際比分；這一局比照陣容不完整，棄權隊保留分數；沒打的局對方拿該局的分數 */
+          if(fc.started&&!fc.ended){fc.score[fo]=Math.max(target(s,s.setNo),fc.score[d.team]+2);fc.ended=true;fc.winner=fo;fc.endAt=ev.at;fc.live=false}
+          for(var fn=1;fn<=setList(s).length&&!matchOver(s);fn++){var fm=s.sets[fn];if(fm.ended)continue;fm.score={t1:0,t2:0};fm.score[fo]=target(s,fn);fm.started=true;fm.ended=true;fm.winner=fo;fm.endAt=ev.at;fm.live=false;fm.left=fm.left||s.sets[fn-1].left;s.setNo=fn}
+          s.forfeit=d.team;break;
+        }
         setList(s).forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
         winList(s).forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
         if(!s.sets[1].left)s.sets[1].left='t1';
@@ -1741,7 +1746,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0751';
+var BUILD='1107-0803';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2466,7 +2471,7 @@ function notesList(s,A,B){
   if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score;
     notes.push(ab(ii.set,ii.raw)+'因 '+L(il)+'陣容不完整，由 '+L(iw)+(ii.scope==='match'?sets(iw):'以 '+isc[iw]+':'+isc[il]+' 贏得本局'))}
   if(s.preForfeit){var pw=s.preForfeit.winner;notes.push('因 '+L(other(pw))+(s.preForfeit.reason||'逾時未出賽')+'，由 '+L(pw)+sets(pw))}
-  if(s.forfeit){var fa=s.forfeitAt;notes.push((fa?ab(fa.set,fa.raw):'')+'因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
+  if(s.forfeit){var fa=s.forfeitAt;notes.push((fa?fa.before?'第 '+fa.set+' 局開始前，':ab(fa.set,fa.raw):'')+'因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
   return notes;
 }
 /* 記錄員自己寫的記事，一行算一項 */
@@ -2668,7 +2673,7 @@ function penHtml(s){
     sb='';
     h='<h2>確定 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 棄權？</h2><p class="muted">比賽會立刻結束，按下後不能復原。</p><div class="row"><button data-act="ffno">取消</button><button class="danger" data-act="forfeit" data-team="'+k+'">確定棄權</button></div>';
   }else if(p.kind==='FF'){
-    h='<h2>棄權</h2>'+teams+'<p class="muted">規則 6.4.1：比賽判對方獲勝，每局 25:0。</p><div class="row"><button class="danger" data-act="ffask" data-team="'+k+'">'+esc(tName(s,k))+' 棄權</button><button data-act="penclose">關閉</button></div>';
+    h='<h2>棄權</h2>'+teams+'<p class="muted">比賽判對方獲勝。還沒開賽：每局 25:0（規則 6.4.1）。打到一半：打完的局照實際比分，這一局對方補到贏，這隊保留已得分數，沒打的局對方拿滿分。</p><div class="row"><button class="danger" data-act="ffask" data-team="'+k+'">'+esc(tName(s,k))+' 棄權</button><button data-act="penclose">關閉</button></div>';
   }else if(p.kind){
     var gone=function(w){var g=sanGone(s,k,w);return g==='D'||(g==='E'&&p.kind!=='D')?g:''},gtx={D:'已出場',E:'已出局'};
     var pl=t.players.map(function(q){var g=gone(q.no);return '<button class="chip '+k+(g?' off':'')+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"'+(g?' disabled':'')+'><b>'+q.no+'</b>'+(g?'<small>'+gtx[g]+'</small>':'')+'</button>'}).join('');

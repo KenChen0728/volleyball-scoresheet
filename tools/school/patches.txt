@@ -111,6 +111,11 @@ for(var mn=d.set+1;mn<=fmtOf(s)&&setsWon(s)[op]<needWins(s);mn++)
         s.setNo=needWins(s);s.preForfeit={winner:pw,reason:d.reason};
 >>>>
 <<<<
+          for(var fn=1;fn<=3&&!matchOver(s);fn++){
+====
+          for(var fn=1;fn<=setList(s).length&&!matchOver(s);fn++){
+>>>>
+<<<<
         [1,2,3].forEach(function(mn){var mc=s.sets[mn];mc.score={t1:0,t2:0};mc.ended=false;mc.winner=null;mc.started=false});
         [1,2].forEach(function(mn){var mc=s.sets[mn];mc.started=true;mc.ended=true;mc.winner=fo;mc.score[fo]=25;mc.endAt=ev.at;mc.left=mc.left||s.sets[1].left||'t1'});
         if(!s.sets[1].left)s.sets[1].left='t1';
