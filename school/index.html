@@ -1103,7 +1103,7 @@ button.dim{opacity:.45}
 .zone{flex:1 1 auto;position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:8px} /* 球場先長到最大，剩下的空間才給這一區 */
 .zone>.foot,.zone .lvh>.foot{margin-top:0}
 .zone.islive .lvh{display:contents;visibility:hidden}
-.liveover{--gap:clamp(0px,calc(100% - 200px),20px);position:absolute;left:0;right:0;top:var(--gap);height:min(calc(100% - var(--gap)),220px);display:flex;max-width:640px;margin:0 auto} /* 11/7 使用者：上面只留一小段（最多 20），按鈕最高 220，畫面再長也不變，多的空間留在下面 */
+.liveover{--gap:clamp(0px,calc(100% - 200px),20px);position:absolute;left:0;right:0;top:var(--gap);height:min(calc(100% - var(--gap)),110px);display:flex;max-width:640px;margin:0 auto} /* 11/7 使用者：上面只留一小段（最多 20），按鈕最高 110（看過 220 和 110 的比較選小的），多的空間留在下面 */
 .liveover .sbs{flex:1;grid-template-columns:1fr 72px 1fr}
 .liveover .sb{height:100%;font-size:24px}
 .liveover .rp{height:100%;font-size:17px}
@@ -1768,7 +1768,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-1031';
+var BUILD='1107-1036';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
