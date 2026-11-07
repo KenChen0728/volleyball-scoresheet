@@ -1746,7 +1746,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0803';
+var BUILD='1107-0818';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2471,7 +2471,7 @@ function notesList(s,A,B){
   if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score;
     notes.push(ab(ii.set,ii.raw)+'因 '+L(il)+'陣容不完整，由 '+L(iw)+(ii.scope==='match'?sets(iw):'以 '+isc[iw]+':'+isc[il]+' 贏得本局'))}
   if(s.preForfeit){var pw=s.preForfeit.winner;notes.push('因 '+L(other(pw))+(s.preForfeit.reason||'逾時未出賽')+'，由 '+L(pw)+sets(pw))}
-  if(s.forfeit){var fa=s.forfeitAt;notes.push((fa?fa.before?'第 '+fa.set+' 局開始前，':ab(fa.set,fa.raw):'')+'因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
+  if(s.forfeit){notes.push('因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
   return notes;
 }
 /* 記錄員自己寫的記事，一行算一項 */
