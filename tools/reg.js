@@ -43,7 +43,7 @@ await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').co
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=pendo][data-v=DP]');ok('pending',await S(p)==='2:0');await p.click('[data-act=penyes]');await W(40);ok('penalty point',await S(p)==='3:0',await S(p));
 // 打完第一局
 let g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<30)await rally(p,'t1');await W(60);
-ok('pending result page',await p.locator('.pres').count()===1);ok('pending foot',await p.locator('.foot [data-act=endset]').isVisible());
+ok('pending result page',await p.locator('.pres,.ctv-res').count()===1);ok('pending foot',await p.locator('.foot [data-act=endset]').isVisible());
 await p.locator('.foot [data-act=undo]').click();await W(60);ok('undo to play',await p.locator('[data-act=point]').count()===2,await S(p));await W(370);await p.click('[data-act=point][data-team=t1]');await W(60);await p.click('[data-act=endset]');await W(80);
 ok('set2 lineup',await p.locator('[data-act=copy]').count()===1);ok('break timer',(await p.locator('.breakt').innerText()).includes('局間休息'));
 ok('set2 blank',(await p.locator('.cell.fill').count())===0);
@@ -60,7 +60,7 @@ await p.click('[data-act=rtab][data-v=res]');await W(40);
 const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpjson]')]);await dl.saveAs(__dirname+'/one.json');
 await p.click('.bar [data-act=home]');await W(100);ok('in history',await p.locator('.hrow').count()===1);ok('no live',await p.locator('.rmain').count()===0);
 await p.reload();await W(100);ok('home after reload when over',await p.locator('.herocta').count()===1);
-await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('歷史紀錄'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='歷史紀錄');
+await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('歷史紀錄'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='歷史紀錄');
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpall]')]);await dl2.saveAs(__dirname+'/all.json');
 await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-no]');await W(40);ok('del cancel',await p.locator('.hrow').count()===1);await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-yes]');await W(60);ok('deleted',await p.locator('.hrow').count()===0);
 await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('import all',await p.locator('.hrow').count()===1);ok('import msg',(await p.locator('#import-msg').innerText()).includes('已匯入'));
@@ -71,7 +71,7 @@ await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink'
 // 空比賽自動清除
 await p.goto(URL);await W(80);const c0=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);if(await p.locator('.herocta').count()){await p.click('.herocta');await W(40);await p.click('.bar [data-act=home]');await W(40)}const c1=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);ok('empty removed',c0===c1,[c0,c1]);
 // 賽前沒收、棄權、不完整
-await p.click('[data-act=sample]');await W(60);await p.locator('.nav [data-v=toss]').click();await p.click('[data-act=sheet][data-v=pf]');await p.click('[data-act=pfreason][data-v=陣容不完整]');await p.click('[data-act=pfwin][data-team=t2]');await p.click('[data-act=pfdo]');await W(80);ok('pre-forfeit note',(await p.locator('.prem ul').innerText()).includes('陣容不完整'));await p.click('.bar [data-act=home]');await W(50);
+await p.click('[data-act=sample]');await W(60);await p.locator('.nav [data-v=toss]').click();await p.click('[data-act=sheet][data-v=pf]');await p.click('[data-act=pfreason][data-v=陣容不完整]');await p.click('[data-act=pfwin][data-team=t2]');await p.click('[data-act=pfdo]');await W(80);ok('pre-forfeit note',(await p.locator('.ctv-note svg').textContent()).includes('陣容不完整'));await p.click('.bar [data-act=home]');await W(50);
 // 範例重複按不會多一筆
 await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);const sn=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.filter(m=>m.events[0].data.info.sample&&!m.events.some(e=>e.type==='PRE_FORFEIT')).length);ok('one sample',sn===1,sn);
 // 更正頁：時間、陣容
@@ -83,7 +83,7 @@ await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=
 // 自由球員上場後被判出場
 await p.locator('.lc.t2').first().click();await W(40);const pk2=p.locator('.pc.t2.pk').first();await pk2.click();await W(40);
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=penkind][data-v=D]');const lb=await p.locator('.pc.isl b').first().innerText();await p.click(`[data-act=penwho][data-no="${lb}"]`);await p.click('[data-act=penyes]');await W(60);ok('libero notice',(await p.locator('.sheet').innerText()).includes('已換回'));await p.click('[data-act=nclose]');await W(40);ok('libero off court',await p.locator('.pc.isl').count()===0);ok('libero marked away',await p.locator(`.lc.t2.away[data-no="${lb}"][data-act=libaway]`).count()===1);
-await p.click('[data-act=sheetopen]');await p.click('[data-act=rtab][data-v=fix]');await W(60);await p.fill('.fixtimes input >> nth=0','18:30');await p.locator('.fixtimes input >> nth=0').blur();await W(30);await p.click('[data-act=rtab][data-v=s1]');await W(40);ok('start edited',(await p.locator('.sv-wrap').innerText()).includes('18:30'));
+await p.click('[data-act=sheetopen]');await p.click('[data-act=rtab][data-v=fix]');await W(60);await p.fill('.fixtimes input >> nth=0','18:30');await p.locator('.fixtimes input >> nth=0').blur();await W(30);await p.click('[data-act=rtab][data-v=s1]');await W(40);ok('start edited',await p.locator('.ctv-set svg').evaluate(e=>[...e.querySelectorAll('text')].map(t=>t.textContent).join('|')).then(t=>/\|18\|/.test(t)&&/\|30\|/.test(t)));
 await p.click('[data-act=rtab][data-v=fix]');await W(40);await p.locator('[data-act=fixopen]').first().click();await W(40);await p.click('[data-act=fixpos][data-v="0"]');await W(40);await p.locator('[data-act=fixno]').first().click();await W(40);await p.click('[data-act=fixdo]');await W(40);
 await p.click('[data-act=sheetclose]');await W(60);
 console.log('errors',errs);

@@ -423,6 +423,9 @@ button.chip.blank{cursor:pointer}
 .sheettabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
 .sheettabs button{flex:0 0 auto;padding:0 10px}
 .sv-wrap{flex:none;width:100%;background:#fff;border-radius:2px;overflow:hidden}
+.ctv{flex:none;width:100%;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden}.ctv svg{display:block;width:100%;height:auto}
+.ctv-res,.ctv-pen{max-width:520px}.ctv-note{max-width:760px}
+.ppr.ctrem{border:0;max-width:760px;margin-top:8px}.ctnote{max-width:520px;margin:6px auto 0;font-size:13px}
 .sv-wrap svg{display:block;width:100%;height:auto}
 .rotate-tip{text-align:center}
 .ppr{flex:none;background:#fff;color:#000;border:3px solid #000;width:100%;max-width:560px;margin:0 auto;--pi:#1616c8}
@@ -1746,7 +1749,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0818';
+var BUILD='1107-0831';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1998,7 +2001,7 @@ document.addEventListener('keydown',function(e){
 addEventListener('resize',helpPlace);
 /* 橫的畫面：結果、判罰、記事欄這類表格依可用空間等比例放大，不留大片空白 */
 function fitPaper(){
-  var el=document.querySelector('.page>.ppr');if(!el)return;
+  var el=document.querySelector('.page>.ppr,.page>.ctv-res,.page>.ctv-pen');if(!el)return;
   el.style.zoom='';if(!isWide())return;
   var pg=el.parentNode,ft=pg.querySelector('.sheetfoot'),r=el.getBoundingClientRect(),pr=pg.getBoundingClientRect();
   var bottom=ft?ft.getBoundingClientRect().top-12:pr.bottom-12,f=Math.min((pr.width-24)/r.width,(bottom-r.top)/r.height,2.2);
@@ -2511,9 +2514,10 @@ function ppSanctions(s){
   function irm(k,l){var on=ir.some(function(q){return q.team===k});return '<svg class="ircl" viewBox="0 0 28 28" width="28" height="28" role="img" aria-label="'+l+' 隊'+(on?'不當請求':'')+'"><circle cx="14" cy="14" r="12" fill="none" stroke="#000" stroke-width="1.6"/><text x="14" y="15" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#000">'+l+'</text>'+(on?'<path d="M4 4L24 24M24 4L4 24" stroke="#1616c8" stroke-width="2.4"/>':'')+'</svg>'}
   return '<div class="ppr psan"><div class="psh"><h3>判罰</h3><div><small>不當請求</small><span class="irrow">隊伍 '+irm(A,'A')+' ： 隊伍 '+irm(other(A),'B')+'</span></div></div><table><tr class="ph"><th>警告<br>W</th><th>懲罰<br>P</th><th>出局<br>E</th><th>出場<br>D</th><th>隊</th><th>局</th><th>比分</th></tr>'+rows+'</table><p>欄內填球員背號，或 C 教練、AC 助理教練、T 防護員、M 隊醫，延誤判罰填 D。比分以受罰隊在前。</p></div>';
 }
-function ppRemarks(s){
-  var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),done=matchOver(s),rows=nt.map(function(x){return '<li>'+esc(x)+(x.accId&&!done?' <button class="accx" data-act="accdel" data-v="'+esc(x.accId)+'" aria-label="刪除這行">✕</button>':'')+'</li>'}).join('');
+function ppRemarks(s,ct){
+  var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),done=matchOver(s),rows=nt.filter(function(x){return !ct||(x.accId&&!done)}).map(function(x){return '<li>'+esc(x)+(x.accId&&!done?' <button class="accx" data-act="accdel" data-v="'+esc(x.accId)+'" aria-label="刪除這行">✕</button>':'')+'</li>'}).join('');
   var qk=matchOver(s)||s.preForfeit?'':'<div class="quicknote"><span class="muted">快速加入</span>'+[A,other(A)].map(function(k){var nb=(s.acc||[]).filter(function(q){return q.team===k}).length%2===1;return '<button class="qn '+k+'" data-act="accadd" data-team="'+k+'" data-v="'+(nb?'back':'')+'">'+esc(tName(s,k))+'<br>'+(nb?'C 代 AC':'AC 代 C')+'</button>'}).join('')+'<button class="qn" data-act="rmscore">申訴、其他<br>帶入比分</button></div>';
+  if(ct)return '<div class="ppr prem ctrem">'+qk+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="4" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，一行一項，記錄表上會用「；」接起來">'+esc(s.info.remarks||'')+'</textarea></div>';
   return '<div class="ppr prem"><h3>記事欄</h3>'+qk+(rows?'<ul>'+rows+'</ul>':'')+'<textarea rows="6" aria-label="記事" data-kind="info" data-field="remarks" placeholder="點這裡輸入記事，一行寫一項">'+esc(s.info.remarks||'')+'</textarea></div>';
 }
 function pendingHtml(s,win){
@@ -2539,13 +2543,14 @@ function resultHtml(s,pv){
   var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
   var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
   if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  if(XP_ON&&(tab==='pen'||tab==='note'||tab==='res'&&!over||/^s[123]$/.test(tab)))return head+ctPage(s,tab)+(/^s/.test(tab)?wide:'')+back+(/^s/.test(tab)?fs(ctPage(s,tab)):'');
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
   if(tab==='ref'&&XP_ON)return head+refsHtml(s,true)+back;
 
   if(!over)return head+ppResult(s)+back;
-  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+ppResult(s)+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
 }
 function playHtml(s){
   if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
