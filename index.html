@@ -423,7 +423,7 @@ button.chip.blank{cursor:pointer}
 .sheettabs button{flex:0 0 auto;padding:0 10px}
 .sv-wrap{flex:none;width:100%;background:#fff;border-radius:2px;overflow:hidden}
 .ctv{flex:none;width:100%;margin:0 auto;background:#fff;border-radius:2px;overflow:hidden}.ctv svg{display:block;width:100%;height:auto}
-.ctv-res,.ctv-pen{max-width:520px}.ctv-note{max-width:760px}
+.ctv-res,.ctv-pen{max-width:520px}.ctv-ref{max-width:480px;margin-bottom:8px}.ctv-note{max-width:760px}
 .ppr.ctrem{border:0;max-width:760px;margin-top:8px}.ctnote{max-width:520px;margin:6px auto 0;font-size:13px}
 .sv-wrap svg{display:block;width:100%;height:auto}
 .rotate-tip{text-align:center}
@@ -516,6 +516,14 @@ button.chip.blank{cursor:pointer}
 .fixpos b{font-size:26px;line-height:1.1}
 .fsbtn{flex:none;align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700}
 .fsv{position:fixed;inset:0;z-index:90;background:#fff}
+.whv{position:fixed;inset:0;z-index:90;background:#fff;display:flex;flex-direction:column;padding:var(--safe-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.whbar{flex:none;display:flex;align-items:center;gap:8px;padding:6px 8px;background:#141414;color:#fff}
+.whbar button{min-height:44px;min-width:52px;background:#2a2a2a;color:#fff;border-color:#2a2a2a;font-size:20px;font-weight:800}
+.whbar button:disabled{opacity:.35}
+.whbar span{min-width:52px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.whbar .whclose{margin-left:auto;font-size:15px}
+.whsc{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.whin svg{display:block;width:100%;height:auto}
 .fsin{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
 .fssheet{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px}
 .fssheet .sv-wrap{width:100%;height:100%}
@@ -1090,6 +1098,14 @@ button.dim{opacity:.45}
 .pc .cdm .cd+.cd{margin-left:4px}
 .pc .cdm{left:7px;bottom:7px}
 .foot.tallfoot{margin-top:4px}
+.pcourt:has(~.zone){flex-grow:1000}
+.zone{flex:1 1 auto;position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:8px} /* 球場先長到最大，剩下的空間才給這一區 */
+.zone>.foot,.zone .lvh>.foot{margin-top:0}
+.zone.islive .lvh{display:contents;visibility:hidden}
+.liveover{position:absolute;inset:0;display:flex;max-width:640px;margin:0 auto}
+.liveover .sbs{flex:1;grid-template-columns:1fr 72px 1fr}
+.liveover .sb{height:100%;font-size:24px}
+.liveover .rp{height:100%;font-size:17px}
 .tallsheet{margin-top:4px}
 /* v58 點球員選單 */
 .pm3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -1244,7 +1260,8 @@ button.dim{opacity:.45}
 }
 .board>.wbar .wab{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:800;line-height:1}
 .bar h1:has(>.btgt){flex:none;overflow:visible}
-@media (max-width:429px){.bar:has(.btgt) .bartime:not(.breakt) span:first-child{display:none}}
+/* 11/7 使用者：手機直拿也要看到開始時間，開始和經過疊成兩行 */
+@media (max-width:429px){.bar:has(.btgt) .bartime:not(.breakt):not(.overt){display:grid;gap:1px;line-height:1.1;text-align:right}.bar:has(.btgt) .bartime:not(.breakt):not(.overt) span:last-child{display:none}.bar:has(.btgt) .bartime:not(.breakt):not(.overt) b{font-size:14px}.bar:has(.btgt) .bartime:not(.breakt):not(.overt) span:first-child{display:block}}
 .board:has(>.wbar)>.mid,.board:has(>.wbar)>.ss,.board:has(>.wbar)>.setbox{grid-row:2}
 /* v47 球場格子左上角的位置（羅馬數字）放大 */
 .pc .pos{font-size:clamp(14px,3.2vh,26px);font-weight:800;top:3px;left:7px;line-height:1}
@@ -1618,7 +1635,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1107-0946';
+var BUILD='1107-1018';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1772,6 +1789,7 @@ addEventListener('popstate',function(){
 function render(){
   var had=kbd&&document.activeElement&&document.activeElement!==document.body,fk=had?focusKey():null;
   paint();markSwipe();backSync();fitPaper();
+  if(ui.wsc){var wsc=document.querySelector('.whsc');if(wsc){wsc.scrollLeft=ui.wsc[0]*wsc.scrollWidth-wsc.clientWidth/2;wsc.scrollTop=ui.wsc[1]*wsc.scrollHeight-wsc.clientHeight/2}ui.wsc=null}
   if(ui.focusRemarks){ui.focusRemarks=false;var ta=document.querySelector('textarea[data-field="remarks"]');if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}}
   if(kbd&&(had||topLayer()))restoreFocus(fk);
 }
@@ -1925,7 +1943,7 @@ function barTime(s){
     var dl=new Date(pv.endAt).getTime()+180000;
     return '<div class="bartime breakt"><span>局間休息 <b data-cd="'+dl+'">'+cdText(dl)+'</b></span></div>';
   }
-  return '<div class="bartime"><span>開始 <b>'+esc(setStartHM(s,s.setNo)||'—')+'</b></span><span>經過 <b'+(c.firstServeAt&&!c.endAt?' data-el="'+esc(c.firstServeAt)+'"':'')+'>'+elapsed(c.firstServeAt,c.endAt)+'</b></span><span>結束 <b>'+(c.endAt?hm(c.endAt):'—')+'</b></span></div>';
+  return '<div class="bartime"><span>開始 <b>'+esc(setStartHM(s,s.setNo)||'—')+'</b></span><span>經過 <b'+(c.firstServeAt&&!c.endAt?' data-el="'+esc(c.firstServeAt)+'"':'')+'>'+elapsed(c.firstServeAt,c.endAt)+'</b></span><span>結束 <b>'+(c.endAt?setEndHM(s,s.setNo)||'—':'—')+'</b></span></div>';
 }
 function cdText(dl){var n=Math.max(0,Math.ceil((dl-Date.now())/1000));return Math.floor(n/60)+':'+('0'+n%60).slice(-2)}
 function elapsed(from,to){
@@ -1969,7 +1987,7 @@ function navHtml(s){
 }
 function pageHtml(s,m){
   if(ui.page==='info')return infoHtml(s);
-  if(ui.page==='refs'&&XP_ON)return refsHtml(s);
+  if(ui.page==='refs'&&XP_ON)return ctView(s,CTG.proof.box,'ctv-ref',1.2)+refsHtml(s);
   if(ui.page==='toss')return tossHtml(s);
   if(ui.page==='lineup')return lineupHtml(s);
   if(ui.page==='play')return playHtml(s);
@@ -2818,20 +2836,20 @@ function resultHtml(s,pv){
   if(XP_ON)tabs.splice(tabs.length-1,0,['ref','裁判']);
   var tab=ui.rtab||'res';
   var pend=pv?'<div class="foot pendfoot"><div class="row pendrow"><button data-act="undo">↶ 復原上一步</button><button class="go guarded" data-act="endset" data-team="'+pv+'"'+(Date.now()<(ui.noEnd||0)?' disabled':'')+'>確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div></div>':'';
-  var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'+pend:'')+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
+  var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'+pend:'')+wholeHtml(s)+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
   var wide=tab==='r6'||tab.charAt(0)==='s'?'<button class="fsbtn" data-act="fsopen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'+(isWide()?'全螢幕':'橫向全螢幕')+'</button>':'';
   function fs(svg){return ui.fs?'<div class="fsv" role="dialog" aria-label="全螢幕記錄表"><div class="fsin"><div class="fssheet">'+svg+'</div><button class="fsclose" data-act="fsclose">✕ 關閉全螢幕</button></div></div>':''}
-  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
-  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
+  var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+wholeBtn()+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
+  if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+wholeBtn()+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(XP_ON&&(tab==='pen'||tab==='note'||tab==='res'&&!over||/^s[123]$/.test(tab)))return head+ctPage(s,tab)+(/^s/.test(tab)?wide:'')+back+(/^s/.test(tab)?fs(ctPage(s,tab)):'');
   if(tab==='pen')return head+ppSanctions(s)+back;
   if(tab==='r6')return head+r6Svg(s)+wide+back+fs(r6Svg(s));
   if(tab==='note')return head+ppRemarks(s)+back;
   if(tab==='fix')return head+fixList(s)+back;
-  if(tab==='ref'&&XP_ON)return head+refsHtml(s,true)+back;
+  if(tab==='ref'&&XP_ON)return head+ctView(s,CTG.proof.box,'ctv-ref',1.2)+refsHtml(s,true)+back;
   if(tab==='s1'||tab==='s2'||tab==='s3')return head+setSvg(s,Number(tab.slice(1)))+wide+back+fs(setSvg(s,Number(tab.slice(1))));
   if(!over)return head+ppResult(s)+back;
-  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns">'+(XP_ON?'<button data-act="whole">看整張</button>':'')+'<button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「歷史紀錄」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
 }
 function playHtml(s){
   if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
@@ -2862,7 +2880,8 @@ function playHtml(s){
   if(isWide())return '<div class="wplay"><div class="whead">'+wideBar(s,L)+'<div class="mid">'+srvm+'</div>'+wideBar(s,R)+'</div>'+wideCol(s,L)+'<div class="wmid wtop">'+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
   return '<div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
-    '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);
+    /* 11/7 使用者：球在進行中只會按得分、公正、復原。其他按鈕藏起來（仍佔位置，球場不會跳），得分鍵蓋滿這一區 */
+    '<div class="zone'+(c.live?' islive':'')+'">'+(c.live?'<div class="lvh" aria-hidden="true" inert>':'')+'<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+'<div class="foot'+(isTall()?' tallfoot':'')+'">'+(c.live?'<button class="sv" tabindex="-1">發球</button>':main)+'</div>'+(c.live?'</div><div class="liveover">'+main+'</div>':'')+'</div>'+(isTall()?'<div class="tallsheet">'+setSvg(s,n)+'</div>':'');
 }
 function timerLeft(){return ui.timer?Math.max(0,Math.ceil((ui.timer.end-Date.now())/1000)):0}
 function timerText(){var n=timerLeft();return ui.timer&&ui.timer.label?Math.floor(n/60)+':'+('0'+(n%60)).slice(-2):n}
@@ -3126,6 +3145,9 @@ function modalHtml(s){
   return '<div class="scrim'+(win||needSwap(s)?'':' light')+'"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
 var XP_ON=true;
+function wholeBtn(){return XP_ON?'<button class="xpbtn" data-act="whole">看整張</button>':''}
+function wholeHtml(s){if(!ui.whole||!XP_ON)return '';var z=ui.wz||1;
+  return '<div class="whv" role="dialog" aria-label="整張記錄表"><div class="whbar"><button data-act="wz" data-v="-1" aria-label="縮小"'+(z<=1?' disabled':'')+'>－</button><span>'+Math.round(z*100)+'%</span><button data-act="wz" data-v="1" aria-label="放大"'+(z>=4?' disabled':'')+'>＋</button><button class="whclose" data-act="wholeclose">✕ 關閉</button></div><div class="whsc"><div class="whin" style="width:'+z*100+'%">'+ctSvg(s).replace(/ width="[\d.]+" height="[\d.]+">/,' role="img" aria-label="整張記錄表">')+'</div></div></div>'}
 function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':''}
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
@@ -3666,12 +3688,16 @@ app.addEventListener('click',function(e){
       ui.fs=true;
       try{var fe=document.documentElement;if(fe.requestFullscreen){var fp=fe.requestFullscreen();if(fp&&fp.then)fp.then(function(){if(screen.orientation&&screen.orientation.lock)return screen.orientation.lock('landscape')}).catch(function(){})}}catch(err){}
       break;
+    case 'whole': ui.whole=true; ui.wz=1; break;
+    case 'wholeclose': ui.whole=false; break;
+    case 'wz': var wsc=document.querySelector('.whsc'),oz=ui.wz||1; ui.wz=Math.max(1,Math.min(4,oz+Number(b.getAttribute('data-v'))*.5));
+      if(wsc)ui.wsc=[(wsc.scrollLeft+wsc.clientWidth/2)/wsc.scrollWidth,(wsc.scrollTop+wsc.clientHeight/2)/wsc.scrollHeight]; break;
     case 'fsclose':
       ui.fs=false;
       try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();if(document.fullscreenElement)document.exitFullscreen().catch(function(){})}catch(err){}
       break;
     case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='s'+s.setNo; break;
-    case 'sheetclose': ui.liveSheet=false; ui.rtab=null; break;
+    case 'sheetclose': ui.liveSheet=false; ui.rtab=null; ui.whole=false; break;
     case 'report': ui.report=true; break;
     case 'rpclose': ui.report=false; break;
     case 'rpprint': window.print(); return;
@@ -3776,7 +3802,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.help [data-act=helpclose]','.fsv [data-act=fsclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
+  var q=['.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }

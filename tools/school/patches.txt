@@ -615,7 +615,7 @@ function notesList(s,A,B){
   if(sn)return head+setSvg(s,sn,true)+wide+back+fs(setSvg(s,sn));
 >>>>
 <<<<
-<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
+<div class="row savebtns">'+(XP_ON?'<button data-act="whole">看整張</button>':'')+'<button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
 ====
 <button class="primary full" data-act="rppdf">存成記錄表 PDF</button><div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
 >>>>

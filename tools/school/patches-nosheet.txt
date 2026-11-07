@@ -69,9 +69,10 @@ content="按得分，輪轉和發球自動處理。資料只存在自己的裝�
 <button data-act="sheetopen">比賽紀錄</button>
 >>>>
 <<<<
-tools+(isTall()?'<div class="foot tallfoot">'+main+'</div><div class="tallsheet">'+setSvg(s,n)+'</div>':foot);
+    /* 11/7 使用者：球在進行中只會按得分、公正、復原。其他按鈕藏起來（仍佔位置，球場不會跳），得分鍵蓋滿這一區 */
+    '<div class="zone'+(c.live?' islive':'')+'">'+(c.live?'<div class="lvh" aria-hidden="true" inert>':'')+'<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+'<div class="foot'+(isTall()?' tallfoot':'')+'">'+(c.live?'<button class="sv" tabindex="-1">發球</button>':main)+'</div>'+(c.live?'</div><div class="liveover">'+main+'</div>':'')+'</div>'+(isTall()?'<div class="tallsheet">'+setSvg(s,n)+'</div>':'');
 ====
-tools+foot;
+    '<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+foot;
 >>>>
 <<<<
     case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='s'+s.setNo; break;
