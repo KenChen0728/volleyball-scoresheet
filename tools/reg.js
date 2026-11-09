@@ -58,22 +58,23 @@ for(const t of ['s1','s2','s3','res','pen','r6','note','fix']){await p.click(`[d
 await p.click('[data-act=rtab][data-v=fix]');await p.click('[data-act=fixset][data-v="1"]');await W(40);const r0=await p.locator('.fixrow').count();ok('fix rows',r0>=2,r0);
 await p.click('[data-act=rtab][data-v=res]');await W(40);
 const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpjson]')]);await dl.saveAs(__dirname+'/one.json');
-await p.click('.bar [data-act=home]');await W(100);ok('in history',await p.locator('.hrow').count()===1);ok('no live',await p.locator('.rmain').count()===0);
+await p.click('.bar [data-act=home]');await W(100);ok('no live',await p.locator('.rmain').count()===0);await p.click('[data-act=history]');await W(80);ok('in history',await p.locator('.hrow').count()===1);
 await p.reload();await W(100);ok('home after reload when over',await p.locator('.herocta').count()===1);
-await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('歷史紀錄'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='歷史紀錄');
+await p.click('[data-act=history]');await W(80);await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('紀錄與名單'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='紀錄與名單');
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpall]')]);await dl2.saveAs(__dirname+'/all.json');
 await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-no]');await W(40);ok('del cancel',await p.locator('.hrow').count()===1);await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-yes]');await W(60);ok('deleted',await p.locator('.hrow').count()===0);
-await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('import all',await p.locator('.hrow').count()===1);ok('import msg',(await p.locator('#import-msg').innerText()).includes('已匯入'));
-await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('dup msg',(await p.locator('#import-msg').innerText()).includes('已經'));
-await p.setInputFiles('#import-file',__dirname+'/sim.json');await W(200);await p.click('.barback');await W(80);ok('old format imported',await p.locator('.rmain').count()===1,await p.locator('.rmain').count());
+await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('import plan',(await p.locator('.sheet').innerText()).includes('新增 1 場'));await p.click('[data-act=impgo]');await W(100);ok('import all',await p.locator('.hrow').count()===1);ok('import msg',(await p.locator('#import-msg').innerText()).includes('已匯入'));
+await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('dup msg',(await p.locator('.sheet').innerText()).includes('已經有了'));await p.click('.sheet [data-act=impcancel]');await W(60);
+await p.setInputFiles('#import-file',__dirname+'/sim.json');await W(200);await p.click('[data-act=impgo]');await W(100);await p.click('.barback');await W(80);ok('old format imported',await p.locator('.rmain').count()===1,await p.locator('.rmain').count());
+await p.click('[data-act=history]');await W(80);
 // 從結果頁刪除
 await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted from sheet',await p.locator('.hrow').count()===0,await p.locator('.hrow').count());
 // 空比賽自動清除
 await p.goto(URL);await W(80);const c0=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);if(await p.locator('.herocta').count()){await p.click('.herocta');await W(40);await p.click('.bar [data-act=home]');await W(40)}const c1=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);ok('empty removed',c0===c1,[c0,c1]);
 // 賽前沒收、棄權、不完整
-await p.click('[data-act=sample]');await W(60);await p.locator('.nav [data-v=toss]').click();await p.click('[data-act=sheet][data-v=pf]');await p.click('[data-act=pfreason][data-v=陣容不完整]');await p.click('[data-act=pfwin][data-team=t2]');await p.click('[data-act=pfdo]');await W(80);ok('pre-forfeit note',(await p.locator('.ctv-note svg').textContent()).includes('陣容不完整'));await p.click('.bar [data-act=home]');await W(50);
+await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(60);await p.locator('.nav [data-v=toss]').click();await p.click('[data-act=sheet][data-v=pf]');await p.click('[data-act=pfreason][data-v=陣容不完整]');await p.click('[data-act=pfwin][data-team=t2]');await p.click('[data-act=pfdo]');await W(80);ok('pre-forfeit note',(await p.locator('.ctv-note svg').textContent()).includes('陣容不完整'));await p.click('.bar [data-act=home]');await W(50);
 // 範例重複按不會多一筆
-await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);const sn=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.filter(m=>m.events[0].data.info.sample&&!m.events.some(e=>e.type==='PRE_FORFEIT')).length);ok('one sample',sn===1,sn);
+await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(60);await p.click('.bar [data-act=home]');await W(60);const sn=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.filter(m=>m.events[0].data.info.sample&&!m.events.some(e=>e.type==='PRE_FORFEIT')).length);ok('one sample',sn===1,sn);
 // 更正頁：時間、陣容
 await p.click('.rmain');await W(60);await p.locator('.nav [data-v=toss]').click();await p.click('.side.t1');await p.locator('.nav [data-v=lineup]').click();await W(60);
 for(const a of [[1,3,5,7,9,11],[2,4,6,8,10,14]]){for(const n of a){const l=p.locator(`[data-act=fill][data-no="${n}"]`);if(await l.count())await l.click()}const k=p.locator('[data-act=lu-lock]');if(await k.count())await k.click();await W(20)}
@@ -91,7 +92,7 @@ console.log('errors',errs);
 for(const [w,h] of [[320,568],[360,640],[375,667],[390,844],[430,932],[768,1024],[820,1180],[667,375],[844,390],[1024,768],[1180,820],[1440,900],[1920,1080]]){
  const c=await b.newContext({viewport:{width:w,height:h}});const q=await c.newPage();q.on('pageerror',x=>errs.push(x.message));await q.goto(URL);await W(60);
  const over=async(tag)=>{const o=await q.evaluate(()=>[document.documentElement.scrollWidth,innerWidth,document.documentElement.scrollHeight,innerHeight]);ok(`${w}x${h} ${tag} no page scroll`,o[0]<=o[1]&&o[2]<=o[3],o)};
- await over('home');await q.click('[data-act=sample]');await W(60);await over('roster');
+ await over('home');await q.click('[data-act=helpopen]');await q.click('[data-act=sample]');await W(60);await over('roster');
  const nav=q.locator('.nav [data-v=info]');await nav.click();await W(40);await over('info');
  await q.locator('.nav [data-v=toss]').click();await W(40);await q.click('.side.t2');await W(30);await over('toss');await q.locator('.nav [data-v=lineup]').click();await W(50);await over('lineup');
  for(const a of [[1,3,5,7,9,11],[2,4,6,8,10,14]]){for(const n of a){const l=q.locator(`[data-act=fill][data-no="${n}"]`);if(await l.count())await l.click()}const k=q.locator('[data-act=lu-lock]');if(await k.count())await k.click();await W(20)}

@@ -12,7 +12,7 @@ if(seed){await p.evaluate(s=>localStorage.setItem('vb-school-v2',s),seed);await 
  await p.locator('.hrow').first().click();await p.waitForTimeout(200);
  for(const act of ['rpcsv','rpjson']){const d=p.waitForEvent('download',{timeout:15000});await p.click(`[data-act=${act}]`);const f=await d;console.log('下載',f.suggestedFilename())}
  await p.click('.bar .barback');await p.waitForTimeout(150);await p.click('.bar .barback');await p.waitForTimeout(150);}
-await p.click('[data-act=sample]');await p.waitForTimeout(300);
+await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await p.waitForTimeout(300);
 await c.setOffline(true);await p.reload();await p.waitForTimeout(1500);
 console.log('離線重開',await p.title(),await p.locator('.bar h1').first().textContent().catch(()=>'home'));
 await p.click('[data-act=helpopen]');await p.waitForTimeout(500);await p.locator('.hmenu button').first().click().catch(()=>{});await p.waitForTimeout(600);

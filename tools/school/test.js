@@ -219,7 +219,7 @@ console.log('記錄內容');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);
  await p.context().close()}
 console.log('名單的下一步、其他選單');
-{const p=await fresh(b,{vp:{width:402,height:760}});await p.click('[data-act=sample]');await wait(p,100);
+{const p=await fresh(b,{vp:{width:402,height:760}});await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await wait(p,100);
  ok(await p.locator('.rnext .primary').isVisible(),'名單齊全看到下一步');
  await p.locator('[data-act=slot]:not(.fill)').first().click();await wait(p,60);
  ok(!(await p.locator('.rnext .primary').isVisible()),'數字鍵盤打開時下一步收起來');
@@ -250,7 +250,7 @@ console.log('名單上限、範例');
  ok((await p.locator('.kp .err').textContent()).includes('已在名單'),'重複背號會提醒');
  await p.click('.kp [data-act=kpclose]');await wait(p,15);
  await p.click('.bar .barback');await wait(p,50);
- await p.click('[data-act=sample]');await wait(p,80);
+ await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await wait(p,80);
  ok(await p.locator('[data-act=slot][data-team=t1].fill').count()===8,'範例有名單');
  await p.click('.bar .barback');await wait(p,60);
  ok(await p.locator('.pill').count()>=1,'範例標示練習');
@@ -295,7 +295,7 @@ console.log('第 3 局搶 17、五局 PDF');
  const seed5=mk({fmt:5,swapAt:5,finish:true},[rep('t1',25),rep('t2',25),rep('t1',25),rep('t2',25),rep('t1',15)]);
  const ctx=await b.newContext({acceptDownloads:true,viewport:{width:1280,height:800}});const q=await ctx.newPage();q.errs=[];q.on('pageerror',x=>q.errs.push(x.message));
  await q.addInitScript(`if(!localStorage.getItem('vb-school-v2'))localStorage.setItem('vb-school-v2',${JSON.stringify(seed5)})`);await q.goto(URL_);await wait(q,120);
- await q.locator('.hrow').first().click();await wait(q,120);
+ await q.click('[data-act=history]');await wait(q,80);await q.locator('.hrow').first().click();await wait(q,120);
  if(SHEET){ok(await q.locator('.sheettabs button').count()===9,'五局比賽 9 個分頁');
  const dl=q.waitForEvent('download',{timeout:15000});await q.click('[data-act=rppdf]');const f=await dl;const fp=await f.path();const buf=require('fs').readFileSync(fp);
  ok((buf.toString('latin1').match(/\/Type\/Page\//g)||[]).length===5,'PDF 5 頁')}

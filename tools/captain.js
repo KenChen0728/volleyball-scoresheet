@@ -14,7 +14,7 @@ const txt=async(p,sel)=>(await p.locator(sel).first().textContent().catch(()=>''
 for(const [name,url,vw,vh] of [['完整版手機','index.html',402,874],['完整版寬','index.html',1275,607],['學校版手機','school/index.html',402,874]]){
 const p=await b.newPage({viewport:{width:vw,height:vh},deviceScaleFactor:OUT?2:1});const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.goto('file:///home/claude/volleyball-scoresheet/'+url);await W(300);
-await p.click('[data-act=sample]');await W(200);
+await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(200);
 const tag=n=>name+' '+n,shot=async f=>{if(OUT&&vw<500)await p.screenshot({path:OUT+'/'+(url.startsWith('school')?'school-':'')+f})};
 // 名單：拿掉兩隊隊長
 for(const [k,no] of [['t1',3],['t2',6]]){await p.click(`[data-act=slot][data-team=${k}][data-no="${no}"]`);await W(100);await p.click('.kp [data-act=cap]');await W(100);await p.click(`[data-act=kpclose][data-team=${k}]`);await W(100)}
@@ -62,7 +62,7 @@ ok(tag('選了 2 號不閃'),await p.locator('.sheet').count()===0&&await p.loca
 ok(tag('沒有錯誤 '+errs.join('|')),errs.length===0);await p.close()}
 // 使用者 11/6 那場的舊資料：已開賽、名單沒有隊長、有場上隊長 → 還能點格子補
 {const p=await b.newPage({viewport:{width:402,height:874}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto('file:///home/claude/volleyball-scoresheet/index.html');await W(300);await p.click('[data-act=sample]');await W(200);
+await p.goto('file:///home/claude/volleyball-scoresheet/index.html');await W(300);await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(200);
 await p.locator('[data-act=page][data-v=toss]').first().click();await W(150);await p.click('.side.t1');await p.click('.page [data-act=page][data-v=lineup]');await W(150);
 for(const x of [1,3,5,7,9,11])await p.click(`[data-act=fill][data-no="${x}"]`);await p.click('[data-act=lu-lock]');
 for(const x of [2,4,6,8,10,14])await p.click(`[data-act=fill][data-no="${x}"]`);await p.click('[data-act=lu-lock]');await W(150);

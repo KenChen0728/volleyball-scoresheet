@@ -19,7 +19,7 @@ for(const [name,w,h,touch] of VP){if(only&&!only.includes(name))continue;
  await p.click('[data-act=new]');await p.waitForTimeout(60);await check('info');
  await p.locator('.nav [data-v=roster]').click();await check('roster');
  await p.locator('[data-act=slot][data-team=t2]').nth(7).click();await check('roster-kp',['.kp [data-act=kpclose]','.num.on']);await p.click('.kp [data-act=kpclose]');
- await p.locator('.bar .barback').click();await p.waitForTimeout(40);await p.click('[data-act=sample]');await p.waitForTimeout(60);await check('roster-sample',['.rnext .primary']);await p.locator('[data-act=slot]:not(.fill)').first().click();await check('roster-sample-kp',['.kp [data-act=kpclose]','.num.on']);await p.click('.kp [data-act=kpclose]');
+ await p.locator('.bar .barback').click();await p.waitForTimeout(40);await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await p.waitForTimeout(60);await check('roster-sample',['.rnext .primary']);await p.locator('[data-act=slot]:not(.fill)').first().click();await check('roster-sample-kp',['.kp [data-act=kpclose]','.num.on']);await p.click('.kp [data-act=kpclose]');
  await p.evaluate(s=>{localStorage.setItem('vb-school-v2',s);location.reload()},seed);await p.waitForTimeout(250);
  await check('play',['[data-act=point]','[data-act=sheetopen]','[data-act=timeout]']);
  await p.locator('.pc.t1').nth(3).click();await check('pmenu',['.sheet [data-act=close]']);await p.click('.sheet [data-act=close]');

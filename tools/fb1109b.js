@@ -13,30 +13,41 @@ console.log(nm,ov);ok(nm+' 無錯誤',!errs.length,errs);await ctx.close()}
 // 5. 組別
 const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
 await p.goto(URL);await W(100);
+await p.click('[data-act=history]');await W(60);
 await p.click('[data-act=cupcreate]');await p.fill('#cup-name','媽祖盃');await p.click('[data-act=cupnamesave]');await W(60);
 async function team(name,grp,txt){await p.click('.shead [data-act=cupteam]');await W(40);await p.fill('#ct-name',name);await p.fill('#ct-group',grp);await p.fill('#ct-text',txt);await p.click('[data-act=cupteamsave]');await W(40)}
-await team('國中甲','國中','5 王 隊長\n1 李\n9 陳\n3 林\n7 張\n2 何');
-await team('國中乙','國中','4 隊長\n6\n8\n10\n12\n14');
-await team('國小丙','國小','1 隊長\n2\n3\n4\n5\n6');
-ok('5 組別按鈕',(await p.locator('.grpseg button').allTextContents()).join()==='全部,國小,國中');
-await p.click('.grpseg [data-v="國中"]');await W(40);
-ok('5 只列國中',(await p.locator('.rlist [data-act=cupteam] strong').allTextContents()).join()==='國中甲,國中乙');
+await team('國中甲','國中男子甲組','5 王 隊長\n1 李\n9 陳\n3 林\n7 張\n2 何');
+await team('國中乙','國中乙組','4 隊長\n6\n8\n10\n12\n14');
+await team('國中甲二','國中甲組','11 隊長\n12\n13\n14\n15\n16');
+await team('國小丙','國小六年級','1 隊長\n2\n3\n4\n5\n6');
+ok('5 組別按鈕（男女分開比、寫法統一）',(await p.locator('.grpseg button').allTextContents()).join()==='全部,國小六年級,國中甲組,國中乙組',await p.locator('.grpseg button').allTextContents());
+await p.click('.grpseg [data-v="國中甲組"]');await W(40);
+ok('5 只列國中甲組',(await p.locator('.rlist [data-act=cupteam] strong').allTextContents()).join()==='國中甲,國中甲二');
 await p.screenshot({path:'/home/claude/t/cup.png'});
-await p.click('[data-act=cupnew]');await W(40);
-ok('5 開新比賽只列國中',(await p.locator('.sheet [data-act=cuppick] span').allTextContents()).join()==='國中甲,國中乙');
-await p.click('.sheet [data-act=cuppick] >> nth=0');await p.click('[data-act=cupstart]');await W(80);
-ok('5 組別帶入',await p.inputValue('#i-group')==='國中');
+// 開新比賽：主畫面，第一步選資料夾
+await p.click('.bar .barback');await W(40);await p.click('.bar .barback');await W(40);
+await p.click('[data-act=new]');await W(60);
+ok('5 預設選媽祖盃',(await p.locator('.sheet [aria-pressed=true]').textContent()).includes('媽祖盃'));
+await p.click('[data-act=newgo]');await W(80);
+await p.click('[data-act=div][data-v=男子組]');await p.fill('#i-group','國中甲組');await p.locator('#i-group').blur();await W(40);
 await p.locator('.nav [data-v=roster]').click();await W(60);
-const ro=await p.locator('[data-act=slot][data-team=t1][data-kind=reg]:not([data-no=""])').evaluateAll(es=>es.map(e=>e.getAttribute('data-no')));
-ok('3 帶入的名單照原本順序',ro.join()==='5,1,9,3,7,2',ro);
-await p.click('[data-act=sheet][data-v=import][data-team=t2]');await W(40);
-ok('5 載入只列國中',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中乙');
+await p.click('[data-act=sheet][data-v=import][data-team=t1]');await W(40);
+ok('5 載入：同一組在前，同級別在後，國小藏起來',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中甲,國中甲二,國中乙',await p.locator('.sheet [data-act=import-pick] span').allTextContents());
 ok('5 有顯示其他組別',(await p.locator('[data-act=impall]').textContent()).includes('1 隊'));
 await p.screenshot({path:'/home/claude/t/imp.png'});
 await p.click('[data-act=impall]');await W(40);
-ok('5 顯示全部',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中乙,國小丙');
+ok('5 顯示全部',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中甲,國中甲二,國中乙,國小丙');
 await p.click('[data-act=impall]');await W(40);
 await p.click('.sheet [data-act=import-pick] >> nth=0');await W(40);
-ok('5 載入成功',(await p.inputValue('#n-t2'))==='國中乙');
+ok('5 載入成功',(await p.inputValue('#n-t1'))==='國中甲');
+const ro=await p.locator('[data-act=slot][data-team=t1][data-kind=reg]:not([data-no=""])').evaluateAll(es=>es.map(e=>e.getAttribute('data-no')));
+ok('3 帶入的名單照原本順序',ro.join()==='5,1,9,3,7,2',ro);
+// 沒放進資料夾的比賽也能載入資料夾的隊伍
+await p.click('.bar .barback');await W(60);
+await p.click('[data-act=new]');await W(60);await p.click('[data-act=newpick][data-id=""]');await p.click('[data-act=newgo]');await W(80);
+await p.locator('.nav [data-v=roster]').click();await W(60);
+await p.click('[data-act=sheet][data-v=import][data-team=t1]');await W(40);
+ok('5 沒放資料夾也看得到資料夾的隊伍（組別沿用上一場）',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中甲,國中甲二,國中乙',await p.locator('.sheet [data-act=import-pick] span').allTextContents());
+await p.click('.sheet [data-act=close]');await W(40);
 ok('5 無錯誤',!errs.length,errs);
 console.log('pass',pass,'fail',fail);await b.close()})();

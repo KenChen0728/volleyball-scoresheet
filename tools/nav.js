@@ -5,7 +5,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));
 for(const [vw,vh] of [[402,874],[1275,607]]){
 const p=await b.newPage({viewport:{width:vw,height:vh}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.goto('file:///home/claude/volleyball-scoresheet/index.html');await W(300);
-await p.click('[data-act=sample]');await W(200);
+await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(200);
 await p.locator('[data-act=page][data-v=toss]').first().click();await p.click('.side.t1');await p.click('.page [data-act=page][data-v=lineup]');
 for(const x of [1,3,5,7,9,11])await p.click(`[data-act=fill][data-no="${x}"]`);await p.click('[data-act=lu-lock]');for(const x of [2,4,6,8,10,14])await p.click(`[data-act=fill][data-no="${x}"]`);await p.click('[data-act=lu-lock]');
 await p.click('[data-act=start]');await W(100);await p.click('[data-act=cs-yes]');await W(200);
@@ -47,12 +47,19 @@ await p.locator('[data-act=sheetopen]').first().click();await W(200);
 ok(vw+' 記錄表頁 左上 ‹ 比賽',(await p.locator('.bar .barback').textContent()).includes('比賽'));
 await p.click('.bar .barback');await W(200);ok(vw+' 回到比賽',await p.locator('.pcourt').count()>0);
 console.log('errs',errs);await p.close()}
-// 資料夾 → 開新比賽 → 資料頁
+// 主畫面開新比賽 → 選資料夾 → 資料頁；資料夾頁回到「紀錄與名單」
 const p=await b.newPage({viewport:{width:402,height:874}});
 await p.goto('file:///home/claude/volleyball-scoresheet/index.html');await W(300);
-await p.evaluate(()=>{localStorage.setItem('nanshe-scoresheet-v1',JSON.stringify({matches:[],cups:[{id:'c1',name:'南社盃',teams:[]}]}))});await p.reload();await W(300);
-await p.click('.cupcard');await W(200);await p.click('[data-act=cupnew]');await W(200);await p.click('[data-act=cupstart]');await W(300);
-ok('資料夾開賽到資料頁',await p.locator('#i-game').count()===1);
-const bt=await p.locator('.page button.ghost.full').last().textContent();ok('下方是回資料夾：'+bt,bt.trim()==='回資料夾');
-await p.locator('.page button.ghost.full').last().click();await W(200);ok('回到資料夾',await p.locator('[data-act=cupnew]').count()===1);
+await p.evaluate(()=>{localStorage.setItem('nanshe-scoresheet-v1',JSON.stringify({matches:[],cups:[{id:'c1',name:'南社盃',createdAt:'2026-11-09T10:00:00.000Z',teams:[]}]}))});await p.reload();await W(300);
+await p.click('[data-act=new]');await W(200);ok('先選資料夾',(await p.locator('.sheet h2').textContent())==='開始新比賽');
+ok('預設選剛建的資料夾',(await p.locator('.sheet [data-act=newpick][aria-pressed=true]').textContent()).includes('南社盃'));
+await p.click('[data-act=newgo]');await W(300);
+ok('到資料頁',await p.locator('#i-game').count()===1);ok('資料頁寫著資料夾',(await p.locator('.folderrow button').textContent()).includes('南社盃'));
+const bt=await p.locator('.page button.ghost.full').last().textContent();ok('下方是回主畫面：'+bt,bt.trim()==='回主畫面');
+await p.locator('.page button.ghost.full').last().click();await W(200);ok('回到主畫面',await p.locator('.herocta').count()===1);
+await p.click('[data-act=history]');await W(200);await p.click('.cupcard');await W(200);
+ok('資料夾頁沒有開新比賽',await p.locator('[data-act=cupnew]').count()===0);
+ok('資料夾頁左上是紀錄與名單',(await p.locator('.bar .barback').textContent()).includes('紀錄與名單'));
+await p.click('.bar .barback');await W(200);ok('回到紀錄與名單',(await p.locator('.bar h1').textContent())==='紀錄與名單');
+await p.keyboard.press('Escape');await W(100);
 console.log('fail',fail);await b.close()})();

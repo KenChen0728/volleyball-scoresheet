@@ -1297,6 +1297,42 @@ button.dim{opacity:.45}
 .subpair button{min-height:36px;padding:4px 12px;font-size:14px;flex:none}
 .kp.bench{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;max-height:70vh}
 @media (orientation:landscape) and (min-width:640px){.kp.bench{max-height:none}}
+/* 11/9 主畫面：開始新比賽、紀錄與名單、使用教學 */
+.herobtns{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.herobtns button{min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.6);border-radius:12px;font-size:16px;font-weight:700}
+.herobtns svg{width:22px;height:22px;flex:none}
+.hmenu .hsample{background:var(--soft);border:2px solid var(--ink);border-radius:12px;margin:10px 0 6px;padding:12px 14px}
+.ftag{font-style:normal;font-weight:700;color:var(--ink);background:var(--soft);border-radius:6px;padding:1px 6px;margin-right:6px;font-size:12px}
+.ftag.none{color:var(--muted);font-weight:600}
+.implist{margin:2px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.45}
+.folderrow{display:flex;align-items:center;gap:10px}
+.folderrow>span{flex:none;font-size:14px;color:var(--muted)}
+.folderrow button{flex:1;min-width:0;min-height:44px;justify-content:space-between;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet .imp{position:relative}
+/* 11/9 裁判頁：先點角色，再點名字 */
+.refpick{display:flex;flex-direction:column;gap:10px}
+.refroles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.refrole{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:58px;padding:6px 12px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.refrole small{font-size:13px;color:var(--muted);font-weight:600}
+.refrole b{font-size:18px;line-height:1.2;max-width:calc(100% - 22px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.refrole:not(.fill) b{color:var(--muted);font-weight:600}
+.refnames{display:flex;flex-wrap:wrap;gap:8px}
+.refname{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;min-width:64px;padding:6px 14px;font-size:17px;font-weight:700;border-radius:10px;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
+.refname.used{color:var(--muted);border:1px dashed var(--line);background:var(--soft)}
+.refname.used:disabled{opacity:1}
+.refname .at{font-style:normal;font-size:12px;font-weight:700;color:var(--ink);line-height:1.1;margin-top:2px}
+.reftype{display:flex;gap:8px}
+.reftype input{flex:1;min-width:0;min-height:48px;font-size:16px}
+.reftype button{flex:none;min-width:76px}
+.page>.refpick+.primary.full{position:sticky;bottom:0;z-index:3;box-shadow:0 -6px 8px var(--bg)}
+.refpick{padding-bottom:4px}
+/* 11/9 統一選取：「可以點」是細框亮起（球場 .pk）；「已選」是粗框加右上角小勾，不靠顏色也看得出來。發球員維持黃框和排球，不用這個樣子 */
+.num.on{position:relative}
+.refrole[aria-pressed="true"],.sheet .imp[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:-3px}
+.pc.sel::after,.kp.bench .chip[aria-pressed="true"]::after,.cell.sel::after,.num.on::after,.refrole[aria-pressed="true"]::after,.sheet .imp[aria-pressed="true"]::after,.lc.sel::after{content:"\2713";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--panel);font:900 13px/20px system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;pointer-events:none;z-index:3;box-shadow:0 0 0 2px var(--panel)}
+.pc.isl.sel::after{top:30px}
+.sheet .imp[aria-pressed="true"]{padding-right:38px}
+.sheet .imp[aria-pressed="true"]::after{top:50%;right:10px;transform:translateY(-50%)}
 
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
@@ -1655,6 +1691,14 @@ function dispatch(type,data,match){
   m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:DEVICE,type:type,data:data});
   save();
 }
+/* 開新比賽：選了資料夾就帶入這個資料夾上一場的組別、地點、場地；沒選就照上一場 */
+function newMatchIn(cid){
+  var c=db.cups.filter(function(x){return x.id===cid})[0],inf=defaultInfo();
+  if(c){inf.name=c.name;var prev=db.matches.filter(function(q){return q.cup===c.id}).map(function(q){return safeReduce(q)}).filter(function(q){return q&&!q.info.sample})[0];
+    ['division','group','place','court','city'].forEach(function(f){inf[f]=prev?(prev.info[f]||''):''})}
+  var nm=createMatch(inf);if(c){nm.cup=c.id;save()}
+  db.currentId=nm.id;save();resetUi();view='setup';
+}
 function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
 function createMatch(info){
   var m={id:uid(),createdAt:new Date().toISOString(),events:[]};
@@ -1675,16 +1719,82 @@ function teamChoices(m){
   pastTeams(m.id).forEach(function(p){if(!seen[p.name])out.push(p)});
   return out;
 }
-/* 11/9 朋友回饋：照組別（國小、國中…）和男女，只列出這一組的隊伍。沒寫組別的隊伍都列 */
-var GROUPS=['國小','國中','高中','大專','社會'];
-function normGroup(g){return String(g||'').replace(/\s/g,'').replace(/(男子組|女子組|男生組|女生組|男子|女子|男生|女生|男|女)$/,'').replace(/組$/,'')}
-function groupList(){var a=GROUPS.slice();db.cups.forEach(function(c){c.teams.forEach(function(x){var g=normGroup(x.group);if(g&&a.indexOf(g)<0)a.push(g)})});return a}
-function groupDatalist(){return '<datalist id="grp-list">'+groupList().map(function(g){return '<option value="'+esc(g)+'">'}).join('')+'</datalist>'}
-function importChoices(m,s,k){
-  var all=teamChoices(m).filter(function(p){return p.name!==s.teams[other(k)].name.trim()}),dv=s.info.division||'',gp=normGroup(s.info.group);
-  var fit=all.filter(function(p){return (!dv||!p.division||p.division===dv)&&(!gp||!normGroup(p.group)||normGroup(p.group)===gp)});
-  return {list:ui.impAll?all:fit,hidden:all.length-fit.length,label:[gp,dv].filter(Boolean).join('・')};
+/* 組別：級別（國小、國中、高中、大專、社會）＋細分（五年級、甲組、公開一…），男女另外看。大會寫法不一樣也對得上（11/9 使用者） */
+var GROUPS=['國小五年級','國小六年級','國中甲組','國中乙組','高中甲組','高中乙組','大專一般組','大專公開一','大專公開二','社會組'];
+function parseGroup(g){
+  var t=String(g||'').replace(/\s/g,''),sex=/女/.test(t)?'女':/男/.test(t)?'男':'';
+  t=t.replace(/(男子組|女子組|男生組|女生組|男子|女子|男生|女生|男|女)/g,'');
+  var lv=/國小|小學|小[五六]/.test(t)?'國小':/國中|初中/.test(t)?'國中':/高中|高職/.test(t)?'高中':/大專|大學/.test(t)?'大專':/社會/.test(t)?'社會':/一般|公開/.test(t)?'大專':'';
+  var sb=/五年|5年|小五/.test(t)?'五年級':/六年|6年|小六/.test(t)?'六年級':/甲/.test(t)?'甲組':/乙/.test(t)?'乙組':/公開(一|1)/.test(t)?'公開一':/公開(二|2)/.test(t)?'公開二':/一般/.test(t)?'一般組':'';
+  return {lv:lv,sb:sb,sex:sex,raw:t.replace(/組$/,'')};
 }
+function groupName(g){var p=parseGroup(g);if(!p.lv)return p.raw;return p.lv==='社會'&&!p.sb?'社會組':p.lv+p.sb}
+function normGroup(g){return groupName(g)}
+/* 1：同一組（比賽沒寫細分時，同級別都算）　2：同級別、或隊伍沒寫組別　0：其他組 */
+function groupTier(tg,mg){
+  var m=parseGroup(mg);if(!m.lv&&!m.raw)return 1;
+  var t=parseGroup(tg);if(!t.lv&&!t.raw)return 2;
+  if(m.lv&&t.lv){if(t.lv!==m.lv)return 0;return (!m.sb||t.sb===m.sb)?1:2}
+  return t.raw===m.raw?1:0;
+}
+function groupList(){var a=GROUPS.slice();db.cups.forEach(function(c){liveTeams(c).forEach(function(x){var g=groupName(x.group);if(g&&a.indexOf(g)<0)a.push(g)})});return a}
+function groupDatalist(){return '<datalist id="grp-list">'+groupList().map(function(g){return '<option value="'+esc(g)+'">'}).join('')+'</datalist>'}
+/* 名單頁「載入」：所有資料夾的隊伍都能選（這場的資料夾、同名資料夾排前面），再來是先前比賽的隊伍 */
+function importChoices(m,s,k){
+  var oth=s.teams[other(k)].name.trim(),mg=s.info.group||'',dv=s.info.division||({'男':'男子組','女':'女子組'})[parseGroup(mg).sex]||'';
+  var cups=db.cups.slice().sort(function(a,b){return ((b.id===m.cup)-(a.id===m.cup))||((b.name===s.info.name)-(a.name===s.info.name))||String(b.createdAt||'').localeCompare(String(a.createdAt||''))});
+  var all=[];
+  cups.forEach(function(c){liveTeams(c).forEach(function(x){var n=x.team.name.trim();if(!n||n===oth)return;all.push({name:n,team:x.team,date:'',division:x.division||'',group:x.group||'',src:c.name})})});
+  pastTeams(m.id).forEach(function(p){if(p.name===oth||all.some(function(q){return q.name===p.name}))return;p.src='先前比賽';all.push(p)});
+  all.forEach(function(p){p.tier=(dv&&p.division&&p.division!==dv)?0:groupTier(p.group,mg)});
+  var fit=all.filter(function(p){return p.tier>0}),list=(ui.impAll?all:fit).slice();
+  list.sort(function(a,b){return (a.tier===1?0:a.tier===2?1:2)-(b.tier===1?0:b.tier===2?1:2)});
+  return {list:list,total:all.length,hidden:all.length-fit.length,label:[groupName(mg),dv].filter(Boolean).join('・')};
+}
+/* ===== 資料夾裡的名單：每一隊、每位裁判各自記最後修改時間（at），刪除留標記（del），匯入時一筆一筆比（11/9 使用者） ===== */
+function liveTeams(c){return (c.teams||[]).filter(function(x){return !x.del&&x.team})}
+function cupRefs(c){if(!Array.isArray(c.refs))c.refs=[];return c.refs}
+/* 場地：「第五場地」「第 5 場」「5」「五」都算同一個 */
+function courtKey(v){
+  var t=String(v||'').replace(/\s/g,'').replace(/^第/,'').replace(/(號場地|場地|號場|場)$/,'').toUpperCase();
+  var D={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+  if(/^[一二三四五六七八九十]+$/.test(t)){var n=0;if(t==='十')n=10;else if(t.length===1)n=D[t];else if(t[0]==='十')n=10+(D[t[1]]||0);else if(t[1]==='十')n=D[t[0]]*10+(t[2]?D[t[2]]:0);if(n)t=String(n)}
+  return t;
+}
+function courtLabel(v){var t=String(v||'').trim();if(!t)return '';return /場/.test(t)?t:(/^[0-9]+$/.test(t)?'第 '+t+' 場地':t+' 場地')}
+function courtList(c){
+  var by={},out=[];cupRefs(c).forEach(function(r){if(r.del)return;if(!by[r.court]){by[r.court]={key:r.court,label:r.label||courtLabel(r.court),n:0};out.push(by[r.court])}by[r.court].n++});
+  return out.sort(function(a,b){return a.key.localeCompare(b.key,'zh-Hant',{numeric:true})});
+}
+function refNames(c,key){var a=[];cupRefs(c).forEach(function(r){if(!r.del&&(key==null||r.court===key)&&a.indexOf(r.name)<0)a.push(r.name)});return a}
+/* 編輯一個場地的名單：拿掉的記刪除，新的加進來，沒動的不變 */
+function setCourtRefs(c,key,label,names){
+  var now=Date.now(),refs=cupRefs(c),keep={};
+  names.forEach(function(n){keep[n]=1});
+  refs.forEach(function(r){if(r.court===key&&!r.del&&!keep[r.name]){r.del=true;r.at=now}});
+  names.forEach(function(n){var r=refs.filter(function(q){return q.court===key&&q.name===n})[0];
+    if(!r)refs.push({court:key,label:label||courtLabel(key),name:n,at:now});
+    else{if(r.del){r.del=false;r.at=now}if(label&&r.label!==label){r.label=label;r.at=now}}});
+}
+/* 比賽結束時，這場的裁判自動加進該場地的名單（只做一次；之後在資料夾刪掉的不會再被同一場加回來） */
+function addMatchRefs(m,s){
+  if(!m||!m.cup||!s||s.info.sample||!matchOver(s))return false;
+  var c=db.cups.filter(function(x){return x.id===m.cup})[0],key=courtKey(s.info.court);if(!c||!key)return false;
+  var names=[];REFS.forEach(function(x){var v=String(s.info[x[0]]||'').trim();if(v&&names.indexOf(v)<0)names.push(v)});
+  var head=m.cup+'#'+key+'#',sig=head+names.join('|');if(m.refSig===sig)return false;
+  var before=m.refSig&&m.refSig.indexOf(head)===0?m.refSig.slice(head.length).split('|'):[],refs=cupRefs(c),now=Date.now(),lab=String(s.info.court||'').trim();
+  names.forEach(function(n){if(before.indexOf(n)>=0)return;var r=refs.filter(function(q){return q.court===key&&q.name===n})[0];
+    if(!r)refs.push({court:key,label:courtLabel(lab)||courtLabel(key),name:n,at:now});else if(r.del){r.del=false;r.at=now}});
+  m.refSig=sig;return true;
+}
+/* 最近比賽用過的人排前面 */
+function refOrder(c,key,names){
+  var rank={},i=0;
+  db.matches.filter(function(m){return m.cup===c.id&&m.refSig}).sort(function(a,b){return String(b.createdAt||'').localeCompare(String(a.createdAt||''))}).forEach(function(m){
+    var p=m.refSig.split('#');if(key!=null&&p[1]!==key)return;p.slice(2).join('#').split('|').forEach(function(n){if(n&&rank[n]==null)rank[n]=i++})});
+  return names.slice().sort(function(a,b){var x=rank[a],y=rank[b];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return x-y});
+}
+function cupOf(m){return m&&m.cup?db.cups.filter(function(x){return x.id===m.cup})[0]||null:null}
 function pastTeams(excludeId){
   var seen={},list=[];
   db.matches.forEach(function(m){
@@ -1805,7 +1915,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1109-1828';
+var BUILD='1109-1953';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1896,9 +2006,29 @@ var STAFF=[['execCoach','執行教練'],['coach','教練'],['leader','領隊'],[
 function staffOf(t){var a=STAFF.slice();if(t&&t.staff&&t.staff.teacher)a.push(['teacher','隨隊教師（舊）']);return a} // 舊比賽填過的隨隊教師照樣看得到
 /* 裁判（11/7 使用者：多一頁，可以不填；印在記錄表的證明欄） */
 var REFS=[['ref1','第一裁判員'],['ref2','第二裁判員'],['scorer','記錄員'],['ascorer','助理記錄員'],['lj1','司線員 1'],['lj2','司線員 2']]; // 裁判委員不用輸入，記錄表上那格留空給委員自己寫（11/7 使用者）
-function refsHtml(s,inTab){var i=s.info,f='<div class="fields">'+REFS.map(function(x){return field('r-'+x[0],x[1],i[x[0]]||'',false,{field:x[0],kind:'info'})}).join('')+'</div>';
-  if(inTab)return '<div class="narrow"><p class="subhint">裁判名單</p>'+f+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
-  return '<p class="stephint">可以空著，比賽中、比賽後也能補。填了會印在匯出的記錄表上。</p>'+f+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');}
+var REF_SHORT={ref1:'第一裁判',ref2:'第二裁判',scorer:'記錄員',ascorer:'助理記錄',lj1:'司線員 1',lj2:'司線員 2'};
+function firstEmptyRole(s,after){var keys=REFS.map(function(x){return x[0]}),st=after?keys.indexOf(after)+1:0;for(var j=0;j<keys.length;j++){var q=keys[(st+j)%keys.length];if(!String(s.info[q]||'').trim())return q}return null}
+/* 11/9 使用者：裁判依場地建名單，先點角色、再點名字；用過的人變灰並標角色；名單沒有的直接打字 */
+function refsHtml(s,inTab){
+  var i=s.info,c=cupOf(current()),key=courtKey(i.court);
+  if(ui.refRole===undefined)ui.refRole=firstEmptyRole(s);
+  var role=ui.refRole,used={};
+  REFS.forEach(function(x){var v=String(i[x[0]]||'').trim();if(v)used[v]=x[0]});
+  var roles='<div class="refroles">'+REFS.map(function(x){var v=String(i[x[0]]||'').trim();return '<button class="refrole'+(v?' fill':'')+'" data-act="refrole" data-v="'+x[0]+'" aria-pressed="'+(role===x[0])+'"><small>'+x[1]+'</small><b>'+(v?esc(v):'未填')+'</b></button>'}).join('')+'</div>';
+  function chip(n){var u=used[n];return '<button class="refname'+(u?' used':'')+'" data-act="refname" data-v="'+esc(n)+'"'+(u?' disabled aria-label="'+esc(n)+' 已排'+REF_SHORT[u]+'"':'')+'>'+esc(n)+(u?'<i class="at">'+REF_SHORT[u]+'</i>':'')+'</button>'}
+  var names=[],note='',title='',others=[];
+  if(c){
+    if(key){names=refOrder(c,key,refNames(c,key));title=(courtList(c).filter(function(q){return q.key===key})[0]||{label:courtLabel(i.court)}).label+'的裁判';others=refOrder(c,null,refNames(c,null).filter(function(n){return names.indexOf(n)<0}));if(!names.length)note=courtLabel(i.court)+'還沒有名單：直接打名字，比賽結束後會自動加進名單。'}
+    else{names=refOrder(c,null,refNames(c,null));title='「'+c.name+'」的裁判';note='資料頁還沒填「場地」，先列出這個資料夾全部的裁判。'}
+  }else note='這場沒有放進資料夾，請直接打名字。放進資料夾後，就能從場地的裁判名單點選。';
+  var list=names.length?'<div class="subhint">'+esc(title)+'</div><div class="refnames">'+names.map(chip).join('')+'</div>':'';
+  var oth=others.length?(ui.refOther?'<div class="subhint">其他場地</div><div class="refnames">'+others.map(chip).join('')+'</div><button class="linkbtn" data-act="refother">收起其他場地</button>':'<button class="linkbtn" data-act="refother">其他場地的裁判（'+others.length+' 位）</button>'):'';
+  var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>'+(role&&String(i[role]||'').trim()?'<button class="linkbtn" data-act="refclear">清空「'+REF_SHORT[role]+'」</button>':'');
+  var msg=ui.refMsg?'<p class="warning" role="status">'+esc(ui.refMsg)+'</p>':'';
+  var body=roles+msg+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
+  if(inTab)return '<div class="narrow refpick"><p class="subhint">裁判名單</p>'+body+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
+  return '<div class="refpick"><p class="stephint">先點角色，再點名字。可以空著，比賽中、比賽後也能補。</p>'+body+'</div>'+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');
+}
 
 function tName(s,k){return s.teams[k].name||TEAM_LABEL[k]}
 function setDone(s){var c=s.sets[s.setNo];return !!(c.left&&c.serve)}
@@ -1976,13 +2106,14 @@ function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
-    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+helpHtml()+staleHtml();
+    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+helpHtml()+staleHtml();
     helpPlace();
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     var ask=app.querySelector('.rrow.ask');if(ask)ask.scrollIntoView({block:'nearest'});
     syncAwake(false);return;
   }
   var m=current(),s=reduce(m.events);
+  if(addMatchRefs(m,s))save();
   applyColors(s);
   var pgKey=ui.page+'|'+(ui.rtab||'')+'|'+(ui.liveSheet?1:0),old=app.querySelector('.page'),top=old&&pgKey===lastPgKey?old.scrollTop:0,oldTabs=app.querySelector('.sheettabs'),tabX=oldTabs?oldTabs.scrollLeft:0;
   if(ui.page==='play'&&!ui.pen&&!ui.liveSheet){var po=pendingOut(s);
@@ -2025,11 +2156,11 @@ function staleHtml(){
   if(!staleTab)return '';
   return '<div class="stale" role="alertdialog" aria-modal="true"><div class="stalebox"><h2>這場比賽在別的分頁有新紀錄</h2><p>同一場比賽不能在兩個分頁一起記，這個分頁已經停用，剛才這一下沒有存進去。請重新載入，看到最新的比分後再繼續。</p><button class="primary" data-act="reload">重新載入</button></div></div>';
 }
-var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，照 1 到 5 的步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"按「用範例比賽試試」，名單已經填好，可以放心亂按。範例會標示「練習」，不會混進正式名單。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著。開賽後就不能改了。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的紅字。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人。要一次換好幾個人，就重複做，或按下方的「替補」。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除。暫停和替補改了比分不變；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」的「修正陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"cup3","t":"開新比賽","d":"在資料夾按「開新比賽」，點兩隊，名單會自動帶入。"},{"img":"cup4","t":"傳到另一台","d":"按「存成檔案」傳過去，在「歷史紀錄」按匯入。"}]},{"id":"history","name":"回顧和備份","desc":"看打完的比賽、搬到新手機","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面的「歷史紀錄」點一場，就能看結果和判罰。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"},{"img":"hist2","t":"備份和匯入","d":"換手機前按「備份全部比賽」，到新裝置再匯入。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_data","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方「備份全部比賽」，再到新的地方匯入。"}]}];
+var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的紅字。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除。暫停和替補改了比分不變；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」的「修正陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與備份","desc":"看打完的比賽、搬到新手機","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"},{"img":"hist2","t":"備份和匯入","d":"換手機前在「紀錄與名單」按「備份全部比賽」，到新裝置再匯入。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_data","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方「備份全部比賽」，再到新的地方匯入。"}]}];
 function helpCards(){var g=HELP.filter(function(x){return x.id===ui.help.group})[0]||HELP[0];return g.cards.map(function(c){return {img:c.img,t:c.t,d:c.d,g:g.name}})}
 function helpHtml(){
   if(!ui.help)return '';
-  if(!ui.help.group)return '<div class="help menu" role="dialog" aria-modal="true" aria-label="使用教學"><div class="hhead"><h1>使用教學</h1><button data-act="helpclose" aria-label="關閉說明">✕</button></div><div class="hmenu">'+HELP.map(function(g){return '<button data-act="helpgroup" data-v="'+g.id+'"><strong>'+esc(g.name)+'</strong><small>'+esc(g.desc)+'</small></button>'}).join('')+'</div></div>';
+  if(!ui.help.group)return '<div class="help menu" role="dialog" aria-modal="true" aria-label="使用教學"><div class="hhead"><h1>使用教學</h1><button data-act="helpclose" aria-label="關閉說明">✕</button></div><div class="hmenu">'+(view==='home'?'<button class="hsample" data-act="sample"><strong>用範例比賽試試</strong><small>名單已經填好，可以放心亂按，標示「練習」，不會混進正式紀錄</small></button>':'')+HELP.map(function(g){return '<button data-act="helpgroup" data-v="'+g.id+'"><strong>'+esc(g.name)+'</strong><small>'+esc(g.desc)+'</small></button>'}).join('')+'</div></div>';
   var cs=helpCards(),i=Math.min(ui.help.i,cs.length-1),last=i===cs.length-1;
   var dots=cs.map(function(_,n){return '<i'+(n===i?' class="on"':'')+'></i>'}).join('');
   var slides=cs.map(function(x,n){var src='help/'+x.img+'.webp';return '<section class="hslide"'+(n===i?'':' aria-hidden="true"')+'><div class="himg">'+(src?'<img src="'+src+'" alt="" decoding="async">':'')+'</div><div class="htxt"><h2>'+esc(x.t)+'</h2><p>'+esc(x.d)+'</p></div></section>'}).join('');
@@ -2108,7 +2239,7 @@ function helpGroup(s){
   if(ui.page==='play'&&!ui.liveSheet&&!matchOver(s)&&setWinner(s))return 'sets';
   if(ui.page==='play'&&(ui.liveSheet||matchOver(s)))return 'sheet';
   if(ui.page==='toss'&&s.setNo===fmtOf(s)&&!s.sets[s.setNo].started)return 'set3';
-  if(ui.page==='refs')return 'info';
+  if(ui.page==='refs')return 'refs';
   return ui.page;
 }
 function barTime(s){
@@ -2136,7 +2267,7 @@ function barHtml(s){
   if(over)title=tName(s,s.sets[1].left||'t1')+' 對 '+tName(s,other(s.sets[1].left||'t1'));
   else if(ui.page==='play'&&c.started)title='第 '+s.setNo+' 局';
   else title={info:'比賽資料',refs:'裁判',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
-  var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
+  var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'紀錄與名單':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   if(!back&&ui.page==='play'&&c.started&&!over&&ui.liveSheet&&!setWinner(s))back='<button class="barback" data-act="sheetclose">‹ 比賽</button>';
   var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
   var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
@@ -2232,47 +2363,94 @@ function parseRoster(text,div,name){
   });
   return {teams:teams,errors:errors};
 }
-function validCupTeam(x){return x&&typeof x.id==='string'&&typeof x.division==='string'&&x.team&&typeof x.team.name==='string'&&Array.isArray(x.team.players)&&Array.isArray(x.team.liberos)&&x.team.players.every(function(p){return p&&typeof p.no==='number'})}
-function mergeCups(list){
-  if(!Array.isArray(list))return 0;var n=0;
-  list.forEach(function(c){
+function validCupTeam(x){return !!x&&typeof x.id==='string'&&(x.del===true||(typeof x.division==='string'&&!!x.team&&typeof x.team.name==='string'&&Array.isArray(x.team.players)&&Array.isArray(x.team.liberos)&&x.team.players.every(function(p){return p&&typeof p.no==='number'})))}
+function validRef(r){return !!r&&typeof r.court==='string'&&typeof r.name==='string'&&!!r.name.trim()}
+function teamSame(a,b){return JSON.stringify([a.division,a.group||'',a.team])===JSON.stringify([b.division,b.group||'',b.team])}
+/* 匯入資料夾：一筆一筆比，最後改的為主；兩邊新增的都留下；刪掉的有標記，不會又跑回來（11/9 使用者） */
+function planCups(list){
+  var out=[];
+  (Array.isArray(list)?list:[]).forEach(function(c){
     if(!c||typeof c.id!=='string'||typeof c.name!=='string'||!Array.isArray(c.teams))return;
-    var ts=c.teams.filter(validCupTeam).map(function(x){x.team.staff=x.team.staff||emptyTeam().staff;return x}),h=db.cups.filter(function(q){return q.id===c.id})[0];
-    if(h)ts.forEach(function(x){if(!h.teams.some(function(q){return q.id===x.id}))h.teams.push(x)});
-    else db.cups.push({id:c.id,name:c.name,createdAt:c.createdAt||'',teams:ts});
-    n++;
+    var teams=c.teams.filter(validCupTeam).map(function(x){if(x.team)x.team.staff=x.team.staff||emptyTeam().staff;return x}),refs=(Array.isArray(c.refs)?c.refs:[]).filter(validRef);
+    var h=db.cups.filter(function(q){return q.id===c.id})[0];
+    var p={id:c.id,name:c.name,at:c.at||0,createdAt:c.createdAt||'',isNew:!h,teams:teams,refs:refs,addT:0,updT:0,delT:0,addR:{},delR:{},ren:false};
+    function bump(o,r){var lb=r.label||courtLabel(r.court);o[lb]=(o[lb]||0)+1}
+    if(!h){p.addT=teams.filter(function(x){return !x.del}).length;refs.forEach(function(r){if(!r.del)bump(p.addR,r)});out.push(p);return}
+    teams.forEach(function(x){var y=h.teams.filter(function(q){return q.id===x.id})[0];
+      if(!y){if(!x.del)p.addT++;return}
+      if((x.at||0)<=(y.at||0))return;
+      if(x.del&&!y.del)p.delT++;else if(!x.del&&y.del)p.addT++;else if(!x.del&&!teamSame(x,y))p.updT++});
+    var hr=cupRefs(h);
+    refs.forEach(function(r){var y=hr.filter(function(q){return q.court===r.court&&q.name===r.name})[0];
+      if(!y){if(!r.del)bump(p.addR,r);return}
+      if((r.at||0)<=(y.at||0))return;
+      if(r.del&&!y.del)bump(p.delR,r);else if(!r.del&&y.del)bump(p.addR,r)});
+    p.ren=(c.at||0)>(h.at||0)&&c.name!==h.name;
+    out.push(p);
+  });
+  return out;
+}
+function applyCups(plans){
+  var n=0;
+  plans.forEach(function(p){
+    var h=db.cups.filter(function(q){return q.id===p.id})[0];n++;
+    if(!h){db.cups.push({id:p.id,name:p.name,createdAt:p.createdAt,at:p.at,teams:p.teams,refs:p.refs});return}
+    p.teams.forEach(function(x){var i=-1;h.teams.forEach(function(q,j){if(q.id===x.id)i=j});if(i<0)h.teams.push(x);else if((x.at||0)>(h.teams[i].at||0))h.teams[i]=x});
+    var hr=cupRefs(h);
+    p.refs.forEach(function(r){var i=-1;hr.forEach(function(q,j){if(q.court===r.court&&q.name===r.name)i=j});if(i<0)hr.push(r);else if((r.at||0)>(hr[i].at||0))hr[i]=r});
+    if(p.ren){h.name=p.name;h.at=p.at}
   });
   return n;
 }
+function cupChanged(c){return c.isNew||c.ren||c.addT||c.updT||c.delT||Object.keys(c.addR).length||Object.keys(c.delR).length}
+function importPlanHtml(){
+  var p=ui.importPlan;if(!p)return '';
+  var li=[],cups=p.cups.filter(cupChanged);
+  if(p.add.length||p.newer.length)li.push('比賽：'+[p.add.length?'新增 '+p.add.length+' 場':'',p.newer.length?'更新 '+p.newer.length+' 場':''].filter(Boolean).join('、'));
+  cups.forEach(function(c){var a=[];
+    if(c.isNew)a.push('新的資料夾');if(c.ren)a.push('改名為「'+c.name+'」');
+    if(c.addT)a.push('新增 '+c.addT+' 隊');if(c.updT)a.push('更新 '+c.updT+' 隊名單');if(c.delT)a.push('刪除 '+c.delT+' 隊');
+    Object.keys(c.addR).forEach(function(k){a.push(k+'新增 '+c.addR[k]+' 位裁判')});Object.keys(c.delR).forEach(function(k){a.push(k+'刪除 '+c.delR[k]+' 位裁判')});
+    li.push('「'+c.name+'」資料夾：'+a.join('、'))});
+  var bad=p.bad?'<p class="muted">另有 '+p.bad+' 場內容有問題，不會匯入。</p>':'',h;
+  if(!li.length)h='<h2>匯入備份</h2><p>這個檔案的內容，這台都已經有了。</p>'+bad+'<button class="ghost" data-act="impcancel">關閉</button>';
+  else h='<h2>匯入前確認</h2><p class="muted">會改這些：</p><ul class="implist">'+li.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'+(p.lost?'<p class="warning">有 '+p.lost+' 場比賽，這台有幾筆紀錄不在檔案裡，更新後會不見。</p>':'')+bad+
+    '<button class="primary" data-act="impgo">匯入</button>'+(p.newer.length?'<button data-act="impgo" data-v="keep">已經有的比賽保留這台的，其他照常匯入</button>':'')+'<button class="ghost" data-act="impcancel">取消</button>';
+  return '<div class="scrim" data-act="impcancel"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
+}
 function cupHomeHtml(){
-  var rows=db.cups.map(function(c){var n=cupRows(c.id).length;return '<button class="hrow cupcard" data-act="cupopen" data-id="'+esc(c.id)+'"><svg class="cupic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg><span class="cuptx"><strong>'+esc(c.name)+'</strong><span class="muted">'+c.teams.length+' 隊・'+n+' 場比賽</span></span><span class="cupgo" aria-hidden="true">打開 ›</span></button>'}).join('');
-  return '<section><div class="shead"><h2>賽事資料夾</h2><button class="linkbtn" data-act="cupcreate">新增資料夾</button></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="muted">同一個盃賽的名單和比賽放在一起，可以分男女組。</p>')+'</section>';
+  var rows=db.cups.map(function(c){var n=cupRows(c.id).length;return '<button class="hrow cupcard" data-act="cupopen" data-id="'+esc(c.id)+'"><svg class="cupic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg><span class="cuptx"><strong>'+esc(c.name)+'</strong><span class="muted">'+liveTeams(c).length+' 隊・'+n+' 場比賽</span></span><span class="cupgo" aria-hidden="true">打開 ›</span></button>'}).join('');
+  return '<section><div class="shead"><h2>賽事資料夾</h2><button class="linkbtn" data-act="cupcreate">新增資料夾</button></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="muted">同一個盃賽的隊伍名單'+(XP_ON?'、各場地的裁判名單':'')+'和比賽放在一起。開新比賽時選資料夾，就能從名單點選。</p>')+'</section>';
 }
 function cupHtml(){
   var c=theCup();if(!c){view='home';return homeHtml()}
   var all=cupRows(c.id),divs=CUP_DIVS.concat(all.some(function(x){return cupDivOf(x.s)==='未分組'})?['未分組']:[]);
   if(divs.indexOf(cupView.div)<0)cupView.div=divs[0];
   var seg='<div class="seg">'+divs.map(function(d){return '<button data-act="cupdiv" data-v="'+d+'" aria-pressed="'+(cupView.div===d)+'">'+d+'</button>'}).join('')+'</div>';
-  var dts=c.teams.filter(function(x){return x.division===cupView.div}),gs=[];
-  dts.forEach(function(x){var g=normGroup(x.group);if(g&&gs.indexOf(g)<0)gs.push(g)});
+  var dts=liveTeams(c).filter(function(x){return x.division===cupView.div}),gs=[];
+  dts.forEach(function(x){var g=groupName(x.group);if(g&&gs.indexOf(g)<0)gs.push(g)});
   gs.sort(function(a,b){var i=GROUPS.indexOf(a),j=GROUPS.indexOf(b);return (i<0?99:i)-(j<0?99:j)});
   if(cupView.grp&&gs.indexOf(cupView.grp)<0)cupView.grp='';
   if(gs.length)seg+='<div class="seg grpseg">'+[''].concat(gs).map(function(g){return '<button data-act="cupgrp" data-v="'+esc(g)+'" aria-pressed="'+(cupView.grp===g)+'">'+(g?esc(g):'全部')+'</button>'}).join('')+'</div>';
-  var ts=dts.filter(function(x){return !cupView.grp||normGroup(x.group)===cupView.grp});
-  var tr=ts.map(function(x){return '<button class="hrow" data-act="cupteam" data-id="'+esc(x.id)+'"><strong>'+esc(x.team.name)+'</strong><span class="muted">'+(normGroup(x.group)?esc(normGroup(x.group))+'・':'')+x.team.players.length+' 人'+(x.team.liberos.length?'・自由球員 '+x.team.liberos.length+' 人':'')+(x.team.captain===null?'・還沒有隊長':'')+'</span></button>'}).join('');
-  var ms=all.filter(function(x){return cupDivOf(x.s)===cupView.div&&(!cupView.grp||normGroup(x.s.info.group)===cupView.grp)}).map(function(x){
+  var ts=dts.filter(function(x){return !cupView.grp||groupName(x.group)===cupView.grp});
+  var tr=ts.map(function(x){return '<button class="hrow" data-act="cupteam" data-id="'+esc(x.id)+'"><strong>'+esc(x.team.name)+'</strong><span class="muted">'+(groupName(x.group)?esc(groupName(x.group))+'・':'')+x.team.players.length+' 人'+(x.team.liberos.length?'・自由球員 '+x.team.liberos.length+' 人':'')+(x.team.captain===null?'・還沒有隊長':'')+'</span></button>'}).join('');
+  var ms=all.filter(function(x){return cupDivOf(x.s)===cupView.div&&(!cupView.grp||groupName(x.s.info.group)===cupView.grp)}).map(function(x){
     var h=matchOver(x.s)?historyRow(x.m,x.s,true):resumeRow(x.m,x.s);
     return h.replace('data-from="history"','data-from="cup"').replace('class="rmain" data-act="open"','class="rmain" data-act="open" data-from="cup"');
   }).join('');
-  return '<header class="bar"><button class="barback" data-act="home">‹ 主畫面</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+seg+'<button class="primary full" data-act="cupnew">開新比賽</button><section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">先把各隊名單放進來，開賽時直接選隊。</p>')+'</section><section><h2>比賽</h2>'+(ms?'<div class="rlist">'+ms+'</div>':'<p class="muted">這一組還沒有比賽。</p>')+'</section><div class="histtools"><button data-act="cupadd">把舊比賽加進來</button><button data-act="cupsave">存成檔案</button><button data-act="cuprename">改名</button><button data-act="cupdel">刪除資料夾</button></div><p class="muted">存成檔案後傳到另一台裝置，在「歷史紀錄」按匯入，兩台就有一樣的名單。</p></div></main>';
+  var cts=XP_ON?courtList(c):[],refSec=XP_ON?'<section><div class="shead"><h2>裁判名單</h2><button class="linkbtn" data-act="cupcourt">新增場地</button></div>'+(cts.length?'<div class="rlist">'+cts.map(function(q){return '<button class="hrow" data-act="cupcourt" data-v="'+esc(q.key)+'"><strong>'+esc(q.label)+'</strong><span class="muted">'+q.n+' 位裁判</span></button>'}).join('')+'</div>':'<p class="muted">依場地建裁判名單，記錄時點名字就好。比賽結束後，那一場的裁判也會自動加進該場地的名單。</p>')+'</section>':'';
+  var liveN=all.filter(function(x){return !matchOver(x.s)}).length;
+  return '<header class="bar"><button class="barback" data-act="history">‹ 紀錄與名單</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+refSec+seg+'<section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">先把各隊名單放進來，名單頁按「載入」就能選。</p>')+'</section><section><h2>比賽</h2>'+(ms?'<div class="rlist">'+ms+'</div>':'<p class="muted">這一組還沒有比賽。</p>')+'</section><div class="histtools"><button data-act="cupadd">把舊比賽加進來</button><button data-act="cupsave">存成檔案</button><button data-act="cuprename">改名</button><button data-act="cupdel">刪除資料夾</button></div><p class="muted">存成檔案後傳到另一台裝置，在「紀錄與名單」按匯入：名單、比賽都會帶過去，匯入前會先列出會改什麼。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></main>';
 }
 function cupSheetHtml(){
   var x=ui.cupSheet;if(!x)return '';
   var c=theCup(),h='',err=x.err?'<p class="cuperr" role="alert">'+esc(x.err)+'</p>':'';
   if(x.type==='name')h='<h2>'+(x.edit?'資料夾改名':'新增賽事資料夾')+'</h2><label for="cup-name">賽事名稱<input id="cup-name" type="text" maxlength="40" value="'+esc(x.edit&&c?c.name:'')+'" placeholder="例如：校際盃"></label>'+err+'<button class="primary" data-act="cupnamesave">儲存</button><button class="ghost" data-act="close">取消</button>';
-  else if(x.type==='team')h='<h2>'+(x.id?'修改隊伍名單':'加入隊伍名單（'+esc(cupView.div)+'）')+'</h2><label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><label for="ct-group">組別<input id="ct-group" type="text" maxlength="12" list="grp-list" autocomplete="off" placeholder="例如：國中（可以不填）" value="'+esc(x.group||'')+'"></label>'+groupDatalist()+'<label for="ct-text">名單<textarea id="ct-text" class="cupta" rows="9" placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 隊長\n7\n12 L">'+esc(x.text||'')+'</textarea></label><p class="muted">背號後面寫 L 是自由球員，寫隊長是隊長。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>'+err+'<div class="row"><label class="ghost-file">選 CSV 檔<input id="cup-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label><button data-act="cuptpl">下載範本</button></div><button class="primary" data-act="cupteamsave">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="cupteamdel2">確定刪除這一隊</button>':'<button class="ghost" data-act="cupteamdel">刪除這一隊</button>'):'')+'<button class="ghost" data-act="close">取消</button>';
+  else if(x.type==='team')h='<h2>'+(x.id?'修改隊伍名單':'加入隊伍名單（'+esc(cupView.div)+'）')+'</h2><label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><label for="ct-group">組別<input id="ct-group" type="text" maxlength="12" list="grp-list" autocomplete="off" placeholder="例如：國中甲組（可以不填）" value="'+esc(x.group||'')+'"></label>'+groupDatalist()+'<label for="ct-text">名單<textarea id="ct-text" class="cupta" rows="9" placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 隊長\n7\n12 L">'+esc(x.text||'')+'</textarea></label><p class="muted">背號後面寫 L 是自由球員，寫隊長是隊長。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>'+err+'<div class="row"><label class="ghost-file">選 CSV 檔<input id="cup-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label><button data-act="cuptpl">下載範本</button></div><button class="primary" data-act="cupteamsave">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="cupteamdel2">確定刪除這一隊</button>':'<button class="ghost" data-act="cupteamdel">刪除這一隊</button>'):'')+'<button class="ghost" data-act="close">取消</button>';
   else if(x.type==='new'){var ts=c.teams.filter(function(t){return t.division===cupView.div&&(!cupView.grp||normGroup(t.group)===cupView.grp)});h='<h2>開新比賽（'+esc((cupView.grp?cupView.grp+' ':'')+cupView.div)+'）</h2><p class="muted">'+(ts.length?'點兩隊，名單會自動帶入。也可以不選，之後再填。':'這一組還沒有隊伍，可以先開賽再填名單。')+'</p>'+ts.map(function(t){var i=x.pick.indexOf(t.id);return '<button class="imp" data-act="cuppick" data-id="'+esc(t.id)+'" aria-pressed="'+(i>=0)+'"><span>'+esc(t.team.name)+'</span><small>'+(i>=0?(i?'第二隊':'第一隊'):t.team.players.length+' 人')+'</small></button>'}).join('')+'<button class="primary" data-act="cupstart">開始</button><button class="ghost" data-act="close">取消</button>'}
   else if(x.type==='add'){var fr=db.matches.map(function(m){return {m:m,s:safeReduce(m)}}).filter(function(q){return q.s&&!q.m.cup&&!q.s.info.sample});fr.sort(function(a,b){return (b.s.info.name===c.name)-(a.s.info.name===c.name)});h='<h2>把舊比賽加進來</h2>'+(fr.length?fr.map(function(q){var T=matchTitle(q.s);return '<button class="imp" data-act="cupaddm" data-id="'+esc(q.m.id)+'"><span>'+esc(T[0])+' 對 '+esc(T[1])+'</span><small>'+esc((q.s.info.date||'').slice(5))+' '+esc(q.s.info.division||'')+'</small></button>'}).join(''):'<p class="muted">沒有其他比賽可以加入。</p>')+'<button class="ghost" data-act="close">完成</button>'}
+  else if(x.type==='start')h='<h2>開始新比賽</h2><p class="muted">這場要放進哪個盃賽？之後在「資料」頁也能改。</p>'+db.cups.map(function(c){var on=x.pick===c.id;return '<button class="imp" data-act="newpick" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="newpick" data-id="" aria-pressed="'+(!x.pick)+'"><span>不屬於任何盃賽</span><small></small></button><button class="primary" data-act="newgo">開始</button><button class="ghost" data-act="close">取消</button>';
+  else if(x.type==='court'){var cl=theCup(),nm0=x.key?refNames(cl,x.key):[];h='<h2>'+(x.key?'修改裁判名單':'新增場地')+'</h2><label for="cc-court">場地<input id="cc-court" type="text" maxlength="20" value="'+esc(x.court||'')+'" placeholder="例如：第五場地"></label><label for="cc-text">裁判名單<textarea id="cc-text" class="cupta" rows="9" placeholder="一行一位，可以從 LINE 或分配表貼上">'+esc(x.text!=null?x.text:nm0.join('\n'))+'</textarea></label><p class="muted">同一個人可以在好幾個場地。不會再來的人，刪掉那一行就好。</p>'+err+'<button class="primary" data-act="cupcourtsave">儲存</button>'+(x.key?(x.ask?'<button class="danger" data-act="cupcourtdel2">確定刪除這個場地的名單</button>':'<button class="ghost" data-act="cupcourtdel">刪除這個場地</button>'):'')+'<button class="ghost" data-act="close">取消</button>'}
   else if(x.type==='del')h='<h2>刪除「'+esc(c.name)+'」？</h2><p class="muted">隊伍名單會刪除。比賽紀錄不會刪除，還在歷史紀錄裡。</p><button class="danger" data-act="cupdel2">確定刪除</button><button class="ghost" data-act="close">取消</button>';
   return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
@@ -2298,12 +2476,11 @@ function homeHtml(){
   if(g.bad.length)body+='<section><h2>資料有問題的比賽</h2><p class="muted">這些比賽算不出來，打不開，其他比賽不受影響。可以先存下來，再刪除。</p><div class="rlist">'+g.bad.map(badRow).join('')+'</div></section>';
   if(homeNote&&Date.now()<homeNote.until&&g.live.length)body+='<p class="homenote" role="status">'+esc(homeNote.t)+'</p>';
   if(g.live.length)body+='<section><h2>進行中</h2><div class="rlist">'+g.live.map(function(x){return resumeRow(x.m,x.s)}).join('')+'</div></section>';
-  body+=cupHomeHtml();
-  body+='<section><div class="shead"><h2>歷史紀錄</h2>'+(g.done.length?'<button class="linkbtn" data-act="history">全部 '+g.done.length+' 場</button>':'')+'</div>'+(g.done.length?'<div class="rlist">'+g.done.slice(0,3).map(function(x){return historyRow(x.m,x.s)}).join('')+'</div>':'<p class="muted">打完的比賽會放在這裡，可以隨時打開看結果。</p>')+'<div class="bkrow">'+(db.matches.length?'<span class="muted">比賽只存在這台裝置。'+(prefs.lastBackup?'上次備份 '+shortTime(prefs.lastBackup):'還沒備份過')+'</span><button class="linkbtn" data-act="history">備份或匯入</button>':'<button class="linkbtn" data-act="history">匯入比賽備份</button>')+'</div></section>';
+  if(db.matches.length)body+='<div class="bkrow"><span class="muted">比賽只存在這台裝置。'+(prefs.lastBackup?'上次備份 '+shortTime(prefs.lastBackup):'還沒備份過')+'，備份在「紀錄與名單」。</span></div>';
   var th=prefs.theme||'auto';
   body+=inst+'<div class="themerow"><span class="muted">提示字</span><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(x){return '<button data-act="hints" data-v="'+x[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>';
   body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+'<button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
-  return '<div class="home"><section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herolinks"><button class="linkbtn" data-act="helpopen">看使用教學</button><button class="linkbtn" data-act="sample">用範例比賽試試</button></div></section><div class="homebody">'+body+'</div></div>';
+  return '<div class="home"><section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
   var a=ui.importAsk;if(!a||!a.length)return '';
@@ -2312,8 +2489,8 @@ function importAskHtml(){
   return '<div class="warning">'+(one?'這場比賽的備份比這台裝置新（這台 '+one.events.length+' 筆，備份 '+a[0].events.length+' 筆）。':'有 '+a.length+' 場比賽的備份比這台裝置新。')+'要用備份更新嗎？'+(lost?'這台有幾筆紀錄不在備份裡，更新後會消失。':'')+'<div class="row"><button data-act="impkeep">保留這台的</button><button class="go" data-act="impnew">用備份更新</button></div></div>';
 }
 function historyHtml(){
-  var g=splitMatches(),rows=g.done.map(function(x){return historyRow(x.m,x.s,true)}).join('');
-  return '<header class="bar"><button class="barback" data-act="home">‹ 主畫面</button><h1>歷史紀錄</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+(rows?'<p class="muted">點一場比賽就能看結果。</p><div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'<div class="histtools"><button data-act="rpall"'+(db.matches.length||db.cups.length?'':' disabled')+'>備份全部比賽</button><label class="ghost-file">匯入比賽備份<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div>'+importAskHtml()+'<div id="import-msg" class="muted">'+esc(ui.importMsg||'')+'</div><div id="rvmsg" class="muted"></div><p class="muted">比賽只存在這台裝置。換手機或清除瀏覽器資料前，請先備份。</p></div></main>';
+  var g=splitMatches(),rows=g.done.map(function(x){var c=cupOf(x.m);return historyRow(x.m,x.s,true).replace('<span class="muted">','<span class="muted"><em class="ftag'+(c?'':' none')+'">'+esc(c?c.name:'未分類')+'</em>')}).join('');
+  return '<header class="bar"><button class="barback" data-act="home">‹ 主畫面</button><h1>紀錄與名單</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+cupHomeHtml()+'<section><h2>打完的比賽</h2>'+(rows?'<p class="muted">點一場比賽就能看結果。前面標的是放在哪個資料夾。</p><div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'</section><section><h2>備份和匯入</h2><div class="histtools"><button data-act="rpall"'+(db.matches.length||db.cups.length?'':' disabled')+'>備份全部比賽</button><label class="ghost-file">匯入備份或資料夾<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div><div id="import-msg" class="muted" role="status">'+esc(ui.importMsg||'')+'</div><div id="rvmsg" class="muted"></div><p class="muted">比賽只存在這台裝置。換手機或清除瀏覽器資料前，請先備份。匯入前會先列出會改什麼。</p></section></div></main>';
 }
 function field(id,label,val,dis,x){x=x||{};
   return '<label for="'+id+'"'+(x.wide?' class="wide"':'')+'>'+label+
@@ -2322,10 +2499,12 @@ function field(id,label,val,dis,x){x=x||{};
 function infoHtml(s){
   var i=s.info,lk=s.sets[1].started,going=lk&&!matchOver(s);
   var div=['男子組','女子組'].map(function(x){return '<button data-act="div" data-v="'+x+'" aria-pressed="'+(i.division===x)+'"'+(lk?' disabled':'')+'>'+x+'</button>'}).join('');
+  var mm=current(),cf=cupOf(mm),sug=!cf&&String(i.name||'').trim()?db.cups.filter(function(c){return c.name.trim()===String(i.name).trim()})[0]:null;
+  var fold=db.cups.length?'<div class="wide folderrow"><span>資料夾</span><button data-act="sheet" data-v="folder">'+(cf?esc(cf.name):'不屬於任何盃賽')+' ›</button></div>'+(sug?'<div class="wide note">比賽名稱和資料夾「'+esc(sug.name)+'」一樣，要放進去嗎？<button class="linkbtn" data-act="setcup" data-id="'+esc(sug.id)+'">放進「'+esc(sug.name)+'」</button></div>':''):'';
   return (lk?'':'<p class="stephint">這一頁都可以空著，不確定就直接按下一步。</p>')+'<div class="fields">'+
-    field('i-name','比賽名稱',i.name,lk,{wide:true,field:'name',kind:'info',ph:'例如：校際盃'})+
+    fold+field('i-name','比賽名稱',i.name,lk,{wide:true,field:'name',kind:'info',ph:'例如：校際盃'})+
     '<div class="wide seg">'+div+'</div>'+
-    (XP_ON?field('i-group','組別',i.group||'',lk,{field:'group',kind:'info',ph:'例如：國中',list:'grp-list'})+groupDatalist():'')+ // 協會記錄表要的（學校版沒有）
+    (XP_ON?field('i-group','組別',i.group||'',lk,{field:'group',kind:'info',ph:'例如：國中甲組',list:'grp-list'})+groupDatalist():'')+ // 協會記錄表要的（學校版沒有）
     field('i-game','場次',i.game,lk,{field:'game',kind:'info'})+
     field('i-court','場地',i.court,lk,{field:'court',kind:'info'})+
     field('i-date','日期',i.date,lk,{field:'date',kind:'info',type:'date'})+
@@ -2335,7 +2514,7 @@ function infoHtml(s){
     '<div class="wide seg">'+[[3,'三局兩勝'],[5,'五局三勝']].map(function(x){return '<button data-act="fmt" data-v="'+x[0]+'" aria-pressed="'+(fmtOf(s)===x[0])+'"'+(lk?' disabled':'')+'>'+x[1]+'</button>'}).join('')+'</div>'+
     '<button class="wide ptbtn" data-act="sheet" data-v="points"><span>每局分數設定</span><small>'+ptText(s)+'</small></button>'+
 
-    '</div>'+(lk?'':XP_ON?'<button class="primary full" data-act="page" data-v="refs">下一步：裁判</button>':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">回'+(ui.from==='history'?'歷史紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>');
+    '</div>'+(lk?'':XP_ON?'<button class="primary full" data-act="page" data-v="refs">下一步：裁判</button>':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'<button class="ghost full" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">回'+(ui.from==='history'?'紀錄與名單':ui.from==='cup'?'資料夾':'主畫面')+'</button>');
 }
 function ptText(s){var c=setList(s).map(function(n){return target(s,n)+(capOf(s,n)?'（搶 '+capOf(s,n)+'）':'')}).join('、');return setList(s).some(function(n){return capOf(s,n)})?c:c+'　Deuce 無上限'}
 function autoSlot(t){
@@ -3053,6 +3232,9 @@ function sheetHtml(s,m){
       }
     }
     h+='<button class="ghost" data-act="close">取消</button>';
+  }else if(x.type==='folder'){
+    var fc=m.cup||'';
+    h='<h2>放進哪個資料夾</h2><p class="muted">比賽紀錄不會變。放進資料夾後，名單頁和裁判頁可以從資料夾的名單點選。</p>'+db.cups.map(function(c){return '<button class="imp" data-act="setcup" data-id="'+esc(c.id)+'" aria-pressed="'+(fc===c.id)+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="setcup" data-id="" aria-pressed="'+(!fc)+'"><span>不屬於任何盃賽</span><small></small></button><button class="ghost" data-act="close">關閉</button>';
   }else if(x.type==='import'){
     var ic=importChoices(m,s,k),list=ic.list;
     h='<h2>載入隊伍'+(ic.label&&!ui.impAll?'（'+esc(ic.label)+'）':'')+'</h2>'+(list.length?'':'<p class="muted">這一組還沒有建好的隊伍。可以在主畫面的「賽事資料夾」先加入各隊名單。</p>')+list.map(function(p,i){
@@ -3092,17 +3274,11 @@ app.addEventListener('change',function(e){
       var o=null,list=[];
       try{o=JSON.parse(rd.result);list=o&&o.matches?o.matches:(o&&o.match?[o.match]:[])}catch(err){}
       if(!Array.isArray(list))list=[];
-      var valid=list.filter(validMatch),badN=list.length-valid.length,cupN=mergeCups(o&&o.cups);
-      if(cupN)save();
-      if(!valid.length&&cupN){ui.importMsg='已匯入 '+cupN+' 個資料夾';render();return}
-      if(!valid.length){out.textContent=badN?'這個備份的內容有問題，沒有匯入。其他比賽不受影響。':'讀不出這個檔案，請選下載的備份檔';return}
-      var add=[],newer=[],tail=badN?'，另有 '+badN+' 場內容有問題，沒有匯入':'';
-      valid.forEach(function(im){var x=db.matches.filter(function(q){return q.id===im.id})[0];if(!x)add.push(im);else if(im.events.length>x.events.length)newer.push(im)});
-      if(!add.length&&!newer.length){out.textContent='這些比賽已經在這裡了'+tail;return}
-      add.slice().reverse().forEach(function(im){db.matches.unshift(im)});
-      ui.importAsk=newer.length?newer:null;
-      ui.importMsg=(cupN?'已匯入 '+cupN+' 個資料夾，':'')+(add.length?'已匯入 '+add.length+' 場比賽'+tail:tail.slice(1));
-      if(add.length)save();
+      var valid=list.filter(validMatch),badN=list.length-valid.length,cups=planCups(o&&o.cups);
+      if(!valid.length&&!cups.length){out.textContent=badN?'這個備份的內容有問題，沒有匯入。其他比賽不受影響。':'讀不出這個檔案，請選下載的備份檔';return}
+      var add=[],newer=[],lost=0;
+      valid.forEach(function(im){var x=db.matches.filter(function(q){return q.id===im.id})[0];if(!x){add.push(im);return}if(im.events.length>x.events.length){newer.push(im);var ids={};im.events.forEach(function(e){ids[e.id]=1});if(x.events.some(function(e){return !ids[e.id]}))lost++}});
+      ui.importPlan={add:add,newer:newer,lost:lost,cups:cups,bad:badN};ui.importMsg='';
       render();
     };
     rd.readAsText(fl);return;
@@ -3168,14 +3344,21 @@ app.addEventListener('click',function(e){
   if(lfb&&['point','endset'].indexOf(act)>=0){ui.toast={t:'先點閃的 L 換回 '+lfb.no+' 號才能繼續',until:Date.now()+3000};render();return}
   if(po&&['serve','replay','point','timeout','toyes','libcell','libback','libout','subopen','subcancel','subclose','swap8','endset','injopen'].indexOf(act)>=0){ui.toast={t:tName(s,po.team)+' '+po.no+' 號要先換下場',until:Date.now()+3000};render();return}
   switch(act){
-    case 'new': var nm=createMatch(defaultInfo()); db.currentId=nm.id; save(); resetUi(); view='setup'; break;
+    case 'new':
+      if(!db.cups.length){newMatchIn('');break}
+      /* 預設選上一場的資料夾；上一場之後才新增的資料夾（剛為這個盃賽建的）優先 */
+      var lastM=db.matches.filter(function(x){var q=safeReduce(x);return q&&!q.info.sample})[0],lastT=lastM?String(lastM.createdAt||''):'';
+      var newC=db.cups.filter(function(c){return String(c.createdAt||'')>lastT}).sort(function(a2,b2){return String(b2.createdAt||'').localeCompare(String(a2.createdAt||''))})[0];
+      ui.cupSheet={type:'start',pick:newC?newC.id:lastM&&lastM.cup&&db.cups.some(function(c){return c.id===lastM.cup})?lastM.cup:''}; break;
+    case 'newpick': ui.cupSheet.pick=b.getAttribute('data-id')||''; break;
+    case 'newgo': var npk=ui.cupSheet&&ui.cupSheet.pick||''; ui.cupSheet=null; newMatchIn(npk); break;
     case 'open': db.currentId=b.getAttribute('data-id'); save(); resetUi(); ui.page=firstPage(reduce(current().events)); ui.from=b.getAttribute('data-from'); view='setup'; break;
     case 'cupcreate': ui.cupSheet={type:'name'}; break;
     case 'cuprename': ui.cupSheet={type:'name',edit:true}; break;
     case 'cupnamesave':
       var cnm=document.getElementById('cup-name').value.trim();
       if(!cnm){ui.cupSheet.err='請填資料夾名稱';break}
-      if(ui.cupSheet.edit)theCup().name=cnm;
+      if(ui.cupSheet.edit){theCup().name=cnm;theCup().at=Date.now()}
       else{var nc={id:uid(),name:cnm,createdAt:new Date().toISOString(),teams:[]};db.cups.unshift(nc);cupView={id:nc.id,div:CUP_DIVS[0],grp:''};view='cup'}
       ui.cupSheet=null; save(); break;
     case 'cupopen': cupView={id:b.getAttribute('data-id'),div:CUP_DIVS[0],grp:''}; ui.cupSheet=null; ui.delMatch=null; view='cup'; break;
@@ -3186,17 +3369,28 @@ app.addEventListener('click',function(e){
     case 'cupgrp': cupView.grp=b.getAttribute('data-v'); ui.delMatch=null; break;
     case 'cupteam': var ct=theCup().teams.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; ui.cupSheet={type:'team',id:ct?ct.id:null,name:ct?ct.team.name:'',group:ct?normGroup(ct.group):cupView.grp,text:ct?teamText(ct.team):''}; break;
     case 'cupteamsave':
-      var cbox=document.getElementById('ct-text'),cnm2=document.getElementById('ct-name').value.trim(),ctxt=cbox.value,cgp=normGroup(document.getElementById('ct-group').value);
+      var cbox=document.getElementById('ct-text'),cnm2=document.getElementById('ct-name').value.trim(),ctxt=cbox.value,cgp=groupName(document.getElementById('ct-group').value);
       ui.cupSheet.text=ctxt; ui.cupSheet.name=cnm2; ui.cupSheet.group=cgp;
       var pr=parseRoster(ctxt,cupView.div==='未分組'?CUP_DIVS[0]:cupView.div,cnm2);
       if(pr.errors.length){ui.cupSheet.err=pr.errors.slice(0,3).join('；');break}
       if(!pr.teams.length){ui.cupSheet.err='還沒有名單，請貼上背號';break}
       var cc=theCup();
-      if(ui.cupSheet.id&&pr.teams.length===1){var ex=cc.teams.filter(function(x){return x.id===ui.cupSheet.id})[0];if(ex){ex.team=pr.teams[0].team;ex.division=pr.teams[0].division;ex.group=cgp}}
-      else pr.teams.forEach(function(x){var ex=cc.teams.filter(function(q){return q.division===x.division&&q.team.name===x.team.name&&normGroup(q.group)===cgp})[0];if(ex)ex.team=x.team;else cc.teams.push({id:uid(),division:x.division,group:cgp,team:x.team})});
+      var tnow=Date.now();
+      if(ui.cupSheet.id&&pr.teams.length===1){var ex=cc.teams.filter(function(x){return x.id===ui.cupSheet.id})[0];if(ex){ex.team=pr.teams[0].team;ex.division=pr.teams[0].division;ex.group=cgp;ex.del=false;ex.at=tnow}}
+      else pr.teams.forEach(function(x){var ex=cc.teams.filter(function(q){return q.division===x.division&&q.team&&q.team.name===x.team.name&&groupName(q.group)===cgp})[0];if(ex){ex.team=x.team;ex.del=false;ex.at=tnow}else cc.teams.push({id:uid(),division:x.division,group:cgp,team:x.team,at:tnow})});
       ui.cupSheet=null; save(); break;
     case 'cupteamdel': ui.cupSheet.ask=true; break;
-    case 'cupteamdel2': var cd=theCup();cd.teams=cd.teams.filter(function(x){return x.id!==ui.cupSheet.id}); ui.cupSheet=null; save(); break;
+    case 'cupcourt': var ck=b.getAttribute('data-v')||'',ccl=ck?courtList(theCup()).filter(function(q){return q.key===ck})[0]:null; ui.cupSheet={type:'court',key:ck,court:ccl?ccl.label:''}; break;
+    case 'cupcourtsave':
+      var ccv=document.getElementById('cc-court').value.trim(),cct=document.getElementById('cc-text').value,ckey=courtKey(ccv),cnames=[];
+      ui.cupSheet.court=ccv;ui.cupSheet.text=cct;
+      cct.split(/[\n,，、]+/).forEach(function(q){q=q.trim();if(q&&cnames.indexOf(q)<0)cnames.push(q)});
+      if(!ckey){ui.cupSheet.err='請填場地，例如：第五場地';break}
+      var ccu=theCup();if(ui.cupSheet.key&&ui.cupSheet.key!==ckey)setCourtRefs(ccu,ui.cupSheet.key,null,[]);
+      setCourtRefs(ccu,ckey,courtLabel(ccv),cnames); ui.cupSheet=null; save(); break;
+    case 'cupcourtdel': ui.cupSheet.ask=true; break;
+    case 'cupcourtdel2': setCourtRefs(theCup(),ui.cupSheet.key,null,[]); ui.cupSheet=null; save(); break;
+    case 'cupteamdel2': var cd=theCup();cd.teams.forEach(function(x){if(x.id===ui.cupSheet.id){x.del=true;x.at=Date.now()}}); ui.cupSheet=null; save(); break;
     case 'cuptpl': saveFile('賽事名單範本.csv','\uFEFF男女組,隊名,背號,姓名,身分\n男子組,範例藍隊,1,,隊長\n男子組,範例藍隊,7,,\n男子組,範例藍隊,12,,L\n女子組,範例橘隊,3,,隊長\n','text/csv;charset=utf-8'); return;
     case 'cupnew': ui.cupSheet={type:'new',pick:[]}; break;
     case 'cuppick':
@@ -3214,15 +3408,23 @@ app.addEventListener('click',function(e){
       picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:x.team,fromName:x.team.name},cm)});
       save(); resetUi(); ui.page='info'; ui.from='cup'; view='setup'; break;
     case 'cupadd': ui.cupSheet={type:'add'}; break;
-    case 'cupaddm': var am=db.matches.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; if(am){am.cup=cupView.id;save()} break;
+    case 'cupaddm': var am=db.matches.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; if(am){am.cup=cupView.id;addMatchRefs(am,safeReduce(am));save()} break;
     case 'cupsave':
       var cf=theCup(),cl=db.matches.filter(function(x){return x.cup===cf.id});
       saveFile(cf.name+'_資料夾_'+today()+'.json',JSON.stringify({app:'volleyball-school',version:1,matches:cl,cups:[cf]}),'application/json'); return;
     case 'cupdel': ui.cupSheet={type:'del'}; break;
     case 'cupdel2':
-      var cx=cupView.id; db.matches.forEach(function(x){if(x.cup===cx)delete x.cup}); db.cups=db.cups.filter(function(x){return x.id!==cx}); ui.cupSheet=null; view='home'; save(); break;
-    case 'history': noteLeave(m); db.currentId=null; save(); view='history'; ui.delMatch=null; ui.importMsg=''; ui.importAsk=null; break;
+      var cx=cupView.id; db.matches.forEach(function(x){if(x.cup===cx)delete x.cup}); db.cups=db.cups.filter(function(x){return x.id!==cx}); ui.cupSheet=null; view='history'; save(); break;
+    case 'history': noteLeave(m); db.currentId=null; save(); view='history'; ui.delMatch=null; ui.importMsg=''; ui.importAsk=null; ui.importPlan=null; ui.cupSheet=null; break;
     case 'impkeep': ui.importAsk=null; ui.importMsg='已保留這台的資料'; break;
+    case 'impcancel': ui.importPlan=null; break;
+    case 'impgo':
+      var ip=ui.importPlan;if(!ip)break;var keep=b.getAttribute('data-v')==='keep',said=[];
+      ip.add.slice().reverse().forEach(function(im){db.matches.unshift(im)});
+      if(!keep)ip.newer.forEach(function(im){db.matches=db.matches.map(function(x){return x.id===im.id?im:x})});
+      var ic=ip.cups.filter(cupChanged);applyCups(ip.cups);
+      if(ip.add.length)said.push('新增 '+ip.add.length+' 場比賽');if(!keep&&ip.newer.length)said.push('更新 '+ip.newer.length+' 場比賽');if(ic.length)said.push('更新 '+ic.length+' 個資料夾');
+      ui.importPlan=null;ui.importMsg=said.length?'已匯入：'+said.join('、'):'沒有需要匯入的內容';save();break;
     case 'impnew':
       var upn=(ui.importAsk||[]).length;
       (ui.importAsk||[]).forEach(function(im){db.matches=db.matches.map(function(x){return x.id===im.id?im:x})});
@@ -3337,6 +3539,18 @@ app.addEventListener('click',function(e){
       ui.msg[k]=''; dispatch('LIBERO_SET',{team:k,no:no,on:on}); ui.slot[k]=null; break;
     case 'import-cancel': ui.pending=null; break;
     case 'impall': ui.impAll=!ui.impAll; ui.pending=null; break;
+    case 'refrole': var rv=b.getAttribute('data-v'); ui.refRole=ui.refRole===rv?null:rv; ui.refMsg=''; break;
+    case 'refname': case 'reftype':
+      var rn=act==='reftype'?(document.getElementById('ref-type')||{value:''}).value.trim():b.getAttribute('data-v');
+      if(!rn)break;
+      var rr=ui.refRole||firstEmptyRole(s);
+      if(!rr){ui.refMsg='六個角色都填了，先點上面要改的角色';break}
+      ui.refMsg='';dispatch('INFO_SET',{field:rr,value:rn});ui.refRole=firstEmptyRole(reduce(m.events),rr);break;
+    case 'refclear': if(ui.refRole)dispatch('INFO_SET',{field:ui.refRole,value:''}); break;
+    case 'refother': ui.refOther=!ui.refOther; break;
+    case 'setcup':
+      var scid=b.getAttribute('data-id')||'';if(scid)m.cup=scid;else delete m.cup;
+      addMatchRefs(m,s);ui.sheet=null;save();break;
     case 'import-pick':
     case 'import-yes':
       var pick=importChoices(m,s,k).list[Number(b.getAttribute('data-i'))];
@@ -3551,7 +3765,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
+  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }
@@ -3566,6 +3780,7 @@ document.addEventListener('keydown',function(e){
     f[n].focus();e.preventDefault();return;
   }
   var tg=e.target;
+  if(e.key==='Enter'&&tg.id==='ref-type'){e.preventDefault();var rtb=app.querySelector('[data-act=reftype]');if(rtb)rtb.click();return}
   if(/^(INPUT|TEXTAREA)$/.test(tg.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
   if(!app.querySelector('.kp [data-act=key]'))return;
   var b=/^[0-9]$/.test(e.key)?app.querySelector('.kp [data-act=key][data-v="'+e.key+'"]'):e.key==='Backspace'?app.querySelector('.kp [data-act=back]'):(e.key==='Enter'&&!tg.closest('.kp'))?app.querySelector('.kp [data-act=add]'):null;
