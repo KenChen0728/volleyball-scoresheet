@@ -66,15 +66,17 @@ git push
 
 ## 測試版（`beta/`）
 
-給朋友先試的新版本：https://kenchen0728.github.io/volleyball-scoresheet/beta/
+給朋友先試新功能用：https://kenchen0728.github.io/volleyball-scoresheet/beta/
 
-- 由 `tools/beta.py` 從改好的 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
-- 目前是 `feedback-1109` 分支（11/9 朋友回饋）。確認沒問題後把分支合併到 main，正式版就更新了
+- 由 `tools/beta.py` 從 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
+- 11/9 朋友回饋已上線正式版（1109-1820），測試版目前和正式版程式相同；朋友 11/9 在測試版輸入的比賽還在測試版裡，要看的話在測試版的「歷史紀錄」備份
+- 下次要先給人試：在分支改好、`python3 tools/build.py`、`python3 tools/beta.py`，只把 `beta/index.html` 放上 main
 
 ## 退回前一版（完整版和學校版一起）
 
 每次改版前各留一個分支，新的在上面：
 
+- `backup/before-feedback-1109`：11/9 朋友回饋（平板號碼放大、替補先點場下、名單照輸入順序、陣容號碼變灰、依組別選隊伍）之前，也就是 1107-1917
 - `backup/before-livepreview`：裁判名字、記事打字時預覽馬上更新之前，也就是 1107-1036
 - `backup/before-live`：比賽頁球進行中收起其他按鈕、手機顯示開始時間、隊名長條對齊半場、淺色隊色用深色字、裁判分頁預覽、看整張之前，也就是 1107-0831
 - `backup/before-ctview`：App 記錄表的各局、結果、判罰、記事分頁改成協會記錄表裁切之前，也就是 1107-0818
@@ -102,6 +104,8 @@ git push
 ```
 
 協會記錄表（給維護者）：「存成圖片／PDF」的整張記錄表照中華民國排球協會網站的三局制記錄表重畫，A3 橫式；各局和比賽結果從同一張裁切。格線和印好的字在 `CT3`（從協會 PDF 用 pdfplumber 抽出），比賽資料的格子座標在 `CTG`，畫圖從 `ctSvg` 開始。這段在學校版會被刪掉（學校版沒有匯出）。裁判欄位是 `REFS`，職員是 `STAFF`，舊資料的「隨隊教師」用 `staffOf()` 顯示成舊欄位。
+
+名單順序、替補面板（給維護者，11/9）：`reduce` 最後把輸入順序存在 `t.entry`，`t.players` 照背號排。名單頁和記錄表用 `entryOf(t)`，陣容、替補等選號的地方用 `t.players`。替補面板的場下名單是 `benchPool`（任一位置能合法換上的人），先點場下時用 `subFits` 決定哪些格子亮；每一組照舊立刻記成 `SUB` 事件，面板上的「刪除」是對那一組（和同一位置後來又換的）送 `UNDO`。比賽頁號碼大小由 `fitNums` 依格子短邊 × 0.4 放大，最多 84px。測試：`/home/claude/t/fb.js`、`fb2.js` 不在專案裡，規則和結果寫在專案文件「朋友回饋-1109」。
 
 隊長（給維護者）：每隊一定要有球隊隊長。名單頁「下一步」或陣容頁「開始第 1 局」時缺的話，跳到名單並彈出背號讓人點（`firstNeed`、`need` 視窗）；按鈕不變灰。陣容頁不問場上隊長，隊長不在先發時，開賽後隊長格閃，在比賽頁指定。舊比賽名單沒有隊長的，比賽頁點隊長格會先選球隊隊長（`tcap`）。測試：`node tools/captain.js`。
 
