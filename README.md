@@ -69,7 +69,7 @@ git push
 給朋友先試新功能用：https://kenchen0728.github.io/volleyball-scoresheet/beta/
 
 - 由 `tools/beta.py` 從 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
-- 11/9 朋友回饋已上線正式版（1109-1820），測試版目前和正式版程式相同；朋友 11/9 在測試版輸入的比賽還在測試版裡，要看的話在測試版的「歷史紀錄」備份
+- 11/9 朋友回饋已上線正式版（1109-1828），測試版目前和正式版程式相同；朋友 11/9 在測試版輸入的比賽還在測試版裡，要看的話在測試版的「歷史紀錄」備份
 - 下次要先給人試：在分支改好、`python3 tools/build.py`、`python3 tools/beta.py`，只把 `beta/index.html` 放上 main
 
 ## 退回前一版（完整版和學校版一起）
