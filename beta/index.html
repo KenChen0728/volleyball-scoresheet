@@ -1293,6 +1293,8 @@ button.dim{opacity:.45}
 .subpair b{font-family:var(--num);font-size:19px}
 .grpseg{grid-template-columns:repeat(auto-fit,minmax(56px,1fr));margin-top:8px}
 .subpair button{min-height:36px;padding:4px 12px;font-size:14px;flex:none}
+.kp.bench{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;max-height:70vh}
+@media (orientation:landscape) and (min-width:640px){.kp.bench{max-height:none}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1669,7 +1671,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1109-1752';
+var BUILD='測試版 1109-1820';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2242,11 +2244,18 @@ function subHtml(s){
   if(!ui.sub||ui.page!=='play')return '';
   var k=ui.sub.team,c=s.sets[s.setNo],h;
   /* 11/9 朋友回饋：場下可以上場的人也列出來，先點場上或場下都可以；配好的一組列在上面，可以刪掉重配 */
+  if(ui.sub.ids&&ui.sub.ids.length){var dd={};current().events.forEach(function(e){if(e.type==='UNDO')dd[e.data.target]=1});ui.sub.ids=ui.sub.ids.filter(function(id){return !dd[id]})} // 面板開著時按了上方「復原」
   var two=!ui.sub.forced,pool=two?benchPool(s,k,ui.sub.exc):[],pairs=two?subPairs():'';
   function poolRow(ok){return '<div class="benchrow">'+pool.map(function(n){var on=ui.sub.inNo===n,can=ok(n);return '<button class="chip '+k+(can?'':' off')+'" data-act="'+(ui.sub.idx!=null?'subin':'subbench')+'" data-team="'+k+'" data-no="'+n+'" aria-pressed="'+on+'"'+(can?'':' disabled')+'><b>'+n+'</b></button>'}).join('')+'</div>'}
   if(ui.sub.idx==null){
     if(!two)h='<div class="subhint">點球場上要換下的球員</div>';
-    else if(!pool.length)h=pairs+'<div class="subhint">沒有可以上場的球員</div>';
+    else if(!pool.length){
+      var exLegal=ui.sub.exc&&[0,1,2,3,4,5].some(function(i){return subOptions(s,k,i,true).legal});
+      var lim=ui.sub.exc?null:[0,1,2,3,4,5].map(function(i){return subOptions(s,k,i,false).err}).filter(function(e){return e&&/用完/.test(e)})[0]; // 次數用完的訊息照規則函式（學校版沒有上限）
+      if(exLegal)h=pairs+'<div class="kphead"><span class="err">還可以合法替補，不能用例外替補</span></div><button class="full" data-act="excoff">改用一般替補</button>';
+      else if(lim)h=pairs+'<div class="kphead"><span class="err">'+esc(lim)+'</span></div><div class="subhint">要例外替補，點場上要換下的人</div>';
+      else h=pairs+'<div class="subhint">沒有可以上場的球員</div>';
+    }
     else if(ui.sub.inNo!=null)h=pairs+'<div class="subhint">'+ui.sub.inNo+' 號上場，點球場上亮的人換下</div>'+poolRow(function(){return true});
     else h=pairs+'<div class="subhint">點場上要換下的人，或點要上場的人</div>'+poolRow(function(){return true});
   }
@@ -3714,14 +3723,14 @@ app.addEventListener('click',function(e){
         else ui.sub={team:k,idx:c.cur[k].indexOf(no),exc:false,ids:[],forced:true};
       }
       break;
-    case 'forceexc': ui.sub.exc=true; break;
+    case 'forceexc': ui.sub.exc=true; ui.sub.inNo=null; break;
     case 'forceundo':
       var fpo=pendingOut(s),fdead={},fev=null;if(!fpo)break;
       m.events.forEach(function(e){if(e.type==='UNDO')fdead[e.data.target]=1});
       m.events.forEach(function(e){if(e.type==='SANCTION'&&!fdead[e.id]&&e.data.team===fpo.team&&e.data.who===fpo.no&&(e.data.kind==='E'||e.data.kind==='D'))fev=e});
       if(fev){dispatch('UNDO',{target:fev.id});ui.sub=null;ui.toast={t:'已復原：'+tName(s,fpo.team)+' '+fpo.no+' 號'+(fev.data.kind==='D'?'出場':'出局'),until:Date.now()+3500}}
       break;
-    case 'excoff': ui.sub.exc=false; break;
+    case 'excoff': ui.sub.exc=false; ui.sub.inNo=null; break;
     case 'tossfix': ui.sheet={type:'tossfix',ask:''}; break;
     case 'tfask': ui.sheet.ask=b.getAttribute('data-v'); break;
     case 'tfdo':
