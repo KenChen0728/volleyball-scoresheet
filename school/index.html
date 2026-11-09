@@ -1916,7 +1916,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1109-2025';
+var BUILD='1109-2350';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2624,12 +2624,13 @@ function cellHtml(s,k,idx){
   var gc=c.gameCaptain[k],isCap=no!==null&&(no===t.captain||(c.lineups[k].indexOf(t.captain)<0&&no===gc));
   return '<button class="cell '+k+(no!==null?' fill':'')+(sel?' sel':'')+'" data-act="cell" data-team="'+k+'" data-v="'+idx+'" aria-label="位置 '+ROMAN[idx]+(no===null?' 空':' '+no+' 號')+'"'+(c.locked[k]?' disabled':'')+'><span class="pos">'+ROMAN[idx]+'</span>'+(no===null?'':'<b'+(isCap?' class="circ"':'')+'>'+no+'</b>')+'</button>';
 }
-function autoSelect(s){
+function autoSelect(s,keep){
   var c=s.sets[s.setNo],k=ui.luTeam;
   ui.sel=null;
   if(!k||c.locked[k])return;
   var p=c.lineups[k].indexOf(null);
   if(p>=0)ui.sel={team:k,pos:p};
+  else ui.sel=keep&&keep.team===k?keep:{team:k,pos:0}; // 11/9 使用者實測：六格都填滿時，號碼不能整排不見，停在剛填的那格
 }
 function lineupHtml(s){
   var n=s.setNo,c=s.sets[n],A=s.sets[1].left,L=c.left;
@@ -2654,7 +2655,7 @@ function benchHtml(s){
   if(ui.sel){
     /* 11/9 朋友回饋：填過的號碼不消失，變灰不能點，旁邊標站的位置 */
     var pool=t.players.filter(function(p){return t.liberos.indexOf(p.no)<0&&s.matchOut[k].indexOf(p.no)<0});
-    h+='<div class="subhint">'+ROMAN[ui.sel.pos]+' 位'+(ui.sel.pos===0?'（第一位發球）':'')+'是幾號？</div><div class="benchrow">'+pool.map(function(p){
+    h+='<div class="subhint">'+(lu.indexOf(null)<0?'六個位置都填好了。打勾的格子要換人，就直接點號碼；要改別格，先點那一格。':ROMAN[ui.sel.pos]+' 位'+(ui.sel.pos===0?'（第一位發球）':'')+'是幾號？')+'</div><div class="benchrow">'+pool.map(function(p){
       var at=lu.indexOf(p.no);
       if(at>=0)return '<button class="chip '+k+' used" disabled aria-label="'+p.no+' 號已排在 '+ROMAN[at]+' 位"><b>'+p.no+'</b><i class="at">'+ROMAN[at]+'</i></button>';
       return '<button class="chip '+k+'" data-act="fill" data-no="'+p.no+'"><b>'+p.no+'</b></button>'}).join('')+(lu[ui.sel.pos]!==null?'<button class="chip blank clear" data-act="clearpos">清空</button>':'')+'</div>';
@@ -3566,8 +3567,9 @@ app.addEventListener('click',function(e){
     case 'swap': dispatch('TOSS_SET',{set:n,left:other(sideLeft(s))}); break;
     case 'cell': ui.sel={team:k,pos:Number(b.getAttribute('data-v'))}; break;
     case 'fill':
+      var fsel={team:ui.sel.team,pos:ui.sel.pos};
       dispatch('LINEUP_SET',{set:n,team:ui.sel.team,pos:ui.sel.pos,no:no});
-      ui.sel=null; autoSelect(reduce(m.events)); break;
+      ui.sel=null; autoSelect(reduce(m.events),fsel); break;
     case 'clearpos': dispatch('LINEUP_SET',{set:n,team:ui.sel.team,pos:ui.sel.pos,no:null}); break;
     case 'copy': dispatch('LINEUP_COPIED',{set:n,team:k}); ui.sel=null; autoSelect(reduce(m.events)); break;
     case 'rnext': var nr=firstNeed(s); if(nr){ui.slot={t1:null,t2:null};ui.entry={t1:'',t2:''};ui.msg={t1:'',t2:''};ui.sheet={type:'need',team:nr.team,then:'toss'}}else goPage('toss'); break;
