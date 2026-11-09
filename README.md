@@ -64,6 +64,13 @@ git push
 
 重寫版的資料 key 是 `vb-school-v1`，新版沒有動到，退回後舊資料還在。
 
+## 測試版（`beta/`）
+
+給朋友先試的新版本：https://kenchen0728.github.io/volleyball-scoresheet/beta/
+
+- 由 `tools/beta.py` 從改好的 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
+- 目前是 `feedback-1109` 分支（11/9 朋友回饋）。確認沒問題後把分支合併到 main，正式版就更新了
+
 ## 退回前一版（完整版和學校版一起）
 
 每次改版前各留一個分支，新的在上面：
