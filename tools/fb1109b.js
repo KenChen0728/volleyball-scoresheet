@@ -1,0 +1,42 @@
+const {chromium}=require('playwright');const flow=require('./flow.js');const URL='file:///home/claude/nanshe/排球電子記錄表.html';
+let pass=0,fail=0;const ok=(n,v,x)=>{if(v){pass++;console.log('ok',n)}else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x))}};
+const W=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{const b=await chromium.launch();
+for(const [w,h,nm] of [[390,844,'p'],[844,390,'pl'],[1280,800,'t'],[360,640,'s']]){const ctx=await b.newContext({viewport:{width:w,height:h},hasTouch:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
+await p.goto(URL);await W(100);await flow.start(p);await W(100);
+await p.click('[data-act=subopen][data-team=t2]');await W(40);
+await p.click('.kp.bench [data-act=subbench][data-no="77"]');await W(40);await p.screenshot({path:`/home/claude/t/sub-${nm}-1.png`});
+await p.click('.pc.t2 >> text=8');await W(40);
+await p.screenshot({path:`/home/claude/t/sub-${nm}-2.png`});
+const ov=await p.evaluate(()=>{const k=document.querySelector('.kp.bench').getBoundingClientRect();return [k.top,k.bottom,innerHeight,document.querySelector('.kp.bench').scrollHeight>document.querySelector('.kp.bench').clientHeight+2]});
+console.log(nm,ov);ok(nm+' 無錯誤',!errs.length,errs);await ctx.close()}
+// 5. 組別
+const ctx=await b.newContext({viewport:{width:390,height:844},hasTouch:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
+await p.goto(URL);await W(100);
+await p.click('[data-act=cupcreate]');await p.fill('#cup-name','媽祖盃');await p.click('[data-act=cupnamesave]');await W(60);
+async function team(name,grp,txt){await p.click('.shead [data-act=cupteam]');await W(40);await p.fill('#ct-name',name);await p.fill('#ct-group',grp);await p.fill('#ct-text',txt);await p.click('[data-act=cupteamsave]');await W(40)}
+await team('國中甲','國中','5 王 隊長\n1 李\n9 陳\n3 林\n7 張\n2 何');
+await team('國中乙','國中','4 隊長\n6\n8\n10\n12\n14');
+await team('國小丙','國小','1 隊長\n2\n3\n4\n5\n6');
+ok('5 組別按鈕',(await p.locator('.grpseg button').allTextContents()).join()==='全部,國小,國中');
+await p.click('.grpseg [data-v="國中"]');await W(40);
+ok('5 只列國中',(await p.locator('.rlist [data-act=cupteam] strong').allTextContents()).join()==='國中甲,國中乙');
+await p.screenshot({path:'/home/claude/t/cup.png'});
+await p.click('[data-act=cupnew]');await W(40);
+ok('5 開新比賽只列國中',(await p.locator('.sheet [data-act=cuppick] span').allTextContents()).join()==='國中甲,國中乙');
+await p.click('.sheet [data-act=cuppick] >> nth=0');await p.click('[data-act=cupstart]');await W(80);
+ok('5 組別帶入',await p.inputValue('#i-group')==='國中');
+await p.locator('.nav [data-v=roster]').click();await W(60);
+const ro=await p.locator('[data-act=slot][data-team=t1][data-kind=reg]:not([data-no=""])').evaluateAll(es=>es.map(e=>e.getAttribute('data-no')));
+ok('3 帶入的名單照原本順序',ro.join()==='5,1,9,3,7,2',ro);
+await p.click('[data-act=sheet][data-v=import][data-team=t2]');await W(40);
+ok('5 載入只列國中',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中乙');
+ok('5 有顯示其他組別',(await p.locator('[data-act=impall]').textContent()).includes('1 隊'));
+await p.screenshot({path:'/home/claude/t/imp.png'});
+await p.click('[data-act=impall]');await W(40);
+ok('5 顯示全部',(await p.locator('.sheet [data-act=import-pick] span').allTextContents()).join()==='國中乙,國小丙');
+await p.click('[data-act=impall]');await W(40);
+await p.click('.sheet [data-act=import-pick] >> nth=0');await W(40);
+ok('5 載入成功',(await p.inputValue('#n-t2'))==='國中乙');
+ok('5 無錯誤',!errs.length,errs);
+console.log('pass',pass,'fail',fail);await b.close()})();
