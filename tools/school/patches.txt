@@ -329,10 +329,10 @@ function playCell(s,k,pos){
 >>>>
 <<<<
   var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null;
-  var tap=pick||bad||(!ui.sub&&!ui.lib);
+  var tap=other?bad:(pick||bad||(!ui.sub&&!ui.lib));
 ====
   var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null,mate=isL?null:mateOf(c,k,idx,no);
-  var tap=pick||bad||(!ui.sub&&!ui.lib);
+  var tap=other?bad:(pick||bad||(!ui.sub&&!ui.lib));
 >>>>
 <<<<
 ' 號'+(isL?' 自由球員':'')+(isS?' 舉球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(isS?'<span class="stmk" aria-label="舉球員">舉</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
