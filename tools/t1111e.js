@@ -1,4 +1,4 @@
-// 11/11 替補、暫停改比分：只能改成這局打過的比分、同一個位置換回來不能比換下去早、暫停改隊時比分跟著換、Enter 送出、復原、CSV
+// 11/11 替補、暫停改比分：只能改成這局打過的比分、同一個位置換回來不能比換下去早（也不能一樣）、暫停改隊時比分跟著換、Enter 送出、復原、CSV
 // node tools/t1111e.js [網址] [資料 key]（學校版：file://.../school/index.html vb-school-v2）
 const {chromium}=require('playwright');const flow=require('./flow.js');const fs=require('fs');
 const URL=process.argv[2]||'file:///home/claude/nanshe/排球電子記錄表.html',KEY=process.argv[3]||'nanshe-scoresheet-v1',SCHOOL=KEY.indexOf('vb-school')===0;
@@ -44,6 +44,8 @@ await edit(0,2,1);ok('saved closes',await p.locator('.sheet').count()===0);r=awa
 // 同一個位置：換回來不能比換下去早，換下去不能比換回來晚
 await edit(2,2,0);ok('return earlier blocked',(await warn()).includes('換回來的比分不能比換下去的（2:1）還早'),await warn());await close();
 await edit(0,7,2);ok('entry later blocked',(await warn()).includes('換下去的比分不能比換回來的（6:2）還晚'),await warn());await close();
+await edit(2,2,1);ok('return same blocked',(await warn()).includes('換回來的比分不能和換下去的（2:1）一樣'),await warn());await close();
+await edit(0,6,2);ok('entry same blocked',(await warn()).includes('換下去的比分不能和換回來的（6:2）一樣'),await warn());await close();
 await edit(2,3,1);r=await rows();ok('return to 3:1 ok',r[2].includes('3:1'),r);
 // Enter 送出
 await edit(2,4,2,true);r=await rows();ok('enter submits',r[2].includes('4:2'),r);
