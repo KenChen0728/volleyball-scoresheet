@@ -102,10 +102,9 @@
 @media (orientation:landscape) and (min-width:760px){
 }
 .pmb{padding:0 2px;white-space:nowrap}
-/* 矮的手機：比賽資料的下一步固定看得到；上面已經有回主畫面，下面那顆收起來 */
+/* 矮的手機：比賽資料的下一步固定看得到 */
 @media (orientation:portrait) and (max-height:700px){
   .page>.primary.full{position:sticky;bottom:-4px;z-index:3;box-shadow:0 -6px 8px var(--bg)}
-  .page>.ghost.full[data-act=home]{display:none}
 }
 /* 手機橫放打背號：只留正在輸入的那一隊，數字鍵盤不會蓋到格子 */
 @media (orientation:landscape) and (max-height:520px){

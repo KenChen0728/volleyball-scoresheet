@@ -30,7 +30,7 @@ ok('next day intro',await ab.count()===1);await p.keyboard.press('Escape');await
 const btn=p.locator('[data-act=about]');ok('about button',await btn.count()===1&&(await btn.innerText()).includes('關於這個程式'));
 const bb=await btn.boundingBox();ok('about button big enough',bb&&bb.height>=40,bb);
 await btn.click();await W(150);const t2=await ab.innerText();
-ok('about has version',/版本\s*\S*1111-\d{4}/.test(t2),t2);ok('about has report',t2.includes('有問題請截圖傳給 Ken Chen'));
+ok('about has version',/版本\s*\S*\d{4}-\d{4}/.test(t2),t2);ok('about has report',t2.includes('有問題請截圖傳給 Ken Chen'));
 ok('github link',(await p.locator('.sheet.about a').getAttribute('href'))==='https://github.com/KenChen0728/volleyball-scoresheet');
 ok('close label',(await p.locator('.sheet.about [data-act=aboutclose]').innerText()).includes('關閉'));
 await p.click('.scrim[data-act=aboutclose]',{position:{x:10,y:10}});await W(150);ok('scrim closes',await ab.count()===0);
