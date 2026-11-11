@@ -15,4 +15,5 @@ one('<title>排球電子記錄表</title>','<title>排球電子記錄表（測�
 s=re.sub(r"var BUILD='([^']*)';",lambda m:"var BUILD='測試版 "+m.group(1)+"';",s,count=1)
 os.makedirs(os.path.join(R,'beta'),exist_ok=True)
 open(os.path.join(R,'beta','index.html'),'w',encoding='utf8').write(s)
+open(os.path.join(R,'beta','version.json'),'w',encoding='utf8').write('{"build":"'+re.search(r"var BUILD='[^0-9']*([0-9]{4}-[0-9]{4})';",s).group(1)+'"}\n')
 print('beta ok',len(s)//1024,'KB')

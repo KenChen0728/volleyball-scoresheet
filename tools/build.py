@@ -6,7 +6,8 @@ OFF='/home/claude/nanshe/排球電子記錄表.html'
 WEB='/home/claude/volleyball-scoresheet/index.html'
 SW='/home/claude/volleyball-scoresheet/sw.js'
 s=open(SRC,encoding='utf8').read()
-s=re.sub(r"var BUILD='[^']*';","var BUILD='"+time.strftime('%m%d-%H%M')+"';",s,count=1)
+BUILD=time.strftime('%m%d-%H%M')
+s=re.sub(r"var BUILD='[^']*';","var BUILD='"+BUILD+"';",s,count=1)
 open(SRC,'w',encoding='utf8').write(s)
 base='<!doctype html>\n<html lang="zh-Hant">\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
 open(OFF,'w',encoding='utf8').write(base+s)
@@ -30,4 +31,6 @@ ver=hashlib.sha1(s.encode()).hexdigest()[:8]
 w=open(SW,encoding='utf8').read()
 w=re.sub(r"var CACHE='[^']*';","var CACHE='scoresheet-"+ver+"';",w)
 open(SW,'w',encoding='utf8').write(w)
+# 11/11 有新版時提示：網頁問這個檔案現在是哪一版
+open('/home/claude/volleyball-scoresheet/version.json','w',encoding='utf8').write('{"build":"'+BUILD+'"}\n')
 print('built',ver,len(s)//1024,'KB')

@@ -2,7 +2,7 @@ const {chromium}=require('playwright');const O='/home/claude/nanshe/help/raw/';(
 const ctx=await b.newContext({viewport:{width:400,height:760},colorScheme:'dark',deviceScaleFactor:2});const p=await ctx.newPage();const e=[];p.on('pageerror',x=>e.push(x.message));
 // 安裝示意圖
 const q=await (await b.newContext({viewport:{width:640,height:520},deviceScaleFactor:1})).newPage();await q.goto('file:///home/claude/nanshe/help/ins.html');
-for(const id of ['ins_ios1','ins_ios2','ins_ios3','ins_android','ins_pc','ins_mac','ins_line','ins_data']){await q.evaluate(i=>{document.querySelectorAll('.s').forEach(x=>x.style.display=x.id===i?'block':'none')},id);await q.waitForTimeout(60);await q.screenshot({path:O+id+'.png'})}
+for(const id of ['ins_ios1','ins_ios2','ins_ios3','ins_android','ins_pc','ins_mac','ins_line','ins_bk']){await q.evaluate(i=>{document.querySelectorAll('.s').forEach(x=>x.style.display=x.id===i?'block':'none')},id);await q.waitForTimeout(60);await q.screenshot({path:O+id+'.png'})}
 const mark=async(sels)=>{await p.evaluate(s=>{document.querySelectorAll('[data-mk]').forEach(x=>{x.style.outline='';x.removeAttribute('data-mk')});s.forEach(q=>document.querySelectorAll(q).forEach(el=>{el.setAttribute('data-mk',1);el.style.outline='4px solid #FF3B30';el.style.outlineOffset='2px';el.style.zIndex=5}))},sels)};
 const cap=async(name,sel,marks=[],pad=8)=>{await p.waitForTimeout(80);await mark(marks);await p.waitForTimeout(40);
  const r=await p.evaluate(s=>{const R=s.map(q=>[...document.querySelectorAll(q)]).flat().map(x=>x.getBoundingClientRect()).filter(x=>x.width);return [Math.min(...R.map(x=>x.left)),Math.min(...R.map(x=>x.top)),Math.max(...R.map(x=>x.right)),Math.max(...R.map(x=>x.bottom))]},Array.isArray(sel)?sel:[sel]);
