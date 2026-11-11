@@ -1,0 +1,31 @@
+/* B 場館：冷灰、石墨版頭、品牌黃主按鈕、圓角小、俐落 */
+html.mock[data-sty="B"]{--rb:6px;--rc:10px;--rs:14px}
+html.mock[data-sty="B"] .pcourt .pc{border-radius:2px}
+html.mock[data-sty="B"] .board>.wbar{border-radius:4px}
+html.mock[data-sty="B"] .setbox{border-radius:4px}
+html.mock[data-sty="B"] .lc,html.mock[data-sty="B"] .capbox{border-radius:6px}
+html.mock[data-sty="B"] .homebody h2,html.mock[data-sty="B"] .shead h2,html.mock[data-sty="B"] .narrow section>h2,html.mock[data-sty="B"] .sheet .shd{font-size:13px;letter-spacing:.14em;font-weight:800;color:var(--muted)}
+html.mock[data-sty="B"][data-mode="light"]{
+ --hdr-sub:rgba(255,255,255,.7);--hero-ink:#FFFFFF;--hero-sub:rgba(255,255,255,.8);--hero-line:rgba(255,255,255,.12);
+ --note:#E9EBEF;--note-ink:#3C434D;
+ --bg:#F1F2F4;--panel:#FFFFFF;--soft:#E6E8EC;--line:#D7DAE0;--line2:#C9CED6;--ink:#16191E;--muted:#59606B;
+ --btn:#E6E8EC;--btn-edge:transparent;--btn-ink:#16191E;--off:#F3F4F6;--off-edge:#BFC4CC;--off-ink:#878E99;
+ --field:#FFFFFF;--field-edge:#D7DAE0;
+ --accent:#FFD21F;--accent-ink:#16191E;--accent-shadow:none;
+ --track:#E6E8EC;--sel:#16191E;--sel-on:#FFFFFF;--sel-shadow:none;
+ --brand:#1E2228;--hero:#1E2228;--hdr-ink:#FFFFFF;--hdr-btn:rgba(255,255,255,.12);--hdr-mute:rgba(255,255,255,.35);--hero-btn:rgba(255,255,255,.12);
+ --scrim:rgba(12,14,18,.45);--sheet:#FFFFFF;--sheet-shadow:0 -10px 32px rgba(12,14,18,.18);
+ --card:#FFFFFF;--card-shadow:0 1px 2px rgba(16,19,24,.06),0 0 0 1px rgba(16,19,24,.05);--box:#2B3038;--net:#16191E;--faint:#9DA3AD;--paper-shadow:0 0 0 1px rgba(16,19,24,.08);
+ --del:#B3261E;--del-on:#FFFFFF;--focus:#16191E}
+html.mock[data-sty="B"][data-mode="dark"]{
+ --hdr-sub:rgba(255,255,255,.62);--hero-ink:#F2F4F7;--hero-sub:rgba(255,255,255,.75);--hero-line:rgba(255,255,255,.09);
+ --note:#22262B;--note-ink:#C9CED6;
+ --bg:#111316;--panel:#1A1D21;--soft:#24282E;--line:#333840;--line2:#3D434C;--ink:#F2F4F7;--muted:#9AA1AC;
+ --btn:#2B3036;--btn-edge:transparent;--btn-ink:#F2F4F7;--off:#16191C;--off-edge:#3D434C;--off-ink:#6C737E;
+ --field:#16191C;--field-edge:#333840;
+ --accent:#FFD21F;--accent-ink:#16191E;--accent-shadow:none;
+ --track:#1E2226;--sel:#F2F4F7;--sel-on:#111316;--sel-shadow:none;
+ --brand:#0B0D0F;--hero:#0B0D0F;--hdr-ink:#F2F4F7;--hdr-btn:rgba(255,255,255,.1);--hdr-mute:rgba(255,255,255,.3);--hero-btn:rgba(255,255,255,.1);
+ --scrim:rgba(0,0,0,.6);--sheet:#1D2025;--sheet-shadow:0 -10px 32px rgba(0,0,0,.55);
+ --card:#1A1D21;--card-shadow:none;--box:#2B3036;--net:#E6E9EE;--faint:#626973;--paper-shadow:none;
+ --del:#C2453B;--del-on:#FFFFFF;--focus:#FFD21F}

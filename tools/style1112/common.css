@@ -1,0 +1,142 @@
+/* ===== 三種風格共用的結構（顏色由各風格的變數決定） ===== */
+/* 一般按鈕：實心的低飽和底色，不靠細框；:where 讓有自己樣式的按鈕（球場格子、號碼）照舊 */
+:where(html.mock) button{background:var(--btn);border-color:var(--btn-edge);color:var(--btn-ink);border-radius:var(--rb)}
+:where(html.mock) button:disabled{opacity:1;background:var(--off);border:1px dashed var(--off-edge);color:var(--off-ink)}
+html.mock input{background:var(--field);border-color:var(--field-edge);border-radius:var(--rb)}
+
+/* 主要按鈕：只有它是鮮明的顏色 */
+html.mock .primary,html.mock .go,html.mock .sv{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:var(--accent-shadow)}
+/* 判罰的「關閉」改成一般按鈕 */
+html.mock .sheet .primary[data-act=penclose]{background:var(--btn);border-color:var(--btn-edge);color:var(--btn-ink);box-shadow:none}
+
+/* 選中：用墨色（深色模式用亮色）加 ✓，不再用黃色 */
+html.mock .seg,html.mock .rtabs{border:0;background:var(--track);border-radius:var(--rb);padding:3px;gap:3px}
+html.mock .seg button,html.mock .rtabs button{background:transparent;border:0;color:var(--muted);border-radius:calc(var(--rb) - 3px)}
+html.mock .seg button+button{border-left:0}
+html.mock .seg button[aria-pressed="true"],html.mock .rtabs button[aria-pressed="true"],html.mock .mkset2 button[aria-pressed="true"]{background:var(--sel);color:var(--sel-on);border-color:var(--sel);box-shadow:var(--sel-shadow)}
+html.mock .seg button[aria-pressed="true"]::before,html.mock .rtabs button[aria-pressed="true"]::before,html.mock .mkset2 button[aria-pressed="true"]::before{content:"✓";margin-right:4px;font-weight:900}
+html.mock .sheettabs{display:flex;gap:3px}
+html.mock .sheettabs button{flex:1 1 0;min-height:44px;font-size:15px;font-weight:700;padding:0 2px}
+
+/* 記錄表：「各局」裡面再選第幾局 */
+html.mock .mkset2{display:flex;gap:8px;justify-content:center;flex:none}
+html.mock .mkset2 button{min-height:40px;padding:0 16px;font-size:15px;font-weight:700;background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:999px}
+html.mock .mkset2 button[aria-pressed="true"]{border-color:var(--sel)}
+
+/* 版頭：底色安靜，按鈕不要框 */
+html.mock .bar{background:var(--brand);color:var(--hdr-ink)}
+html.mock .bar h1{color:var(--hdr-ink)}
+html.mock .bartime{color:var(--hdr-sub)}
+html.mock .bartime b{color:var(--hdr-ink)}
+html.mock .bar>.barmid small{color:var(--hdr-sub)}
+html.mock .bar button,html.mock .barback{background:var(--hdr-btn);border:0!important;color:var(--hdr-ink);border-radius:var(--rb)}
+html.mock .bar .helpbtn{border-radius:50%}
+html.mock .bar button:disabled{background:transparent;color:var(--hdr-mute);border:1px dashed var(--hdr-mute)!important}
+html.mock .bar h1 .btgt{background:var(--hdr-btn);color:var(--hdr-ink)}
+html.mock .statusband,html.mock .footband{background:var(--brand)}
+
+/* 浮動面板：圓角、陰影，裡面用留白分組，不畫分隔線 */
+html.mock .scrim{background:var(--scrim)}
+html.mock .sheet{background:var(--sheet);border:0;box-shadow:var(--sheet-shadow);border-radius:var(--rs) var(--rs) 0 0;gap:12px}
+@media (min-width:760px){html.mock .sheet{border-radius:var(--rs)}}
+html.mock .sheet h2{color:var(--ink)}
+html.mock .sheet::before{background:var(--line2)}
+html.mock .sheet .msec{border-top:0;padding-top:6px}
+html.mock .sheet .shd,html.mock .sheet .msec>h3,html.mock .sheet .msec>p:first-child{color:var(--muted)}
+html.mock .sheet .mbtn{border:0;background:var(--btn);color:var(--btn-ink);border-radius:var(--rb)}
+html.mock .sheet .mbtn:disabled{background:var(--off);border:1px dashed var(--off-edge);color:var(--off-ink)}
+html.mock .sheet .pk3 button{border:0;background:var(--btn);color:var(--btn-ink);border-radius:var(--rb)}
+html.mock .sheet>.row:last-child,html.mock .sheet>button:last-child{background-color:var(--sheet);box-shadow:0 -8px 8px var(--sheet)}
+html.mock .sheet>.sheetback{background:var(--btn);border:0;min-height:44px}
+/* 紅色只給救不回來的；「離開這場比賽」比賽會保留，改成一般的小按鈕 */
+html.mock .sheet .linkbtn.dangerlink:last-child,html.mock .sheet .linkbtn.dangerlink{text-decoration:none;color:var(--btn-ink);background:var(--btn);border:0;min-height:44px;padding:0 18px;border-radius:var(--rb);align-self:center;font-weight:700}
+html.mock .danger{background:var(--del);border-color:var(--del);color:var(--del-on)}
+html.mock .teampick button{border:0;border-radius:var(--rb)}
+
+/* 主畫面 */
+html.mock .hero{background:var(--hero);color:var(--hero-ink)}
+html.mock .hero h1{color:var(--hero-ink)}
+html.mock .hero p{color:var(--hero-sub)}
+html.mock .herocourt g{stroke:var(--hero-line);stroke-opacity:1}
+html.mock .herobtns button{background:var(--hero-btn);border:0;color:var(--hero-ink);border-radius:var(--rb)}
+html.mock .herocta{border-radius:var(--rb)}
+html.mock .home.mk-live .herocta{background:var(--hero-btn);border:0;color:var(--hero-ink);box-shadow:none;font-weight:800}
+html.mock .homebody{background:var(--bg)}
+html.mock .homebody h2{font-size:14px;letter-spacing:.08em;color:var(--muted);font-weight:700;border:0}
+html.mock .homebody section>h2{border-bottom:0;padding-bottom:0}
+html.mock .rlist{border-top:0}
+html.mock .rlist>*{border-bottom:0}
+html.mock .homebody .rrow{background:var(--card);border-radius:var(--rc);padding:4px 14px 14px;box-shadow:var(--card-shadow);border:0;align-items:flex-start}
+html.mock .rmain{border:0}
+html.mock .rmain em{background:var(--accent);color:var(--accent-ink);border-radius:var(--rb);box-shadow:var(--accent-shadow)}
+html.mock .homebody .rrow{position:relative}
+html.mock .homebody .rmain{width:100%}
+html.mock .homebody .rscore{margin-right:70px}
+html.mock .homebody .rdel{position:absolute;top:14px;right:14px;text-decoration:none;background:var(--btn);color:var(--btn-ink);border-radius:var(--rb);min-height:36px;padding:0 12px;margin:0;font-weight:600;font-size:14px}
+html.mock .bkrow{border:0;padding:10px 14px;background:var(--note);border-radius:var(--rb)}
+html.mock .bkrow .muted{color:var(--note-ink);font-size:15px}
+html.mock .mkfoot{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:4px}
+html.mock .mkfoot button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--btn);color:var(--btn-ink);font-size:15px;font-weight:700;margin:0}
+html.mock .verbtn{background:none!important;border:0!important}
+@media (orientation:landscape) and (min-width:640px){html.mock .homebody{justify-content:center}}
+
+/* 紀錄與名單：比賽改成卡片加「打開 ›」，刪除只在打開後 */
+html.mock .shead .linkbtn{text-decoration:none;background:var(--btn);border:0;min-height:36px;padding:0 14px;border-radius:999px;font-size:14px;color:var(--btn-ink)}
+html.mock .hrow.cupcard,html.mock .hrow.mkcard{background:var(--card);border:0;border-radius:var(--rc);box-shadow:var(--card-shadow);margin:8px 0;padding:12px 14px}
+html.mock .hrow.mkcard{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px}
+html.mock .hrow.mkcard>.muted{grid-column:1}
+html.mock .hrow.mkcard>.hnames{grid-column:1}
+html.mock .hrow.mkcard>.mkgo{grid-column:2;grid-row:1/3;font-weight:700;font-size:15px;color:var(--muted)}
+html.mock .cupcard .cupgo{color:var(--muted)}
+html.mock .cupcard .cupic{color:var(--muted)}
+html.mock .rrow{border:0}
+html.mock .ftag{background:var(--track);color:var(--muted);border:0}
+html.mock .histtools button,html.mock .histtools .ghost-file{background:var(--btn);border:0;color:var(--btn-ink)}
+html.mock section>h2{border-color:transparent}
+
+/* 比賽頁 */
+html.mock .tg button,html.mock .pbtns button{background:var(--btn);border:0;color:var(--btn-ink)}
+html.mock .tg button b{color:var(--ink)}
+html.mock .setbox{background:var(--box);border-color:var(--box)!important}
+html.mock .net{background:var(--net)}
+html.mock .capbox{background:var(--btn);border:0!important}
+html.mock .capbox span,html.mock .lc .lno{color:var(--muted)}
+html.mock .lc:not(.empty) .lno{color:inherit;opacity:.85}
+html.mock .lc.empty{background:var(--off);border:1px dashed var(--off-edge);opacity:1}
+
+/* 細節題 1：沒有登錄的 L 格 */
+html.mock.mk-faint .lc.empty{background:transparent!important;border:0!important;box-shadow:none!important;opacity:1}
+html.mock.mk-faint .lc.empty .lno{color:var(--faint)}
+html.mock.mk-faint .lc.empty b.none{color:var(--faint);font-weight:600;font-size:17px}
+@media (min-width:760px){html.mock.mk-faint .wcol .lc.empty b.none{font-size:clamp(18px,2.8vh,24px)}}
+html.mock.mk-hide .lc.empty{visibility:hidden}
+html.mock.mk-hide .wcol .strip:has(>.ls.mknone)::before{visibility:hidden}
+
+/* 記錄表頁 */
+html.mock .fsbtn,html.mock .xpbtn{background:var(--btn);border:0;color:var(--btn-ink)}
+html.mock .sheetfoot{background:var(--bg)}
+html.mock .ctv{border-radius:6px;box-shadow:var(--paper-shadow)}
+
+/* 細節題 2：手機直放用到下面的空白 */
+html.mock.mk-zoom .ctv-set{overflow-x:auto;overflow-y:hidden;position:relative}
+html.mock.mk-zoom .ctv-set svg{width:300%!important;max-width:none!important;height:auto!important;display:block}
+html.mock.mk-zoom .mkhint{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:15px;font-weight:700;margin-top:-2px}
+html.mock.mk-zoom .mkhint b{font-size:20px}
+html.mock.mk-stack .mkstack{display:flex;flex-direction:column;gap:10px;flex:none}
+html.mock.mk-stack .mkrow{display:flex;justify-content:center;background:#fff;border-radius:6px;box-shadow:var(--paper-shadow);height:calc((100vw - 24px) / 1.79);overflow:hidden}
+html.mock.mk-stack .mkrow svg{height:100%!important}
+
+/* 細節題 3：平板的替補面板寫出為什麼在這一邊 */
+html.mock.mk-benchnew .kp.bench{border:0!important;box-shadow:var(--sheet-shadow);background:var(--sheet)}
+html.mock.mk-benchnew .kp.bench.onleft{border-right:6px solid var(--c)!important}
+html.mock.mk-benchnew .kp.bench.onright{border-left:6px solid var(--c)!important}
+html.mock .mkpoint{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--c);color:var(--o);border-radius:var(--rb);padding:10px 14px;font-size:17px;font-weight:700;line-height:1.3}
+html.mock .mkpoint i{font-style:normal;font-size:30px;font-weight:900;line-height:1}
+html.mock .mkpoint b{font-weight:900}
+
+/* 決定 8：內容放中間、上下平均 */
+@media (orientation:portrait) and (max-width:759px){html.mock .pcourt{max-height:352px}}
+@media (min-width:760px){
+ html.mock .page:has(>.sheettabs)>.ctv{margin-top:auto}
+ html.mock .page:has(>.sheettabs)>.fsbtn{margin-bottom:auto}
+}
