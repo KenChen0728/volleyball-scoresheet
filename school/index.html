@@ -1233,10 +1233,10 @@ button.dim{opacity:.45}
   .wcol .wnums{justify-content:center}
   .wcol .wscore{font-size:clamp(72px,14vh,124px)}
 }
-/* v46 比賽中（橫的畫面）：開始、經過、結束的時間跟著畫面寬度放大 */
-@media (min-width:920px){
-  .bar:has(>.barmid) .bartime{font-size:clamp(12px,1.05vw,16px);gap:clamp(9px,1vw,16px);align-items:baseline}
-  .bar:has(>.barmid) .bartime b{font-size:clamp(17px,1.6vw,26px)}
+/* v46 開始、經過、結束的時間：寬的畫面每一頁一樣大（11/11 使用者：以前只有比賽頁放大，記錄表頁比較小） */
+@media (min-width:920px) and (min-height:621px){
+  .bar .bartime{font-size:15px;gap:14px;align-items:baseline}
+  .bar .bartime b{font-size:26px}
 }
 /* v47 直的畫面：隊名做成隊色長條放在比分上方，「25 分」移到上方色帶，中間只留誰發球 */
 .bar h1 .btgt{margin-left:8px;padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.12);font-size:14px;font-weight:700;color:rgba(255,255,255,.85);vertical-align:3px}
@@ -1354,6 +1354,102 @@ button.dim{opacity:.45}
 .updbtns button{min-height:48px;padding:0 18px;font-size:16px}
 .updlink{align-self:center;min-height:48px;font-size:15px;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 @media print{.updbar{display:none!important}}
+/* 11/11 一局還在打時不顯示「結束 —」 */
+.bartime .pend{display:none}
+/* 11/11 判罰職員按鈕：中文加英文代號，已出局、出場寫在下面 */
+.stf button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15;white-space:nowrap}
+.stf .snm b{font-family:var(--num);font-weight:800}
+.stf button small{font-size:11px;font-weight:600}
+/* 11/11 上方列：寬的畫面每一頁同一個大小；記錄表頁的「‹ 比賽」放左邊（比分在正中間）。
+   直的平板：「第幾局」後面有空位時，時間、復原、問號靠右（和其他頁一樣問號在最右邊） */
+.bar:has(>.barmid)>.barback{order:-1}
+.bar h1:has(>.btgt)~.bartime{margin-left:auto}
+@media (min-width:920px) and (min-height:621px){
+  .bar{min-height:62px}
+  .bar h1{font-size:22px}
+  .bar button{font-size:18px}
+  .bar h1 .btgt{font-size:16px}
+  .bar>.barmid{font-size:28px}
+  .bar>.barmid small{font-size:18px}
+  .bar>.barmid .bsets{font-size:40px}
+  .sheettabs button{font-size:clamp(14px,2.2vh,18px);min-height:clamp(44px,6vh,52px)}
+}
+@media (orientation:landscape) and (min-width:920px) and (min-height:621px){
+  .kp.bench,.kp:not(.bench){top:max(62px,calc(var(--safe-top) + 54px))}
+}
+/* 寬度 920～1019：時間放大後，放正中間的比分會碰到時間，改成放在左右兩邊的正中間 */
+@media (min-width:920px) and (max-width:1019px) and (min-height:621px){
+  .bar>.barmid{position:static;transform:none;flex:none;overflow:visible}
+  .bar:has(>.barmid)::after{content:"";flex:1;order:1}
+  .bar:has(>.barmid)>.bartime,.bar:has(>.barmid)>[data-act=undo],.bar:has(>.barmid)>.helpbtn{order:2}
+}
+/* 11/11 號碼放大後，旁邊的字跟著放大（寬的橫畫面）。跟著畫面高度變，矮的筆電維持原本大小 */
+@media (orientation:landscape) and (min-width:761px) and (min-height:521px){
+  .wcol .tg button{min-height:clamp(58px,8.5vh,84px);font-size:clamp(20px,3.1vh,30px)}
+  .wcol .tg button b{font-size:clamp(36px,5.4vh,52px)}
+  .wcol .strip::before,.wcol .strip::after{font-size:clamp(15px,2.9vh,24px);width:auto;color:var(--ink)}
+  .wcol .strip .lc,.wcol .strip .capbox{width:clamp(56px,8.5vh,70px);height:clamp(56px,8.5vh,70px)}
+  .wcol .strip .lc b,.wcol .strip .capbox b{font-size:clamp(26px,4.4vh,36px)}
+  .wcol .strip .capbox b.circ{width:clamp(42px,6.8vh,56px);height:clamp(42px,6.8vh,56px);font-size:clamp(22px,3.65vh,30px)}
+  .wmid .pbtns button{font-size:clamp(19px,3.2vh,26px)}
+  .wmid .pbtns .penbtn .ic .cd{width:.47em;height:.68em}
+  .wmid .pbtns .penbtn .ic .cd+.cd{margin-left:.1em}
+  .wmid .sv{font-size:clamp(26px,4.15vh,34px)}
+  .wmid .sb{font-size:clamp(19px,3.2vh,26px)}
+  .wmid .lockline,.wmid .libhint{height:clamp(19px,2.9vh,24px);min-height:clamp(19px,2.9vh,24px);line-height:clamp(19px,2.9vh,24px);font-size:clamp(14px,2.3vh,19px)}
+  .wbar{min-height:clamp(56px,7.3vh,60px)}
+  .wbar strong{font-size:clamp(24px,3.65vh,30px)}
+  .wbar .wab{width:clamp(30px,4.4vh,36px);height:clamp(30px,4.4vh,36px);font-size:clamp(17px,2.45vh,20px)}
+}
+/* 11/11 比賽中跳出來的面板（判罰、其他、點球員、更正、替補）：平板、電腦上放大一級，跟著畫面高度變 */
+@media (min-width:760px){
+  .shell.nonav~.sheet{width:min(clamp(460px,68vh,560px),calc(100vw - 32px))}
+  .shell.nonav~.sheet h2{font-size:clamp(19px,2.8vh,23px)}
+  .shell.nonav~.sheet .muted{font-size:clamp(16px,2.2vh,18px)}
+  .shell.nonav~.sheet .subhint{font-size:clamp(18px,2.45vh,20px)}
+  .shell.nonav~.sheet button{font-size:clamp(16px,2.3vh,19px)}
+  :where(.shell.nonav~.sheet) button{min-height:clamp(44px,6.6vh,54px)}
+  .shell.nonav~.sheet>.sheetback{font-size:clamp(15px,2.2vh,18px);min-height:clamp(38px,5.6vh,46px)}
+  .shell.nonav~.sheet .teampick button{font-size:clamp(16px,2.45vh,20px);min-height:clamp(50px,7.3vh,60px)}
+  .shell.nonav~.sheet .pk3 button{font-size:clamp(13px,2.2vh,18px);min-height:clamp(62px,9.3vh,76px)}
+  .shell.nonav~.sheet .pk3 small{font-size:clamp(12px,1.7vh,14px)}
+  .shell.nonav~.sheet .pk3 .ic{height:clamp(24px,3.4vh,28px)}
+  .shell.nonav~.sheet .pk3 .cd{width:clamp(15px,2.2vh,18px);height:clamp(21px,3vh,25px)}
+  .shell.nonav~.sheet .stf button{font-size:clamp(13px,2.2vh,18px);min-height:clamp(46px,7vh,58px)}
+  .shell.nonav~.sheet .stf button small{font-size:clamp(11px,1.6vh,13px)}
+  .shell.nonav~.sheet .benchrow{grid-template-columns:repeat(6,minmax(0,clamp(60px,9vh,74px)))}
+  .shell.nonav~.sheet .chip b{font-size:clamp(26px,3.8vh,31px)}
+  .shell.nonav~.sheet .pmb{font-size:clamp(19px,2.8vh,23px);min-height:clamp(64px,9.3vh,76px)}
+  .shell.nonav~.sheet .mhead{font-size:clamp(14px,2vh,16px)}
+  .shell.nonav~.sheet .mrow strong{font-size:clamp(17px,2.45vh,20px)}
+  .shell.nonav~.sheet .mrow strong small{font-size:clamp(12px,1.7vh,14px)}
+  .shell.nonav~.sheet .mrow .mteams button,.shell.nonav~.sheet .mbtn:not(.big){min-height:clamp(48px,6.6vh,54px)}
+  .shell.nonav~.sheet .mbtn strong{font-size:clamp(16px,2.3vh,19px)}
+  .shell.nonav~.sheet .mbtn small{font-size:clamp(13px,1.9vh,16px)}
+  .shell.nonav~.sheet .mbtn.big{min-height:clamp(68px,9.3vh,76px)}
+  .shell.nonav~.sheet .mbtn.big strong{font-size:clamp(17px,2.45vh,20px)}
+  .shell.nonav~.sheet .fixpos button{min-height:clamp(64px,9vh,74px)}
+  .shell.nonav~.sheet .fixpos small{font-size:clamp(12px,1.8vh,15px)}
+  .shell.nonav~.sheet .fixpos b{font-size:clamp(26px,3.6vh,30px)}
+  .shell.nonav~.sheet .logbox{max-height:clamp(300px,45vh,380px)}
+  .shell.nonav~.sheet .logbox .res{font-size:clamp(14px,2.2vh,18px)}
+  .shell.nonav~.sheet .logbox .res .sm th{font-size:clamp(11px,1.7vh,14px)}
+  .shell.nonav~.sheet .irb{font-size:clamp(14px,2.1vh,17px)}
+  .shell.nonav~.kp.bench .kphead{font-size:clamp(15px,2.2vh,18px)}
+  .shell.nonav~.kp.bench .kphead>span:first-child{font-size:clamp(16px,2.45vh,20px)}
+  .shell.nonav~.kp.bench .kphead button{font-size:clamp(14px,2.2vh,18px);min-height:clamp(44px,6.1vh,50px)}
+  .shell.nonav~.kp.bench .subhint{font-size:clamp(18px,2.45vh,20px)}
+  .shell.nonav~.kp.bench .row button{font-size:clamp(15px,2.2vh,18px);min-height:clamp(44px,6.1vh,50px)}
+  .shell.nonav~.kp.bench .subbody button:not(.chip){font-size:clamp(16px,2.2vh,18px)}
+  .shell.nonav~.kp.bench .excinj,.shell.nonav~.kp.bench .excinj button{font-size:clamp(16px,2.2vh,18px)}
+  .shell.nonav~.kp.bench .excinj .muted{font-size:clamp(15px,2.1vh,17px)}
+  .shell.nonav~.kp.bench .forcedmsg,.shell.nonav~.kp.bench .excnote{font-size:clamp(16px,2.2vh,18px)}
+  .shell.nonav~.kp.bench .benchrow{grid-template-columns:repeat(auto-fill,minmax(44px,clamp(60px,8.8vh,72px)))}
+  .shell.nonav~.kp.bench .chip b{font-size:clamp(26px,3.8vh,31px)}
+}
+@media (orientation:landscape) and (min-width:640px){
+  .shell.nonav~.kp.bench{width:min(clamp(340px,49vh,400px),40vw)}
+}
 
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
@@ -1936,7 +2032,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1111-1037';
+var BUILD='1111-1230';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2339,7 +2435,7 @@ function barTime(s){
     var dl=new Date(pv.endAt).getTime()+180000;
     return '<div class="bartime breakt"><span>局間休息 <b data-cd="'+dl+'">'+cdText(dl)+'</b></span></div>';
   }
-  return '<div class="bartime"><span>開始 <b>'+esc(setStartHM(s,s.setNo)||'—')+'</b></span><span>經過 <b'+(c.firstServeAt&&!c.endAt?' data-el="'+esc(c.firstServeAt)+'"':'')+'>'+elapsed(c.firstServeAt,c.endAt)+'</b></span><span>結束 <b>'+(c.endAt?setEndHM(s,s.setNo)||'—':'—')+'</b></span></div>';
+  return '<div class="bartime"><span>開始 <b>'+esc(setStartHM(s,s.setNo)||'—')+'</b></span><span>經過 <b'+(c.firstServeAt&&!c.endAt?' data-el="'+esc(c.firstServeAt)+'"':'')+'>'+elapsed(c.firstServeAt,c.endAt)+'</b></span><span'+(c.endAt?'':' class="pend"')+'>結束 <b>'+(c.endAt?setEndHM(s,s.setNo)||'—':'—')+'</b></span></div>';
 }
 function cdText(dl){var n=Math.max(0,Math.ceil((dl-Date.now())/1000));return Math.floor(n/60)+':'+('0'+n%60).slice(-2)}
 function elapsed(from,to){
@@ -2355,9 +2451,11 @@ function barHtml(s){
   else title={info:'比賽資料',refs:'裁判',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'紀錄與名單':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
   if(!back&&ui.page==='play'&&c.started&&!over&&ui.liveSheet&&!setWinner(s))back='<button class="barback" data-act="sheetclose">‹ 比賽</button>';
-  var undo=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
-  var cen=ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)&&isWide();
-  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':ui.page==='play'&&c.started&&!over&&!ui.liveSheet&&!setWinner(s)?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
+  /* 11/11 使用者：記錄表頁（比賽中）和比賽頁同一條：中間比分和第幾局、右邊時間，只多左邊的「‹ 比賽」、沒有復原，時間靠右貼著問號 */
+  var live=ui.page==='play'&&c.started&&!over&&!setWinner(s);
+  var undo=live&&!ui.liveSheet?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
+  var cen=live&&isWide();
+  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':live?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
 }
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
@@ -2915,10 +3013,10 @@ function ppSanctions(s){
   var A=sheetTeams(s,1).A,ir=s.sanctions.filter(function(x){return x.kind==='IR'}),list=s.sanctions.filter(function(x){return x.kind!=='IR'}),rows='',i;
   for(i=0;i<Math.max(11,list.length);i++){var x=list[i];
     if(!x){rows+='<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>:</td></tr>';continue}
-    var v=(x.kind==='DW'||x.kind==='DP')?'D':x.who,col=x.kind==='DW'||x.kind==='W'?0:x.kind==='DP'||x.kind==='P'?1:x.kind==='E'?2:3;
+    var v=(x.kind==='DW'||x.kind==='DP')?'D':whoCode(x.who),col=x.kind==='DW'||x.kind==='W'?0:x.kind==='DP'||x.kind==='P'?1:x.kind==='E'?2:3;
     rows+='<tr>'+[0,1,2,3].map(function(q){return '<td>'+(q===col?esc(v):'')+'</td>'}).join('')+'<td>'+(x.team===A?'A':'B')+'</td><td>'+x.set+'</td><td>'+esc(x.score)+'</td></tr>'}
   function irm(k,l){var on=ir.some(function(q){return q.team===k});return '<svg class="ircl" viewBox="0 0 28 28" width="28" height="28" role="img" aria-label="'+l+' 隊'+(on?'不當請求':'')+'"><circle cx="14" cy="14" r="12" fill="none" stroke="#000" stroke-width="1.6"/><text x="14" y="15" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="700" fill="#000">'+l+'</text>'+(on?'<path d="M4 4L24 24M24 4L4 24" stroke="#1616c8" stroke-width="2.4"/>':'')+'</svg>'}
-  return '<div class="ppr psan"><div class="psh"><h3>判罰</h3><div><small>不當請求</small><span class="irrow">隊伍 '+irm(A,'A')+' ： 隊伍 '+irm(other(A),'B')+'</span></div></div><table><tr class="ph"><th>警告<br>W</th><th>懲罰<br>P</th><th>出局<br>E</th><th>出場<br>D</th><th>隊</th><th>局</th><th>比分</th></tr>'+rows+'</table><p>欄內填球員背號，或 C 教練、AC 助理教練、T 防護員、M 隊醫，延誤判罰填 D。比分以受罰隊在前。</p></div>';
+  return '<div class="ppr psan"><div class="psh"><h3>判罰</h3><div><small>不當請求</small><span class="irrow">隊伍 '+irm(A,'A')+' ： 隊伍 '+irm(other(A),'B')+'</span></div></div><table><tr class="ph"><th>警告<br>W</th><th>懲罰<br>P</th><th>出局<br>E</th><th>出場<br>D</th><th>隊</th><th>局</th><th>比分</th></tr>'+rows+'</table><p>欄內填球員背號，或 C 執行教練、AC 教練、T 領隊、M 管理，延誤判罰填 D。比分以受罰隊在前。</p></div>';
 }
 function ppRemarks(s,ct){
   var A=sheetTeams(s,1).A,nt=notesList(s,A,other(A)),done=matchOver(s),rows=nt.filter(function(x){return !ct||(x.accId&&!done)}).map(function(x){return '<li>'+esc(x)+(x.accId&&!done?' <button class="accx" data-act="accdel" data-v="'+esc(x.accId)+'" aria-label="刪除這行">✕</button>':'')+'</li>'}).join('');
@@ -3054,16 +3152,22 @@ function noticeHtml(){
   return '<div class="scrim"></div><div class="sheet" role="alertdialog"><h2>'+esc(ui.notice)+'</h2><button class="go" data-act="nclose">知道了</button></div>';
 }
 var PERSON={W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'};
-var STAFFWHO=[['C','教練'],['AC','助理教練'],['T','防護員'],['M','隊醫']];
+/* 11/11 使用者：判罰對象的職員照協會記錄表（和名單頁一樣）。[存的代號, 中文, 紙本寫的英文]。
+   執行教練、教練沿用以前的 C、AC；領隊、管理用中文存，舊版程式打開也看得懂。以前判給防護員、隊醫的照當時的名稱顯示 */
+var STAFFWHO=[['C','執行教練','C'],['AC','教練','AC'],['領隊','領隊','T'],['管理','管理','M']];
+var STAFFOLD=[['T','防護員','T'],['M','隊醫','M']];
+function staffQ(w){return typeof w==='string'?STAFFWHO.concat(STAFFOLD).filter(function(x){return x[0]===w})[0]:null}
+function whoCode(w){var q=staffQ(w);return q?q[2]:w}
+function staffBtn(q,extra){return '<span class="snm">'+q[1]+' <b>'+q[2]+'</b></span>'+(extra?'<small>'+extra+'</small>':'')}
 var SANK={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'};
-function whoText(w){if(w==='隊'||w==null)return '';if(typeof w==='number')return w+' 號';var q=STAFFWHO.filter(function(x){return x[0]===w})[0];return q?q[1]:String(w)}
+function whoText(w){if(w==='隊'||w==null)return '';if(typeof w==='number')return w+' 號';var q=staffQ(w);return q?q[1]+' '+q[2]:String(w)}
 function sanText(x){var w=whoText(x.who);return SANK[x.san]+(w?' '+w:'')}
 function penHtml(s){
   var p=ui.pen; if(!p)return '';
   var n=s.setNo,c=s.sets[n],k=p.team,t=k?s.teams[k]:null,A=s.sets[1].left,h,sb=null;
   var teams='<div class="teampick'+(k?' picked':'')+'">'+[c.left||A,other(c.left||A)].map(function(x){return '<button class="'+x+'" data-act="penteam" data-team="'+x+'" aria-pressed="'+(k===x)+'">'+esc(tName(s,x))+'</button>'}).join('')+'</div>';
   if(p.ok){
-    var okn={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[p.ok.kind],okw=p.ok.who==='隊'?'':(typeof p.ok.who==='number'?p.ok.who+' 號 ':STAFFWHO.filter(function(q){return q[0]===p.ok.who})[0][1]+' ');
+    var okn={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[p.ok.kind],okw=p.ok.who==='隊'?'':whoText(p.ok.who)+' ';
     var oke={DP:esc(tName(s,other(k)))+' 得 1 分。',P:esc(tName(s,other(k)))+' 得 1 分。',E:'本局不能再上場。',D:'本場不能再上場。'}[p.ok.kind]||'';
     sb='';
     h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+okw+okn+'？</h2><p class="muted">第 '+n+' 局 '+c.score[k]+':'+c.score[other(k)]+(oke?'，'+oke:'')+'</p><div class="row"><button data-act="penno">取消</button><button class="go" data-act="penyes">確定</button></div>';
@@ -3088,7 +3192,7 @@ function penHtml(s){
   }else if(p.kind){
     var gone=function(w){var g=sanGone(s,k,w);return g==='D'||(g==='E'&&p.kind!=='D')?g:''},gtx={D:'已出場',E:'已出局'};
     var pl=t.players.map(function(q){var g=gone(q.no);return '<button class="chip '+k+(g?' off':'')+'" data-act="penwho" data-team="'+k+'" data-no="'+q.no+'"'+(g?' disabled':'')+'><b>'+q.no+'</b>'+(g?'<small>'+gtx[g]+'</small>':'')+'</button>'}).join('');
-    var st=STAFFWHO.map(function(x){var g=gone(x[0]);return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'"'+(g?' disabled':'')+'>'+x[1]+(g?' '+gtx[g]:'')+'</button>'}).join('');
+    var st=STAFFWHO.map(function(x){var g=gone(x[0]);return '<button data-act="penwho" data-team="'+k+'" data-v="'+x[0]+'"'+(g?' disabled':'')+'>'+staffBtn(x,g?gtx[g]:'')+'</button>'}).join('');
     sb='<button class="sheetback" data-act="penback">‹ 返回</button>';
     h='<h2>'+esc(tName(s,k))+' '+PERSON[p.kind]+'：選對象</h2><div class="bench"><div class="benchrow">'+pl+'</div></div><div class="stf">'+st+'</div><button data-act="penclose">關閉</button>';
   }else{
@@ -3106,7 +3210,7 @@ function penHtml(s){
 function recordsHtml(s){
   var A=s.sets[1].left,ir=s.sanctions.filter(function(x){return x.kind==='IR'});
   var rows=s.sanctions.filter(function(x){return x.kind!=='IR'}).map(function(x){
-    var v=(x.kind==='DW'||x.kind==='DP')?'D':x.who;
+    var v=(x.kind==='DW'||x.kind==='DP')?'D':whoCode(x.who);
     var col=x.kind==='DW'||x.kind==='W'?0:x.kind==='DP'||x.kind==='P'?1:x.kind==='E'?2:3;
     return '<tr>'+[0,1,2,3].map(function(i){return '<td>'+(i===col?esc(v):'')+'</td>'}).join('')+'<td>'+(x.team===A?'A':'B')+'</td><td>'+x.set+'</td><td>'+x.score+'</td></tr>'}).join('');
   function irm(k){return ir.some(function(x){return x.team===k})?'✕':'　'}
@@ -3145,7 +3249,7 @@ function csvText(m,s){
     if(dead[e.id]||e.type==='UNDO')return;seen.push(e);
     if(!map[e.type])return;
     var st=reduce(seen),d=e.data,n=d.set||st.setNo,c=st.sets[n];
-    var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SANCTION'?KIND[d.kind]+' '+d.who:(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
+    var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SANCTION'?KIND[d.kind]+' '+whoCode(d.who):(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
     var fl=s.flipped&&s.flipped[e.id];lines.push([hm(e.at),n,map[e.type],d.team?nm[fl?other(d.team):d.team]:'',txt,fl?c.score[B]:c.score[A],fl?c.score[A]:c.score[B]].map(q).join(','));
   });
   return '﻿'+lines.join('\r\n');
@@ -3294,7 +3398,7 @@ function sheetHtml(s,m){
         if(taken)h+='<p class="muted">'+esc(tName(s,tk))+' 已經有這項紀錄，一隊一場只能記一次，不能改過去。</p>';
         else if(person){
           var tkp=s.teams[tk],wh=(moved?null:e.who);
-          h+='<p class="subhint">對象是</p><div class="bench"><div class="benchrow">'+tkp.players.filter(function(p){return p.no!==wh}).map(function(p){return '<button class="chip '+tk+'" data-act="amendwho" data-no="'+p.no+'" data-team="'+tk+'"><b>'+p.no+'</b></button>'}).join('')+'</div></div><div class="stf">'+STAFFWHO.filter(function(q){return q[0]!==wh}).map(function(q){return '<button data-act="amendwho" data-v="'+q[0]+'" data-team="'+tk+'">'+q[1]+'</button>'}).join('')+'</div>';
+          h+='<p class="subhint">對象是</p><div class="bench"><div class="benchrow">'+tkp.players.filter(function(p){return p.no!==wh}).map(function(p){return '<button class="chip '+tk+'" data-act="amendwho" data-no="'+p.no+'" data-team="'+tk+'"><b>'+p.no+'</b></button>'}).join('')+'</div></div><div class="stf">'+STAFFWHO.filter(function(q){return q[0]!==wh}).map(function(q){return '<button data-act="amendwho" data-v="'+q[0]+'" data-team="'+tk+'">'+staffBtn(q)+'</button>'}).join('')+'</div>';
           if(e.san==='E'||e.san==='D')h+='<p class="muted">已經做的替補不會跟著改。</p>';
         }else if(moved)h+='<button class="primary" data-act="amendsteam" data-team="'+tk+'">改成 '+esc(tName(s,tk))+'</button>';
         h+='<div class="row">'+(lock?'':'<button class="danger" data-act="amendask">刪除這筆</button>')+'<button data-act="close">取消</button></div>';
@@ -3745,7 +3849,7 @@ app.addEventListener('click',function(e){
     case 'penyes':
       var pk=ui.pen.ok,who=pk.who,kd=pk.kind;k=ui.pen.team;no=typeof who==='number'?who:null;
       dispatch('SANCTION',{set:n,team:k,kind:kd,who:who}); ui.pen=null; armGuard();
-      ui.toast={t:'已記錄：'+tName(s,k)+' '+(who==='隊'?'':typeof who==='number'?who+' 號 ':(STAFFWHO.filter(function(q){return q[0]===who})[0]||['',''])[1]+' ')+{IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[kd],until:Date.now()+3500};
+      ui.toast={t:'已記錄：'+tName(s,k)+' '+(who==='隊'?'':whoText(who)+' ')+{IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'}[kd],until:Date.now()+3500};
       if((kd==='E'||kd==='D')&&no!==null&&c.cur[k]&&c.cur[k].indexOf(no)>=0){
         if(s.teams[k].liberos.indexOf(no)>=0){var lb=c.libOut[k];dispatch('LIBERO_OUT',{set:n,team:k});ui.notice='自由球員 '+no+' 號不能繼續，已換回 '+lb.no+' 號。要重新指定，請到「其他」'}
         else ui.sub={team:k,idx:c.cur[k].indexOf(no),exc:false,ids:[],forced:true};
