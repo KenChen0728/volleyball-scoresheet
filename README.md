@@ -71,11 +71,14 @@ git push
 - 由 `tools/beta.py` 從 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
 - 測試版和正式版程式相同（每次上線都用 `tools/beta.py` 重產），資料另存；朋友 11/9 在測試版輸入的比賽還在測試版裡，要看的話在測試版的「紀錄與名單」備份
 - 下次要先給人試：在分支改好、`python3 tools/build.py`、`python3 tools/beta.py`，只把 `beta/index.html` 放上 main
+- 11/11 起：勾選比賽再備份、備份時選要不要帶名單、有新版時提示更新，先放在測試版（完整版 `beta/`、學校版 `school/beta/`，程式在 `feature-1111` 分支，說明見那個分支的 README）。`school/help/` 先放了新功能的說明圖（bksel、bkopt、bkimp、upd、ins_bk），正式版還沒用到。確認後把 `feature-1111` 合併到 main 就是正式版
 
 ## 退回前一版（完整版和學校版一起）
 
 每次改版前各留一個分支，新的在上面：
 
+- `backup/before-ball-1111`：發球的小排球、自由球員 L、牌卡跟著號碼放大之前，也就是 1111-0910
+- `backup/before-bignum-1111`：橫的平板下方縮小記錄表收起來、號碼放大到 0.45 倍格子之前，也就是 1109-2350
 - `backup/before-lineup-full`：陣容頁六格填滿時號碼整排不見的修正之前，也就是 1109-2025
 - `backup/before-help-1109`：「紀錄與名單」頁的問號改成這頁自己的說明、自由球員說明圖重截、選中的 L 格小勾移到角落之前，也就是 1109-1953
 - `backup/before-feedback-1109b`：11/9 晚語音討論那批（主畫面三個按鈕、開新比賽先選資料夾、紀錄與名單、裁判名單依場地、匯入前確認和一筆一筆合併、組別兩層比對、選取樣式加勾）之前，也就是 1109-1828
