@@ -315,8 +315,10 @@ sOk=pOk&&lgN.length>0,eOk=
 <<<<
       var cnt=c.subCount[ui.sub.team];
       if(!ui.sub.exc&&(ui.sub.ids||[]).length&&cnt>=5)ui.notice=tName(s,ui.sub.team)+' 第 '+cnt+' 次替補';
+      if((ui.sub.ids||[]).length)scNoteSet(ui.sub.ids);
       ui.sub=null;
 ====
+      if((ui.sub.ids||[]).length)scNoteSet(ui.sub.ids);
       ui.sub=null;
 >>>>
 <<<<
