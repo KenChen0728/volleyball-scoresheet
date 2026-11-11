@@ -1329,6 +1329,10 @@ button.dim{opacity:.45}
 .lc.sel::after{top:-7px;right:-7px;width:18px;height:18px;font-size:12px;line-height:18px}
 .sheet .imp[aria-pressed="true"]{padding-right:38px}
 .sheet .imp[aria-pressed="true"]::after{top:50%;right:10px;transform:translateY(-50%)}
+/* 11/11 號碼放大時，發球的小排球、自由球員 L、牌卡跟著放大：--k 由 fitNums 依格子算，從所在的角落放大 */
+.pcourt .pc .ball{transform:scale(var(--k,1));transform-origin:100% 100%}
+.pcourt .pc .lmk{transform:scale(var(--k,1));transform-origin:100% 0}
+.pcourt .pc .cdm{transform:scale(var(--k,1));transform-origin:0 100%}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1779,7 +1783,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1111-0910';
+var BUILD='1111-0937';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -1995,13 +1999,14 @@ function draw(){
   if(on&&box){var lim=box.getBoundingClientRect().top-8,rb=on.getBoundingClientRect();if(rb.bottom>lim)pg.scrollTop+=rb.bottom-lim;if(on.getBoundingClientRect().top<pg.getBoundingClientRect().top)pg.scrollTop-=pg.getBoundingClientRect().top-on.getBoundingClientRect().top}
 }
 /* 11/9 朋友回饋：平板格子大、號碼還是手機大小。號碼跟著格子等比例放大（手機的比例約 0.4），最多 84px；比原本小就維持原本 */
-/* 11/11 年紀大的裁判覺得還是小：號碼放大到原本約 1.7 倍，隊長圈仍放得下 */
+/* 11/11 年紀大的裁判覺得還是小：號碼放大到原本約 1.7 倍，隊長圈仍放得下。發球的小排球、自由球員 L、牌卡跟著號碼等比例放大（--k，最多 1.7 倍） */
 var NUM_R=0.45,NUM_MAX=110;
 function fitNums(){
   var bs=app.querySelectorAll('.pcourt .pc b'),sz=[];
-  for(var i=0;i<bs.length;i++)bs[i].style.fontSize='';
+  for(var i=0;i<bs.length;i++){bs[i].style.fontSize='';bs[i].parentNode.style.removeProperty('--k')}
   for(i=0;i<bs.length;i++){var c=bs[i].parentNode;sz.push([c.clientWidth,c.clientHeight,parseFloat(getComputedStyle(bs[i]).fontSize)])}
-  for(i=0;i<bs.length;i++){var w=sz[i][0],h=sz[i][1];if(!w||!h)continue;var want=Math.min(NUM_R*Math.min(w,h),NUM_MAX);if(want>sz[i][2]+1)bs[i].style.fontSize=Math.round(want)+'px'}
+  for(i=0;i<bs.length;i++){var w=sz[i][0],h=sz[i][1];if(!w||!h)continue;var want=Math.min(NUM_R*Math.min(w,h),NUM_MAX);
+    if(want>sz[i][2]+1){bs[i].style.fontSize=Math.round(want)+'px';bs[i].parentNode.style.setProperty('--k',Math.min(want/sz[i][2],1.7).toFixed(2))}}
 }
 var fnT;addEventListener('resize',function(){clearTimeout(fnT);fnT=setTimeout(fitNums,120)});
 function storageNote(){
