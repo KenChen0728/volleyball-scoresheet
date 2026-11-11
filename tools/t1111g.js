@@ -68,16 +68,18 @@ const in2=await sub('t1',5);ok(tag+'note again',(await note()).includes('5 換 '
 if(!SCHOOL){await p.click('[data-act=serve]');await W(700);ok(tag+'hidden at serve',await p.locator('.scnote').count()===0);
  await p.click('[data-act=replay]');await W(700);ok(tag+'stays hidden after replay',await p.locator('.scnote').count()===0)}
 await point('t1');ok(tag+'hidden after point',await p.locator('.scnote').count()===0); // 4:2
-// 暫停：寫在計時列裡，沒有另一條提示列
+// 暫停：計時列照原本的樣子，不放修正比分，計時結束後也沒有提示列（使用者 23:42：暫停不用）
 await p.locator('.wcol .tg button,.tg button',{hasText:'暫停'}).last().click();await W(150);await p.click('[data-act=toyes]');await W(300);
-let tb=await tbar();ok(tag+'timer bar has score',tb.includes('已記錄 2:4')&&tb.includes('修正比分'),tb);
-ok(tag+'no separate note',await p.locator('.scnote').count()===0);
-const tc=p.locator('[data-act=tmclose]');if(await tc.count()){await tc.first().click();await W(200)}
-await p.click('.tbar [data-act=scfix]');await W(200);
-ok(tag+'timeout prefilled own first',await p.inputValue('#amsc0')==='2'&&await p.inputValue('#amsc1')==='4');
-await fill(1,3);tb=await tbar();ok(tag+'timeout fixed in bar',tb.includes('已記錄 1:3'),tb);
-// 計時結束後還沒發球：改成提示列
-await p.click('.tbar [data-act=tmend]');await W(200);nt=await note();ok(tag+'note after timer',nt.includes('暫停')&&nt.includes('已記錄 1:3'),nt);
+let tb=await tbar();ok(tag+'timer bar plain',tb.includes('暫停')&&!tb.includes('修正比分')&&!tb.includes('已記錄'),tb);
+ok(tag+'no note for timeout',await p.locator('.scnote').count()===0);
+await p.click('.tbar [data-act=tmend]');await W(200);ok(tag+'no note after timer',await p.locator('.scnote').count()===0);
+// 暫停的比分從「其他」→「修正比分」改：先列出這局的暫停和替補，點那一筆才出現比分格子
+await more();await p.click('.sheet [data-act=scfixpick]');await W(200);
+ok(tag+'list first, no inputs',await p.locator('#amsc0').count()===0&&await p.locator('.sheet .fixlist .fixrow').count()===2);
+await p.locator('.sheet .fixrow',{hasText:'暫停'}).click();await W(200);
+ok(tag+'list hidden after pick',await p.locator('.sheet .fixlist').count()===0);
+ok(tag+'timeout via more',(await p.locator('.sheet .scwho').innerText()).includes('暫停')&&await p.inputValue('#amsc0')==='2'&&await p.inputValue('#amsc1')==='4');
+await fill(1,3);ok(tag+'timeout fixed toast',(await lock()).includes('2:4 → 1:3'),await lock());
 // 替補面板一次換兩組：一起改
 await p.click('[data-act=subopen][data-team=t2]');await W(150);
 const pick2=async pos=>{await p.locator(`.pcourt .pc.t2[data-pos="${pos}"]`).click();await W(80);await p.locator('.kp.bench [data-act=subin]:enabled').first().click();await W(150)};
@@ -88,18 +90,25 @@ await fill(1,3);
 let es=await ev();const am=es.filter(e=>e.type==='AMEND'&&e.data.patch&&e.data.patch.sc&&e.data.patch.sc.join(':')==='1:3');
 ok(tag+'batch two amends',am.length===3,am.length); // 暫停 1 筆 + 兩組替補
 nt=await note();ok(tag+'batch note updated',nt.includes('已記錄 1:3'),nt);
-// 「其他」→「修正比分」：先帶出最後一筆，下面列出這局的暫停和替補
+// 「其他」→「修正比分」：第一步只有清單，點一筆 → 只顯示那一筆和比分格子；「‹ 返回」回清單、再返回回到其他
 await more();await p.click('.sheet [data-act=scfixpick]');await W(200);
 const rows=await p.locator('.sheet .fixlist .fixrow').allInnerTexts();
 ok(tag+'pick list',rows.length===4,rows); // 5 號那組、暫停、面板的兩組（復原的那筆不算）
-ok(tag+'pick last selected',await p.locator('.sheet .fixrow[aria-pressed=true]').count()===1&&(await p.locator('.sheet .fixrow').last().getAttribute('aria-pressed'))==='true');
-ok(tag+'pick prefilled last',await p.inputValue('#amsc0')==='1'&&await p.inputValue('#amsc1')==='3');
+ok(tag+'pick list no inputs',await p.locator('#amsc0').count()===0);
+ok(tag+'pick list back to more',await p.locator('.sheet>.sheetback[data-act=sheetback]').count()===1);
+await p.locator('.sheet .fixrow').last().click();await W(200);
+ok(tag+'pick shows one',await p.locator('.sheet .fixlist').count()===0&&await p.inputValue('#amsc0')==='1'&&await p.inputValue('#amsc1')==='3');
+ok(tag+'pick step back btn',await p.locator('.sheet>.sheetback[data-act=scback]').count()===1&&await p.locator('.sheet>.sheetback').count()===1);
+await p.click('.sheet [data-act=scback]');await W(150);ok(tag+'step back to list',await p.locator('.sheet .fixlist .fixrow').count()===4&&await p.locator('#amsc0').count()===0);
+await p.locator('.sheet .fixrow').first().click();await W(150);await p.keyboard.press('Escape');await W(150);ok(tag+'esc back to list',await p.locator('.sheet .fixlist').count()===1);
+await p.keyboard.press('Escape');await W(150);ok(tag+'esc back to more',await p.locator('.sheet [data-act=scfixpick]').count()===1);
+await p.click('.sheet [data-act=scfixpick]');await W(200);
 await p.locator('.sheet .fixrow').first().click();await W(200);
-ok(tag+'pick switch',await p.inputValue('#amsc0')==='3'&&await p.inputValue('#amsc1')==='2'&&(await p.locator('.sheet .fixrow').first().getAttribute('aria-pressed'))==='true');
+ok(tag+'pick switch',await p.inputValue('#amsc0')==='3'&&await p.inputValue('#amsc1')==='2');
 await fill(3,1);ok(tag+'pick saved closes',await p.locator('.sheet').count()===0);
 ok(tag+'pick toast',(await lock()).includes('3:2 → 3:1'),await lock());
 // 沒改也寫出來
-await more();await p.click('.sheet [data-act=scfixpick]');await W(200);await fill(1,3);ok(tag+'unchanged told',(await lock()).includes('比分沒有改'),await lock());
+await more();await p.click('.sheet [data-act=scfixpick]');await W(200);await p.locator('.sheet .fixrow').last().click();await W(200);await fill(1,3);ok(tag+'unchanged told',(await lock()).includes('比分沒有改'),await lock());
 // 記錄表 → 更正：改完寫在清單上方，那一筆加框；點別的就收掉
 await p.click('[data-act=sheetopen]');await W(200);await p.click('[data-act=rtab][data-v=fix]');await W(150);
 await p.locator('.fixrow').first().click();await W(150);await fill(2,1);
@@ -114,7 +123,7 @@ ok(tag+'other amend message',(await p.locator('.fixdone').innerText()).includes(
 await p.click('[data-act=sheetclose]');await W(200);
 // 球在進行中也能從「其他」修正比分（寬畫面才看得到按鈕）
 if(!SCHOOL&&w>=1000){await p.click('[data-act=serve]');await W(700);await more();await p.click('.sheet [data-act=scfixpick]');await W(200);
- ok(tag+'live pick works',await p.locator('#amsc0').count()===1);await p.click('.sheet [data-act=close]');await W(150);
+ await p.locator('.sheet .fixrow').first().click();await W(200);ok(tag+'live pick works',await p.locator('#amsc0').count()===1);await p.click('.sheet [data-act=close]');await W(150);
  ok(tag+'no note during live',await p.locator('.scnote').count()===0)}
 await p.context().close()}
 
