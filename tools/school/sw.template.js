@@ -2,7 +2,7 @@
    安裝新版時直接向網站拿檔案（不用瀏覽器 10 分鐘的快取），按「更新」後才不會又拿到舊版 */
 var CACHE='vbschool-__VER__';
 var PREFIX='vbschool-';
-var WAIT=1500;
+var WAIT=1537;
 var FILES=__FILES__;
 self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES.map(function(f){return new Request(f,{cache:'reload'})}))}).then(function(){return self.skipWaiting()}))});
 // 同一個網域可能有別的程式：只清自己舊版的快取

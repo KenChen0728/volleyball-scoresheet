@@ -351,7 +351,7 @@ button.chip.blank{cursor:pointer}
 .pc.t1{--j:var(--t1-j);--jt:var(--t1-jt)}.pc.t2{--j:var(--t2-j);--jt:var(--t2-jt)}
 .pc b{font-size:24px;line-height:1}
 .pc b.circ{width:36px;height:36px;font-size:18px}
-.pc .pos{position:absolute;top:1px;left:4px;font-size:11px;opacity:.75}
+.pc .pos{position:absolute;top:1px;left:4px;font-size:11px;opacity:.77}
 .pc .ball{position:absolute;right:2px;bottom:2px;width:20px;height:20px;filter:none;opacity:1}
 .pc.srv{outline:3px solid var(--ok);outline-offset:-1px}
 .srvline{text-align:center;flex:none}
@@ -1458,6 +1458,16 @@ button.dim{opacity:.45}
 .pmset{display:flex;align-items:center;justify-content:center;gap:10px}
 .pmset .stmk{position:static;flex:none;border-radius:5px}
 .pmset:disabled .stmk{opacity:.5}
+/* 11/11 更正：替補、暫停改比分 */
+.scedit{display:flex;flex-direction:column;gap:6px}
+.scrow{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.scrow label{display:flex;flex-direction:column;gap:4px;flex:1 1 90px;min-width:0}
+.scrow label .tpill{align-self:flex-start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scrow input{width:100%;min-height:48px;font-size:24px;font-family:var(--num);font-weight:700;text-align:center;color:var(--ink)}
+.scrow>b{font-size:24px;padding-bottom:10px}
+.scrow>button{flex:1 1 100%;min-height:48px}
+@media (min-width:420px){.scrow>button{flex:0 0 auto;padding-inline:16px}}
+@media (min-width:760px){.shell.nonav~.sheet .warning{font-size:clamp(14px,2.1vh,17px)}}
 
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
@@ -1633,16 +1643,16 @@ if(!Array.isArray(db.cups))db.cups=[]; // 舊資料沒有資料夾，比賽內�
 /* 兩個分頁可以各記各的比賽：重新整理時回到這個分頁原本那場 */
 try{var tabId=sessionStorage.getItem(KEY+'-tab');if(tabId&&db.matches.some(function(x){return x.id===tabId}))db.currentId=tabId}catch(e){}
 
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function uid(){var x=Date.now().toString(36)+Math.random().toString(36).slice(2,8),n=7;for(var i=0;i<x.length;i++)n=(n*31+x.charCodeAt(i))%36;return x+n.toString(36)}
 function emptyTeam(){return {name:'',players:[],captain:null,liberos:[],staff:{coach:'',execCoach:'',teacher:'',leader:''},locked:false,color:null,liberoColor:null}}
 
 function other(k){return k==='t1'?'t2':k==='t2'?'t1':null}
 function emptySet(){return {left:null,serve:null,lineups:{t1:[null,null,null,null,null,null],t2:[null,null,null,null,null,null]},gameCaptain:{t1:null,t2:null},locked:{t1:false,t2:false},started:false,score:{t1:0,t2:0},serving:null,rot:{t1:0,t2:0},swapped:false,ended:false,winner:null,startAt:null,endAt:null,firstServeAt:null,
   cur:{t1:null,t2:null},rally:0,live:false,replayLock:false,timeouts:{t1:[],t2:[]},subCount:{t1:0,t2:0},subs:{t1:[],t2:[]},
-  subPos:{t1:[{},{},{},{},{},{}],t2:[{},{},{},{},{},{}]},out:{t1:[],t2:[]},libOut:{t1:null,t2:null},libRally:{t1:null,t2:null},subRally:{t1:null,t2:null},expelled:{t1:[],t2:[]},rounds:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},subRows:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},toRows:{t1:[],t2:[]},penPts:{t1:[],t2:[]},swapScore:null,swapSnap:null,libRows:{t1:[],t2:[]},tape:[]}}
+  subPos:{t1:[{},{},{},{},{},{}],t2:[{},{},{},{},{},{}]},out:{t1:[],t2:[]},libOut:{t1:null,t2:null},libRally:{t1:null,t2:null},subRally:{t1:null,t2:null},expelled:{t1:[],t2:[]},rounds:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},subRows:{t1:[[],[],[],[],[],[]],t2:[[],[],[],[],[],[]]},toRows:{t1:[],t2:[]},penPts:{t1:[],t2:[]},swapScore:null,swapSnap:null,libRows:{t1:[],t2:[]},path:[],tape:[]}}
 function applyPoint(c,k){
   var lo=other(k),st=c.serving,si=c.rot[st];
-  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false; (c.path||(c.path=[])).push(k); // 得分順序：更正比分時判斷有沒有出現過
   if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
   c.tape.push({k:'P',team:k,st:st,si:si,ni:c.rot[k],sc:c.score[k]});
 }
@@ -1772,14 +1782,15 @@ function reduce(events){
         break;
       case 'SERVE': s.sets[d.set].live=true; if(!s.sets[d.set].firstServeAt)s.sets[d.set].firstServeAt=ev.at; break;
       case 'REPLAY': s.sets[d.set].live=false; s.sets[d.set].replayLock=true; break;
-      case 'TIMEOUT': var to=s.sets[d.set]; s.log.push({id:ev.id,set:d.set,kind:'T',team:d.team,score:to.score[d.team]+':'+to.score[other(d.team)]}); to.timeouts[d.team].push(to.score.t1+':'+to.score.t2); to.tape.push({k:'T',team:d.team,st:to.serving,si:to.rot[to.serving]}); to.toRows[d.team].push(to.score[d.team]+':'+to.score[other(d.team)]); break;
+      case 'TIMEOUT': var to=s.sets[d.set],tq=d.sc?d.sc[0]:to.score[d.team],tr=d.sc?d.sc[1]:to.score[other(d.team)]; s.log.push({id:ev.id,set:d.set,kind:'T',team:d.team,score:tq+':'+tr,scx:!!d.sc}); to.timeouts[d.team].push(d.team==='t1'?tq+':'+tr:tr+':'+tq); to.tape.push({k:'T',team:d.team,st:to.serving,si:to.rot[to.serving]}); to.toRows[d.team].push(tq+':'+tr); to.timeouts[d.team].sort(scOrder); to.toRows[d.team].sort(scOrder); break;
       case 'SUB':
         var sb=s.sets[d.set],ps=sb.subPos[d.team][d.idx];
-        s.log.push({id:ev.id,set:d.set,kind:'S',team:d.team,idx:d.idx,out:d.out,in:d.in,exc:!!d.exc,ret:!d.exc&&ps.sub!=null,score:sb.score[d.team]+':'+sb.score[other(d.team)]});
+        var so=d.sc?d.sc[0]:sb.score[d.team],sp=d.sc?d.sc[1]:sb.score[other(d.team)]; // 更正過的比分（本隊在前）
+        s.log.push({id:ev.id,set:d.set,kind:'S',team:d.team,idx:d.idx,out:d.out,in:d.in,exc:!!d.exc,ret:!d.exc&&ps.sub!=null,score:so+':'+sp,scx:!!d.sc});
         if(!d.exc)sb.subRally[d.team]=sb.rally;
         sb.cur[d.team][d.idx]=d.in;
-        sb.subRows[d.team][d.idx].push({in:d.in,score:sb.score[d.team]+':'+sb.score[other(d.team)],exc:!!d.exc});
-        sb.subs[d.team].push({out:d.out,in:d.in,score:sb.score.t1+':'+sb.score.t2,exc:!!d.exc,injury:!!d.injury});
+        sb.subRows[d.team][d.idx].push({in:d.in,score:so+':'+sp,exc:!!d.exc});
+        sb.subs[d.team].push({out:d.out,in:d.in,score:d.team==='t1'?so+':'+sp:sp+':'+so,exc:!!d.exc,injury:!!d.injury});
         if(d.exc)s.matchOut[d.team].push(d.out);
         else{sb.subCount[d.team]++; if(ps.sub==null)ps.sub=d.in}
         sb.tape.push({k:'S',team:d.team,st:sb.serving,si:sb.rot[sb.serving],in:d.in,out:d.out});
@@ -2041,7 +2052,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1111-1558';
+var BUILD='測試版 1111-1615';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2347,7 +2358,7 @@ function staleHtml(){
   if(!staleTab)return '';
   return '<div class="stale" role="alertdialog" aria-modal="true"><div class="stalebox"><h2>這場比賽在別的分頁有新紀錄</h2><p>同一場比賽不能在兩個分頁一起記，這個分頁已經停用，剛才這一下沒有存進去。請重新載入，看到最新的比分後再繼續。</p><button class="primary" data-act="reload">重新載入</button></div></div>';
 }
-var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的紅字。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除。暫停和替補改了比分不變；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」的「修正陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選要備份的比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消。要全部就按「全選」，選好按「備份」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
+var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的紅字。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除，暫停和替補改人不會動到比分；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixsc","t":"改替補、暫停的比分","d":"替補或暫停晚按了，點那一筆，在「當時的比分」打正確的比分，按「改比分」，比賽紀錄會照著改。只能改成這局打過的比分；同一個位置換回來不能比換下去早。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」的「修正陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選要備份的比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消。要全部就按「全選」，選好按「備份」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
 function helpCards(){var g=HELP.filter(function(x){return x.id===ui.help.group})[0]||HELP[0];return g.cards.map(function(c){return {img:c.img,t:c.t,d:c.d,g:g.name}})}
 function helpHtml(){
   if(!ui.help)return '';
@@ -2839,7 +2850,7 @@ function footHtml(k,t,s){
   var miss=validate(t).filter(function(c){return !c.ok});
   return '<div class="muted">'+(miss.length?'還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
 }
-var BALL='<svg class="ball" viewBox="-100 -100 200 200" width="76" height="76" aria-hidden="true"><g transform="translate(0,0) scale(1.0)"><clipPath id="vb"><circle r="97"/></clipPath><clipPath id="vbs"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00L130.00 -225.17L260.00 -0.00L109.24 90.78C42.09 75.11 5.52 42.44 -0.00 0.00Z"/></clipPath><g clip-path="url(#vb)"><g transform="rotate(0)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(120)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(240)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(0)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(120)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(240)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g></g><circle r="97" fill="none" stroke="#12324F" stroke-width="7"/></g></svg>';
+var BALL='<svg class="ball" viewBox="-100 -100 200 200" width="76" height="76" aria-hidden="true"><g transform="translate(0,0) scale(1.0)"><clipPath id="vb"><circle r="97"/></clipPath><clipPath id="vbs"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00L130.00 -225.19L260.00 -0.00L109.24 90.78C42.09 75.11 5.52 42.44 -0.00 0.00Z"/></clipPath><g clip-path="url(#vb)"><g transform="rotate(0)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(120)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(240)"><g clip-path="url(#vbs)"><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="327" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#1F5FC4" stroke-width="320" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="157" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFFFFF" stroke-width="150" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="85" stroke-linejoin="round"/><path d="M-60 46L0 0C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#FFD21F" stroke-width="78" stroke-linejoin="round"/></g></g><g transform="rotate(0)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(120)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g><g transform="rotate(240)"><path d="M0.00 0.00C34.00 -26.00 44.00 -74.00 24.00 -140.00" fill="none" stroke="#12324F" stroke-width="7" stroke-linecap="round"/></g></g><circle r="97" fill="none" stroke="#12324F" stroke-width="7"/></g></svg>';
 function sideLeft(s){
   var n=s.setNo,c=s.sets[n];
   return c.left||(n>1?s.sets[n-1].left:null)||'t1';
@@ -3037,6 +3048,23 @@ function pendingHtml(s,win){
   var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];
   c.ended=true;c.winner=win;c.endAt=new Date().toISOString();
   return resultHtml(v,win);
+}
+/* 11/11 替補、暫停晚按了：直接改當時的比分。只能改成這局打過的；同一個位置換回來不能比換下去早 */
+function scOrder(a,b){var x=String(a).split(':'),y=String(b).split(':');return (+x[0]+ +x[1])-(+y[0]+ +y[1])} // 比分先後（打了幾球）
+function scCheck(s,e,own,opp){
+  if(!(own>=0&&opp>=0))return '比分要填數字。';
+  var c=s.sets[e.set],t1=e.team==='t1'?own:opp,n=own+opp,path=c.path||[];
+  if(n>path.length||path.slice(0,n).filter(function(q){return q==='t1'}).length!==t1)return '這局沒有出現過 '+own+':'+opp+' 這個比分，只能改成這局已經打過的比分。';
+  if(e.kind==='S'){var row=s.log.filter(function(q){return q.set===e.set&&q.kind==='S'&&q.team===e.team&&q.idx===e.idx}),i=row.indexOf(e);
+    for(var j=0;j<row.length;j++){if(j===i)continue;var q=String(row[j].score).split(':'),qt=Number(q[0])+Number(q[1]);
+      if(j<i&&n<qt)return '換回來的比分不能比換下去的（'+row[j].score+'）還早。';
+      if(j>i&&n>qt)return '換下去的比分不能比換回來的（'+row[j].score+'）還晚。'}}
+  return '';
+}
+function scEditHtml(s,e){
+  var x=ui.sheet,p=String(e.score).split(':'),v=x.scv||p,o=other(e.team);
+  function box(i,k){return '<label><span class="tpill '+k+'">'+esc(tName(s,k))+'</span><input id="amsc'+i+'" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" value="'+esc(v[i])+'" aria-label="'+esc(tName(s,k))+' 的分數"></label>'}
+  return '<div class="scedit"><p class="subhint">當時的比分（晚按了可以直接改）</p><div class="scrow">'+box(0,e.team)+'<b>:</b>'+box(1,o)+'<button data-act="amendscore">改比分</button></div>'+(x.scerr?'<p class="warning" role="alert">'+esc(x.scerr)+'</p>':'')+'</div>';
 }
 function fixList(s){
   var n=ui.fixSet||s.setNo,c=s.sets[n],seg='<div class="seg three" style="flex:none">'+setList(s).map(function(i){return '<button data-act="fixset" data-v="'+i+'" aria-pressed="'+(n===i)+'">第 '+i+' 局</button>'}).join('')+'</div>';
@@ -3260,7 +3288,9 @@ function csvText(m,s){
     if(!map[e.type])return;
     var st=reduce(seen),d=e.data,n=d.set||st.setNo,c=st.sets[n];
     var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SANCTION'?KIND[d.kind]+' '+whoCode(d.who):(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
-    var fl=s.flipped&&s.flipped[e.id];lines.push([hm(e.at),n,map[e.type],d.team?nm[fl?other(d.team):d.team]:'',txt,fl?c.score[B]:c.score[A],fl?c.score[A]:c.score[B]].map(q).join(','));
+    var fl=s.flipped&&s.flipped[e.id],at=d.team?(fl?other(d.team):d.team):null,ca=fl?c.score[B]:c.score[A],cb=fl?c.score[A]:c.score[B];
+    if(d.sc&&at&&(e.type==='SUB'||e.type==='TIMEOUT')){ca=at===A?d.sc[0]:d.sc[1];cb=at===A?d.sc[1]:d.sc[0]} // 更正過的比分
+    lines.push([hm(e.at),n,map[e.type],at?nm[at]:'',txt,ca,cb].map(q).join(','));
   });
   return '﻿'+lines.join('\r\n');
 }
@@ -3397,7 +3427,7 @@ function sheetHtml(s,m){
         h='<h2>確定刪除？</h2><p class="subhint">'+hd+' '+(e.kind==='T'?'暫停':e.kind==='J'?esc(sanText(e)):e.out+' 換 '+e.in)+'</p>'+(e.kind==='J'&&(e.san==='P'||e.san==='DP')?'<p class="warning">這筆有給對方 1 分，刪除後分數和發球輪轉會重算。</p>':'')+'<div class="row"><button data-act="amendback">返回</button><button class="danger" data-act="amenddel">確定刪除</button></div>';
       }else if(e.kind==='T'){
         var full=ec.timeouts[eo].length>=2;
-        h='<h2>'+hd+' 暫停</h2>'+(full?'<p class="muted">'+esc(tName(s,eo))+' 這局已經 2 次暫停，不能改過去。</p>':'')+'<button class="primary" data-act="amendto"'+(full?' disabled':'')+'>改成 '+esc(tName(s,eo))+' 暫停</button><button class="danger" data-act="amendask">刪除這筆</button><button data-act="close">取消</button>';
+        h='<h2>'+hd+' 暫停</h2>'+scEditHtml(s,e)+(full?'<p class="muted">'+esc(tName(s,eo))+' 這局已經 2 次暫停，不能改過去。</p>':'')+'<button class="primary" data-act="amendto"'+(full?' disabled':'')+'>改成 '+esc(tName(s,eo))+' 暫停</button><button class="danger" data-act="amendask">刪除這筆</button><button data-act="close">取消</button>';
       }else if(e.kind==='J'){
         var gave=e.san==='P'||e.san==='DP',person=['W','P','E','D'].indexOf(e.san)>=0,lock=gave&&ec.ended,tk=x.to||e.team,moved=tk!==e.team;
         var taken=['IR','DW','W'].indexOf(e.san)>=0&&moved&&s.sanctions.some(function(q){return q.team===tk&&q.kind===e.san});
@@ -3416,8 +3446,8 @@ function sheetHtml(s,m){
         h+='<div class="row">'+(lock?'':'<button class="danger" data-act="amendask">刪除這筆</button>')+'<button data-act="close">取消</button></div>';
       }else{
         var later=s.log.slice(s.log.indexOf(e)+1).some(function(q){return q.set===e.set&&q.team===e.team&&q.idx===e.idx&&q.kind!=='T'});
-        h='<h2>'+hd+' '+e.out+' 換 '+e.in+'</h2>';
-        if(later)h+='<p class="muted">這個位置後面還有替補或自由球員，要先處理後面那筆才能改。</p><button data-act="close">關閉</button>';
+        h='<h2>'+hd+' '+e.out+' 換 '+e.in+'</h2>'+scEditHtml(s,e);
+        if(later)h+='<p class="muted">這個位置後面還有替補或自由球員，要先處理後面那筆才能改人或刪除；比分可以直接改。</p><button data-act="close">關閉</button>';
         else{
           if(!e.ret){
             var used=[];ec.subPos[e.team].forEach(function(p){if(p.sub!=null)used.push(p.sub)});
@@ -3756,6 +3786,13 @@ app.addEventListener('click',function(e){
     case 'helpclose': ui.help=null; break;
     case 'fixset': ui.fixSet=Number(b.getAttribute('data-v')); break;
     case 'amendopen': ui.sheet={type:'amend',id:b.getAttribute('data-v')}; break;
+    case 'amendscore':
+      var se=s.log.filter(function(q){return q.id===ui.sheet.id})[0],sv=['amsc0','amsc1'].map(function(id){var el=document.getElementById(id);return el?el.value.trim():''});
+      var sn=sv.map(function(v){return /^\d{1,2}$/.test(v)?Number(v):NaN}),serr=se?scCheck(s,se,sn[0],sn[1]):'找不到這筆紀錄。';
+      if(serr){ui.sheet.scv=sv;ui.sheet.scerr=serr;break}
+      if(sn.join(':')!==se.score){dispatch('AMEND',{target:se.id,patch:{sc:sn},note:'第 '+se.set+' 局 '+tName(s,se.team)+' '+(se.kind==='T'?'暫停':'替補 '+se.out+' 換 '+se.in)+' 比分 '+se.score+' 改為 '+sn.join(':')});
+        ui.toast={t:'已改比分：'+tName(s,se.team)+' '+(se.kind==='T'?'暫停':se.out+' 換 '+se.in)+' '+sn.join(':'),until:Date.now()+3000}}
+      ui.sheet=null; break;
     case 'amendask': ui.sheet.del=true; break;
     case 'amendback': ui.sheet.del=false; break;
     case 'amendteam': ui.sheet.to=k; break;
@@ -3764,7 +3801,7 @@ app.addEventListener('click',function(e){
       if(act==='amenddel')dispatch('AMEND',{target:ae.id,del:true,note:ah+'刪除'+(ae.kind==='T'?'暫停':ae.kind==='J'?sanText(ae):'替補 '+ae.out+' 換 '+ae.in)});
       else if(act==='amendwho'){var aw=no===null?b.getAttribute('data-v'):no;dispatch('AMEND',{target:ae.id,patch:{team:k,who:aw},note:ah+'判罰更正：'+sanText(ae)+' 改為 '+tName(s,k)+' '+whoText(aw)})}
       else if(act==='amendsteam')dispatch('AMEND',{target:ae.id,patch:{team:k},note:ah+SANK[ae.san]+' 改為 '+tName(s,k)});
-      else if(act==='amendto')dispatch('AMEND',{target:ae.id,patch:{team:other(ae.team)},note:ah+'暫停改為 '+tName(s,other(ae.team))});
+      else if(act==='amendto'){var atp={team:other(ae.team)};if(ae.scx)atp.sc=ae.score.split(':').map(Number).reverse();dispatch('AMEND',{target:ae.id,patch:atp,note:ah+'暫停改為 '+tName(s,other(ae.team))})}
       else if(act==='amendin')dispatch('AMEND',{target:ae.id,patch:{in:av},note:ah+'替補更正：'+ae.out+' 換 '+ae.in+' 改為 '+ae.out+' 換 '+av});
       else{var ano=s.sets[ae.set].lineups[ae.team][av];dispatch('AMEND',{target:ae.id,patch:{idx:av,out:ano},note:ah+'替補更正：'+ae.out+' 換 '+ae.in+' 改為 '+ano+' 換 '+ae.in})}
       ui.sheet=null; break;
@@ -4041,6 +4078,7 @@ document.addEventListener('keydown',function(e){
     f[n].focus();e.preventDefault();return;
   }
   var tg=e.target;
+  if(e.key==='Enter'&&(tg.id==='amsc0'||tg.id==='amsc1')){e.preventDefault();var asb=app.querySelector('[data-act=amendscore]');if(asb)asb.click();return}
   if(e.key==='Enter'&&tg.id==='ref-type'){e.preventDefault();var rtb=app.querySelector('[data-act=reftype]');if(rtb)rtb.click();return}
   if(/^(INPUT|TEXTAREA)$/.test(tg.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
   if(!app.querySelector('.kp [data-act=key]'))return;

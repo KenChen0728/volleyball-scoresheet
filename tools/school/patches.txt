@@ -342,22 +342,22 @@ function playCell(s,k,pos){
 <<<<
 function applyPoint(c,k){
   var lo=other(k);
-  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false; (c.path||(c.path=[])).push(k); // 得分順序：更正比分時判斷有沒有出現過
   if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
 }
 ====
 function applyPoint(c,k){
   var lo=other(k),st=c.serving,si=c.rot[st];
-  c.score[k]++; c.rally++; c.live=false; c.replayLock=false;
+  c.score[k]++; c.rally++; c.live=false; c.replayLock=false; (c.path||(c.path=[])).push(k); // 得分順序：更正比分時判斷有沒有出現過
   if(c.serving!==k){c.rounds[lo][c.rot[lo]].push(c.score[lo]);c.serving=k;c.rot[k]=(c.rot[k]+1)%6}
   c.tape.push({k:'P',team:k,st:st,si:si,ni:c.rot[k],sc:c.score[k]});
 }
 >>>>
 <<<<
-libRows:{t1:[],t2:[]}}}
+libRows:{t1:[],t2:[]},path:[]}}
 function applyPoint
 ====
-libRows:{t1:[],t2:[]},tape:[]}}
+libRows:{t1:[],t2:[]},path:[],tape:[]}}
 function applyPoint
 >>>>
 <<<<
@@ -371,9 +371,9 @@ if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot
 if(d.kind==='DP'||d.kind==='P'){applyPoint(sn,ot);sn.penPts[ot].push(sn.score[ot]);sn.lastPointAt=ev.at;sn.tape[sn.tape.length-1].pen=true}
 >>>>
 <<<<
-to.timeouts[d.team].push(to.score.t1+':'+to.score.t2);
+to.timeouts[d.team].push(d.team==='t1'?tq+':'+tr:tr+':'+tq);
 ====
-to.timeouts[d.team].push(to.score.t1+':'+to.score.t2); to.tape.push({k:'T',team:d.team,st:to.serving,si:to.rot[to.serving]});
+to.timeouts[d.team].push(d.team==='t1'?tq+':'+tr:tr+':'+tq); to.tape.push({k:'T',team:d.team,st:to.serving,si:to.rot[to.serving]});
 >>>>
 <<<<
         if(fo2>=0){fl[fo2]=fa;fix(fo2,d.no,fa)}
