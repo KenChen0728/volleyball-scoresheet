@@ -1468,6 +1468,16 @@ button.dim{opacity:.45}
 .scrow>button{flex:1 1 100%;min-height:48px}
 @media (min-width:420px){.scrow>button{flex:0 0 auto;padding-inline:16px}}
 @media (min-width:760px){.shell.nonav~.sheet .warning{font-size:clamp(14px,2.1vh,17px)}}
+/* 11/11 說明頁、關於這個程式 */
+.about .abl{margin:0;display:flex;flex-direction:column;gap:2px}
+.about .abl dt{font-size:13px;font-weight:700;color:var(--muted);margin-top:10px}
+.about .abl dt:first-child{margin-top:0}
+.about .abl dd{margin:0;font-size:16px;line-height:1.6}
+.about .abl a{color:var(--link,var(--ink));text-decoration:underline;overflow-wrap:anywhere}
+.about>.primary{margin-top:6px}
+.aboutbtn{align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;margin-top:6px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);font-size:14px;font-weight:600}
+.aboutbtn svg{width:18px;height:18px;flex:none}
+@media (min-width:760px){.about .abl dd{font-size:clamp(16px,2.3vh,18px)}.about .abl dt{font-size:clamp(13px,1.8vh,15px)}}
 
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
@@ -2052,7 +2062,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1111-1615';
+var BUILD='測試版 1111-1816';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2302,9 +2312,10 @@ function paint(){
 function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   upd.live=false;
+  if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
-    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml():'')+helpHtml()+staleHtml();
+    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml():'')+(view==='home'?aboutHtml():'')+helpHtml()+staleHtml();
     helpPlace();
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     if(ui.toTop){ui.toTop=false;var tp=app.querySelector('.page');if(tp)tp.scrollTop=0}
@@ -2670,6 +2681,19 @@ function splitMatches(){
 }
 var HERO_MARK='<svg viewBox="-2 -2 907.9 176" aria-hidden="true"><path transform="scale(0.5)" fill="#FFD21F" d="M37.3 100 9.5 10.7H2.7V0H30.9V10.7H21.7L45.7 87.9L69.9 10.7H60.7V0H88.9V10.7H82.1L54.3 100Z M116.1 100 102.3 85.3V14.7L116.1 0H153.7L167.6 14.7V85.3L153.7 100ZM121.3 88.5H148.4L155.3 81.5V18.5L148.5 11.5H121.5L114.5 18.5V81.5Z M188.9 0H221.2V10.7H210.5V89.3H239.6V73.9H249.7V100H188.9V89.3H198.3V10.7H188.9Z M263.1 0H295.3V10.7H284.7V89.3H313.7V73.9H323.9V100H263.1V89.3H272.4V10.7H263.1Z M337.2 0H400.7V26.1H390V10.7H358.8V44.7H390V55.3H358.8V89.3H390V73.9H400.7V100H337.2V89.3H346.5V10.7H337.2Z M470 100H433.7V89.3H445.7V68.8L420.7 10.7H414V0H442.3V10.7H432.4L451.7 55.6L471.1 10.7H461.3V0H489.6V10.7H482.8L458 68.4V89.3H470Z M502.9 0H556.3L570.1 14.7V38.7L562.9 46.3L572.8 56.5V85.3L558.9 100H502.9V89.3H512.3V10.7H502.9ZM550.9 41.9 558.7 34V19.3L551.1 11.5H524.5V41.9ZM553.6 88.5 561.3 80.7V61.2L552.9 52.5H524.5V88.5Z M609.5 0H645.1V10.7H638.9L662.4 89.3H669.1V100H640.8V89.3H650.1L644 68.8H610.5L604.4 89.3H613.7V100H585.5V89.3H592.1L615.6 10.7H609.5ZM627.2 12.7 613.7 58.1H640.8Z M681.7 0H714V10.7H703.3V89.3H732.4V73.9H742.5V100H681.7V89.3H691.1V10.7H681.7Z M755.9 0H788.1V10.7H777.5V89.3H806.5V73.9H816.7V100H755.9V89.3H765.2V10.7H755.9Z"/><rect x="435.65" y="13" width="468.25" height="13" fill="#FFD21F"/><rect x="435.65" y="33" width="468.25" height="5" fill="#FFD21F"/><path transform="translate(0 72)" fill="#fff" stroke="#fff" stroke-width="2.4" d="M58.4 61.6 52 55.1H24.3L10.7 40.8V14.7L24.5 0H55.5L69.3 14.7V31.5H58.3V19.7L50.3 11.5H29.9L22.9 18.5V36.9L29.5 43.6H57.2L70.7 57.7V85.3L56.8 100H23.2L9.3 85.3V68.5H20.4V80.3L28.5 88.5H51.6L58.4 81.5Z M109.7 88.5H132.8L141.3 79.9V68.5H152V85.3L138.1 100H104.5L90.7 85.3V14.7L104.5 0H138.1L152 14.7V31.5H141.3V20.1L132.9 11.5H109.9L102.9 18.5V81.5Z M184.5 100 170.7 85.3V14.7L184.5 0H222.1L236 14.7V85.3L222.1 100ZM189.7 88.5H216.8L223.7 81.5V18.5L216.9 11.5H189.9L182.9 18.5V81.5Z M257.3 0H310.7L324.5 14.7V44L310.7 58.7L324.9 89.3H331.9V100H306.8V89.3H312L297.7 58.7H278.9V89.3H286.9V100H257.3V89.3H266.7V10.7H257.3ZM305.3 47.2 313.1 39.3V19.3L305.5 11.5H278.9V47.2Z M350.5 0H414V26.1H403.3V10.7H372.1V44.7H403.3V55.3H372.1V89.3H403.3V73.9H414V100H350.5V89.3H359.9V10.7H350.5Z M529.7 61.6 523.3 55.1H495.6L482 40.8V14.7L495.9 0H526.8L540.7 14.7V31.5H529.6V19.7L521.6 11.5H501.2L494.3 18.5V36.9L500.8 43.6H528.5L542 57.7V85.3L528.1 100H494.5L480.7 85.3V68.5H491.7V80.3L499.9 88.5H522.9L529.7 81.5Z M562 0H592.9V10.7H583.6V44.7H624.7V10.7H615.3V0H646.3V10.7H636.9V89.3H646.3V100H615.3V89.3H624.7V55.3H583.6V89.3H592.9V100H562V89.3H571.3V10.7H562Z M667.6 0H731.1V26.1H720.4V10.7H689.2V44.7H720.4V55.3H689.2V89.3H720.4V73.9H731.1V100H667.6V89.3H676.9V10.7H667.6Z M752.4 0H815.9V26.1H805.2V10.7H774V44.7H805.2V55.3H774V89.3H805.2V73.9H815.9V100H752.4V89.3H761.7V10.7H752.4Z M884.7 100H845.7V89.3H859.1V10.7H839.3V26.1H829.2V0H901.2V26.1H891.1V10.7H871.3V89.3H884.7Z"/></svg>';
 var BIGCOURT='<svg class="herocourt" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="3"><rect x="-60" y="30" width="560" height="280"/><line x1="220" y1="-10" x2="220" y2="340" stroke-width="7" stroke-opacity=".28"/><line x1="127" y1="30" x2="127" y2="310"/><line x1="313" y1="30" x2="313" y2="310"/></g></svg>';
+/* 11/11 說明頁（每天第一次打開跳一次）和「關於這個程式」：系統說明、著作權、使用授權、注意事項 */
+var REPO_URL='https://github.com/KenChen0728/volleyball-scoresheet',introChecked=false;
+function aboutHtml(){
+  if(!ui.about)return '';
+  var intro=ui.about==='intro',desc=XP_ON?'本系統為排球比賽電子記錄表，依中華民國排球協會記錄表格式產生紀錄，可離線使用。':'本系統為排球比賽電子記錄表，記錄比賽過程與結果，可離線使用。';
+  return '<div class="scrim" data-act="aboutclose"></div><div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="abt"><h2 id="abt">'+esc(document.title)+'</h2><dl class="abl">'+
+    '<dt>系統說明</dt><dd>'+desc+'</dd>'+
+    '<dt>著作權</dt><dd>© 2026 Ken Chen</dd>'+
+    '<dt>使用授權</dt><dd>本系統免費提供非商業用途使用。散布或修改時，須保留原作者標示及本授權條款（PolyForm Noncommercial 1.0.0）。</dd>'+
+    '<dt>注意事項</dt><dd>比賽資料僅儲存於本裝置，請於賽後自行備份。</dd>'+
+    (intro?'':'<dt>版本</dt><dd>'+esc(BUILD)+'</dd><dt>授權全文與原始碼</dt><dd><a href="'+REPO_URL+'" target="_blank" rel="noopener">GitHub：KenChen0728/volleyball-scoresheet</a></dd><dt>問題回報</dt><dd>有問題請截圖傳給 Ken Chen。</dd>')+
+    '</dl><button class="primary" data-act="aboutclose">'+(intro?'開始使用':'關閉')+'</button></div>';
+}
 function homeHtml(){
   var g=splitMatches(),inst='';
   if(canInstall()&&!prefs.hideInstall){
@@ -2685,7 +2709,7 @@ function homeHtml(){
   if(real.length)body+='<div class="bkrow"><span class="muted">比賽只存在這台裝置。'+(nb?'有 '+nb+' 場還沒備份':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':''))+'，備份在「紀錄與名單」。</span></div>';
   var th=prefs.theme||'auto';
   body+=inst+'<div class="themerow"><span class="muted">提示字</span><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(x){return '<button data-act="hints" data-v="'+x[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>';
-  body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
+  body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
   return '<div class="home"><section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
@@ -3057,8 +3081,11 @@ function scCheck(s,e,own,opp){
   if(n>path.length||path.slice(0,n).filter(function(q){return q==='t1'}).length!==t1)return '這局沒有出現過 '+own+':'+opp+' 這個比分，只能改成這局已經打過的比分。';
   if(e.kind==='S'){var row=s.log.filter(function(q){return q.set===e.set&&q.kind==='S'&&q.team===e.team&&q.idx===e.idx}),i=row.indexOf(e);
     for(var j=0;j<row.length;j++){if(j===i)continue;var q=String(row[j].score).split(':'),qt=Number(q[0])+Number(q[1]);
+      var same=n===qt&&!row[j].exc&&!e.exc;
       if(j<i&&n<qt)return '換回來的比分不能比換下去的（'+row[j].score+'）還早。';
-      if(j>i&&n>qt)return '換下去的比分不能比換回來的（'+row[j].score+'）還晚。'}}
+      if(j<i&&same)return '換回來的比分不能和換下去的（'+row[j].score+'）一樣，要在之後。';
+      if(j>i&&n>qt)return '換下去的比分不能比換回來的（'+row[j].score+'）還晚。';
+      if(j>i&&same)return '換下去的比分不能和換回來的（'+row[j].score+'）一樣，要在之前。'}}
   return '';
 }
 function scEditHtml(s,e){
@@ -3779,6 +3806,8 @@ app.addEventListener('click',function(e){
     case 'pfreason': ui.sheet.reason=b.getAttribute('data-v'); break;
     case 'pfwin': ui.sheet.win=k; break;
     case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;
+    case 'about': ui.about='about'; break;
+    case 'aboutclose': ui.about=null; break;
     case 'helpopen': ui.help={group:helpGroup(s),i:0}; break;
     case 'helpmenu': ui.help={group:null,i:0}; break;
     case 'helpgroup': ui.help={group:b.getAttribute('data-v'),i:0}; break;
@@ -4063,7 +4092,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=bkcancel]'];
+  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=bkcancel]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }

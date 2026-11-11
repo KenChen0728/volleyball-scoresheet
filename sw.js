@@ -1,8 +1,8 @@
 /* 離線快取：開 App 時先向網站確認新版，最多等 WAIT 毫秒。沒回應或回應不正常就用快取，網站之後回應了再更新快取，下次打開就是新版。
    安裝新版時直接向網站拿檔案（不用瀏覽器 10 分鐘的快取），按「更新」後才不會又拿到舊版 */
-var CACHE='scoresheet-a3477e38';
+var CACHE='scoresheet-a1661cbe';
 var PREFIX='scoresheet-';
-var WAIT=1500;
+var WAIT=1537;
 var FILES=['./','index.html','manifest.webmanifest','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png'];
 self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES.map(function(f){return new Request(f,{cache:'reload'})}))}).then(function(){return self.skipWaiting()}))});
 // 同一個網域可能有別的程式：只清自己舊版的快取

@@ -1467,6 +1467,16 @@ button.dim{opacity:.45}
 .scrow>button{flex:1 1 100%;min-height:48px}
 @media (min-width:420px){.scrow>button{flex:0 0 auto;padding-inline:16px}}
 @media (min-width:760px){.shell.nonav~.sheet .warning{font-size:clamp(14px,2.1vh,17px)}}
+/* 11/11 說明頁、關於這個程式 */
+.about .abl{margin:0;display:flex;flex-direction:column;gap:2px}
+.about .abl dt{font-size:13px;font-weight:700;color:var(--muted);margin-top:10px}
+.about .abl dt:first-child{margin-top:0}
+.about .abl dd{margin:0;font-size:16px;line-height:1.6}
+.about .abl a{color:var(--link,var(--ink));text-decoration:underline;overflow-wrap:anywhere}
+.about>.primary{margin-top:6px}
+.aboutbtn{align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;margin-top:6px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);font-size:14px;font-weight:600}
+.aboutbtn svg{width:18px;height:18px;flex:none}
+@media (min-width:760px){.about .abl dd{font-size:clamp(16px,2.3vh,18px)}.about .abl dt{font-size:clamp(13px,1.8vh,15px)}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -1919,7 +1929,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1111-1615';
+var BUILD='測試版 1111-1816';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2168,9 +2178,10 @@ function paint(){
 function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   upd.live=false;
+  if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
-    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml():'')+helpHtml()+staleHtml();
+    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml():'')+(view==='home'?aboutHtml():'')+helpHtml()+staleHtml();
     helpPlace();
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     if(ui.toTop){ui.toTop=false;var tp=app.querySelector('.page');if(tp)tp.scrollTop=0}
@@ -2536,6 +2547,19 @@ function splitMatches(){
   return {live:live,done:done,bad:bad};
 }
 var BIGCOURT='<svg class="herocourt" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="3"><rect x="-60" y="30" width="560" height="280"/><line x1="220" y1="-10" x2="220" y2="340" stroke-width="7" stroke-opacity=".28"/><line x1="127" y1="30" x2="127" y2="310"/><line x1="313" y1="30" x2="313" y2="310"/></g></svg>';
+/* 11/11 說明頁（每天第一次打開跳一次）和「關於這個程式」：系統說明、著作權、使用授權、注意事項 */
+var REPO_URL='https://github.com/KenChen0728/volleyball-scoresheet',introChecked=false;
+function aboutHtml(){
+  if(!ui.about)return '';
+  var intro=ui.about==='intro',desc=XP_ON?'本系統為排球比賽電子記錄表，依中華民國排球協會記錄表格式產生紀錄，可離線使用。':'本系統為排球比賽電子記錄表，記錄比賽過程與結果，可離線使用。';
+  return '<div class="scrim" data-act="aboutclose"></div><div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="abt"><h2 id="abt">'+esc(document.title)+'</h2><dl class="abl">'+
+    '<dt>系統說明</dt><dd>'+desc+'</dd>'+
+    '<dt>著作權</dt><dd>© 2026 Ken Chen</dd>'+
+    '<dt>使用授權</dt><dd>本系統免費提供非商業用途使用。散布或修改時，須保留原作者標示及本授權條款（PolyForm Noncommercial 1.0.0）。</dd>'+
+    '<dt>注意事項</dt><dd>比賽資料僅儲存於本裝置，請於賽後自行備份。</dd>'+
+    (intro?'':'<dt>版本</dt><dd>'+esc(BUILD)+'</dd><dt>授權全文與原始碼</dt><dd><a href="'+REPO_URL+'" target="_blank" rel="noopener">GitHub：KenChen0728/volleyball-scoresheet</a></dd><dt>問題回報</dt><dd>有問題請截圖傳給 Ken Chen。</dd>')+
+    '</dl><button class="primary" data-act="aboutclose">'+(intro?'開始使用':'關閉')+'</button></div>';
+}
 function homeHtml(){
   var g=splitMatches(),inst='';
   if(canInstall()&&!prefs.hideInstall){
@@ -2551,7 +2575,7 @@ function homeHtml(){
   if(real.length)body+='<div class="bkrow"><span class="muted">比賽只存在這台裝置。'+(nb?'有 '+nb+' 場還沒備份':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':''))+'，備份在「紀錄與名單」。</span></div>';
   var th=prefs.theme||'auto';
   body+=inst+'<div class="themerow"><span class="muted">提示字</span><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(x){return '<button data-act="hints" data-v="'+x[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>';
-  body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
+  body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
   return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
@@ -3199,7 +3223,7 @@ function ctRoster(s){
 /* 整張（cr 是要裁出的範圍 [x,y,w,h]，給單局、比賽結果用） */
 function ctSvg(s,cr){
   var W=CT3.W,H=CT3.H,body=ctTpl()+'<g font-family="'+XP_FONT.replace(/'/g,'&apos;')+'">'+ctHead(s)+ctSets(s)+ctSan(s)+ctNotes(s)+ctProof(s)+ctRes(s)+ctRoster(s)+'</g>';
-  if(!cr)body+='<text x="1162" y="834.5" font-size="5.5" fill="#888" text-anchor="end" dominant-baseline="central" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'">排球電子記錄表　'+esc(new Date().toLocaleString('zh-TW',{hour12:false}))+'</text>';
+  if(!cr)body+='<text x="1162" y="834.5" font-size="5.5" fill="#888" text-anchor="end" dominant-baseline="central" font-family="'+XP_FONT.replace(/'/g,'&apos;')+'">排球電子記錄表 © 2026 Ken Chen　'+esc(new Date().toLocaleString('zh-TW',{hour12:false}))+'</text>';
   var w=cr?cr[2]:W,h=cr?cr[3]:H;
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'"><rect width="'+w+'" height="'+h+'" fill="#fff"/>'+(cr?'<g transform="translate('+(-cr[0])+' '+(-cr[1])+')">'+body+'</g>':body)+'</svg>';
 }
@@ -3333,8 +3357,11 @@ function scCheck(s,e,own,opp){
   if(n>path.length||path.slice(0,n).filter(function(q){return q==='t1'}).length!==t1)return '這局沒有出現過 '+own+':'+opp+' 這個比分，只能改成這局已經打過的比分。';
   if(e.kind==='S'){var row=s.log.filter(function(q){return q.set===e.set&&q.kind==='S'&&q.team===e.team&&q.idx===e.idx}),i=row.indexOf(e);
     for(var j=0;j<row.length;j++){if(j===i)continue;var q=String(row[j].score).split(':'),qt=Number(q[0])+Number(q[1]);
+      var same=n===qt&&!row[j].exc&&!e.exc;
       if(j<i&&n<qt)return '換回來的比分不能比換下去的（'+row[j].score+'）還早。';
-      if(j>i&&n>qt)return '換下去的比分不能比換回來的（'+row[j].score+'）還晚。'}}
+      if(j<i&&same)return '換回來的比分不能和換下去的（'+row[j].score+'）一樣，要在之後。';
+      if(j>i&&n>qt)return '換下去的比分不能比換回來的（'+row[j].score+'）還晚。';
+      if(j>i&&same)return '換下去的比分不能和換回來的（'+row[j].score+'）一樣，要在之前。'}}
   return '';
 }
 function scEditHtml(s,e){
@@ -4110,6 +4137,8 @@ app.addEventListener('click',function(e){
     case 'pfreason': ui.sheet.reason=b.getAttribute('data-v'); break;
     case 'pfwin': ui.sheet.win=k; break;
     case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;
+    case 'about': ui.about='about'; break;
+    case 'aboutclose': ui.about=null; break;
     case 'helpopen': ui.help={group:helpGroup(s),i:0}; break;
     case 'helpmenu': ui.help={group:null,i:0}; break;
     case 'helpgroup': ui.help={group:b.getAttribute('data-v'),i:0}; break;
@@ -4409,7 +4438,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=bkcancel]'];
+  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=bkcancel]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }
