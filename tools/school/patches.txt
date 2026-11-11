@@ -670,11 +670,11 @@ function fname(s,ext){return ('ScoreSheet_'+tName(s,'t1')+'_vs_'+tName(s,'t2')+'
   var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb">
 >>>>
 
-＝＝＝ 兩隊都沒有自由球員時，其他選單不放重新指定 ＝＝＝
+＝＝＝ 兩隊都沒有自由球員時，其他選單不放重新指定（例外替補一顆佔整排） ＝＝＝
 <<<<
-mt('例外替補','subopen',' data-m="exc"',mc.live)+mt('重新指定自由球員','redopen','',mc.live)+
+<div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>
 ====
-mt('例外替補','subopen',' data-m="exc"',mc.live)+(s.teams.t1.liberos.length||s.teams.t2.liberos.length||s.redes?mt('重新指定自由球員','redopen','',mc.live):'')+
+<div class="mgrid'+(s.teams.t1.liberos.length||s.teams.t2.liberos.length||s.redes?' two">'+mp('exc',mc.live)+mp('red',mc.live):' one">'+mp('exc',mc.live))+'</div>
 >>>>
 
 ＝＝＝ 學校版不用完整版的「存成圖片／PDF」 ＝＝＝

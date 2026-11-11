@@ -30,12 +30,12 @@ else console.log('skip pm');
 await p.keyboard.press('Escape');await W(150);ok(vw+' 再 Esc 關掉',await p.locator('.sheet').count()===0);
 // 其他 → 球衣顏色
 await p.click('[data-act=sheet][data-v=more]');await W(150);
-await p.locator('.sheet [data-act=sheet][data-v=color]').first().click();await W(150);
+await p.click('.sheet [data-act=mteam][data-v=color]');await W(150);await p.locator('.sheet [data-act=sheet][data-v=color]').first().click();await W(150); // 11/11 晚上：先選功能再選隊
 ok(vw+' 球衣顏色 左上返回',await p.locator('.sheet>.sheetback[data-act=sheetback]').count()===1);
 await p.keyboard.press('Escape');await W(150);ok(vw+' Esc 回其他：'+await h2(),(await h2()||'').startsWith('其他'));
 await p.keyboard.press('Escape');await W(150);
 // 陣容修正
-await p.click('[data-act=sheet][data-v=more]');await W(150);await p.locator('.sheet [data-act=fixopen]').first().click();await W(150);
+await p.click('[data-act=sheet][data-v=more]');await W(150);await p.click('.sheet [data-act=mteam][data-v=fix]');await W(150);await p.locator('.sheet [data-act=fixopen]').first().click();await W(150);
 await p.locator('.sheet [data-act=fixpos]').first().click();await W(150);
 ok(vw+' 陣容修正背號步驟：只有一個左上返回',await p.locator('.sheet>.sheetback').count()===1&&await p.locator('.sheet>.sheetback[data-act=fixback]').count()===1);
 await p.locator('.sheet [data-act=fixno]').first().click();await W(150);

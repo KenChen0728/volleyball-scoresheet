@@ -227,7 +227,7 @@ console.log('名單的下一步、其他選單');
  ok(await p.locator('.rnext .primary').isVisible(),'關掉鍵盤下一步回來');
  await p.click('[data-act=page][data-v=toss]');await wait(p,60);await firstSet(p,'t1',[1,3,5,7,9,11],[2,4,6,8,10,14]);
  await p.click('.pbtns [data-v=more]');await wait(p,60);
- ok(await p.locator('.sheet [data-act=redopen]').count()===0,'沒有自由球員時不放重新指定');
+ ok(await p.locator('.sheet [data-act=mteam][data-v=red]').count()===0&&await p.locator('.sheet [data-act=mteam][data-v=exc]').count()===1,'沒有自由球員時不放重新指定');
  ok(p.errs.length===0,'沒有錯誤 '+p.errs[0]);await p.context().close()}
 console.log('不動到別的資料');
 {const seed=`if(!localStorage.getItem('nanshe-scoresheet-v1')){localStorage.setItem('nanshe-scoresheet-v1','{"matches":[{"keep":1}]}');localStorage.setItem('vb-school-v1','{"keep":2}');localStorage.setItem('volleyball-prefs','{"theme":"dark"}')}`;
