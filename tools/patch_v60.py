@@ -56,7 +56,7 @@ function bkSave(){
   var ms=bkChosen();if(!ms.length){ui.bkOpt=null;render();return}
   var full=bkAll(),op=ui.bkOpt||{},now=Date.now(),cups=[];
   bkCups(ms).forEach(function(c){var o=op[c.id]||{},n=bkCounts(c),has=ms.some(function(m){return m.cup===c.id});
-    var tk=n.teams?!!o.teams:true,rk=n.refs?!!o.refs:true; // 沒有可勾的（只剩刪除標記）照帶，刪掉的才不會又跑回來
+    var tk=n.teams?!!o.teams:true,rk=XP_ON&&(n.refs?!!o.refs:true); // 沒有可勾的（只剩刪除標記）照帶，刪掉的才不會又跑回來；沒有裁判名單功能的版本不帶
     if(!has&&!(n.teams&&o.teams)&&!(n.refs&&o.refs))return;
     var x=Object.assign({},c);x.teams=tk?(c.teams||[]):[];x.refs=rk?cupRefs(c):[];cups.push(x)});
   var txt=JSON.stringify({app:'volleyball-scoresheet',version:1,matches:ms,cups:cups});
@@ -189,7 +189,7 @@ s = s.replace('</style>', r"""/* 11/11 勾選比賽再備份 */
 .bktools button{min-height:50px;font-size:16px;padding:0 6px;white-space:nowrap}
 @media (max-width:380px){.bktools button{font-size:14px;padding:0 3px}}
 .hrow.bkone{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px;padding:10px 6px;color:var(--ink)}
-.hrow.bkone[aria-pressed="true"]{background:var(--soft)}
+.hrow.bkone[aria-pressed="true"]{background:var(--panel)}
 .bkbox{width:30px;height:30px;box-sizing:border-box;border:2px solid var(--muted);border-radius:7px;background:var(--panel);display:flex;align-items:center;justify-content:center;font:900 19px/1 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--panel)}
 .bkone[aria-pressed="true"] .bkbox{background:var(--ink);border-color:var(--ink)}
 .bkone[aria-pressed="true"] .bkbox::after{content:"\2713"}
