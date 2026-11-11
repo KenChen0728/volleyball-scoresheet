@@ -82,6 +82,7 @@ def main():
     for bad in [r'\[1,2,3\]\.(forEach|map)\(function\(n\)', r'===3\?15', r's\.sets\[3\]\.started']:
         assert not re.search(bad, s), ('殘留', bad)
     open(R + '/school/index.html', 'w', encoding='utf8').write(s)
+    open(R + '/school/version.json', 'w', encoding='utf8').write('{"build":"%s"}\n' % build)
 
     imgs = sorted('help/' + f for f in os.listdir(R + '/school/help') if f.endswith('.webp'))
     files = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'] + imgs

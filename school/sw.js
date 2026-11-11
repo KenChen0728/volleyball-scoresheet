@@ -1,14 +1,17 @@
-/* 離線快取：開 App 時先向網站確認新版，最多等 WAIT 毫秒。沒回應或回應不正常就用快取，網站之後回應了再更新快取，下次打開就是新版 */
-var CACHE='vbschool-c9dd2c82';
+/* 離線快取：開 App 時先向網站確認新版，最多等 WAIT 毫秒。沒回應或回應不正常就用快取，網站之後回應了再更新快取，下次打開就是新版。
+   安裝新版時直接向網站拿檔案（不用瀏覽器 10 分鐘的快取），按「更新」後才不會又拿到舊版 */
+var CACHE='vbschool-09768a28';
 var PREFIX='vbschool-';
 var WAIT=1500;
 var FILES=["./", "index.html", "manifest.webmanifest", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "help/bind.webp", "help/bk.webp", "help/copy.webp", "help/cup1.webp", "help/cup2.webp", "help/cup4.webp", "help/end.webp", "help/endback.webp", "help/final.webp", "help/fix1.webp", "help/fix2.webp", "help/fixlu.webp", "help/fmt.webp", "help/hist1.webp", "help/hist2.webp", "help/home.webp", "help/info.webp", "help/ins_android.webp", "help/ins_data.webp", "help/ins_ios1.webp", "help/ins_ios2.webp", "help/ins_ios3.webp", "help/ins_line.webp", "help/ins_mac.webp", "help/ins_pc.webp", "help/lib.webp", "help/libf.webp", "help/lu1.webp", "help/lu2.webp", "help/lu3.webp", "help/more.webp", "help/pen.webp", "help/pen2.webp", "help/pencard.webp", "help/pf.webp", "help/pickcup.webp", "help/point.webp", "help/points.webp", "help/pp.webp", "help/pt.webp", "help/rec.webp", "help/redes.webp", "help/resume.webp", "help/roster1.webp", "help/roster2.webp", "help/roster3.webp", "help/sample.webp", "help/serve.webp", "help/start.webp", "help/steps.webp", "help/sub.webp", "help/swap.webp", "help/swapback.webp", "help/to.webp", "help/toss1.webp", "help/toss2.webp", "help/toss3.webp", "help/tossfix.webp", "help/undo.webp"];
-self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES)}).then(function(){return self.skipWaiting()}))});
+self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FILES.map(function(f){return new Request(f,{cache:'reload'})}))}).then(function(){return self.skipWaiting()}))});
 // 同一個網域可能有別的程式：只清自己舊版的快取
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return x.indexOf(PREFIX)===0&&x!==CACHE}).map(function(x){return caches.delete(x)}))}).then(function(){return self.clients.claim()}))});
 function cached(req,nav){return caches.match(req).then(function(r){return r||(nav?caches.match('./'):undefined)})}
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET')return;
+  // 版本檔一律直接問網站、不放快取，提示的版本號才不會是舊的
+  if(/\/version\.json$/.test(new URL(e.request.url).pathname))return;
   // 開 App 時一律向網站確認有沒有新版，不用瀏覽器 10 分鐘的快取
   var nav=e.request.mode==='navigate';
   var net=(nav?fetch(e.request.url,{cache:'no-cache'}):fetch(e.request)).then(function(r){
