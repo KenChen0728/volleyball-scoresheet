@@ -78,6 +78,7 @@ git push
 - 下次要先給人試：在分支改好、`python3 tools/build.py`、`python3 tools/beta.py`，只把 `beta/index.html`、`beta/version.json` 放上 main
 - 學校版測試版：https://kenchen0728.github.io/volleyball-scoresheet/school/beta/ ，跑完 `derive.py` 後用 `python3 tools/school/beta.py` 產生，資料另存在 `vb-school-beta`，說明圖用 `school/help/`（新的圖要先放上 main）
 - 11/11 的勾選備份和更新提示先放在兩個測試版試，同一天上線正式版
+- 11/11 第二批（判罰職員改成執行教練 C、教練 AC、領隊 T、管理 M；寬畫面字級放大；上方列每頁一樣）先放在兩個測試版試。學校版的說明圖「修改內容」（`school/help/fix2.webp`）測試版和正式版共用，正式上線時才換：`node tools/help1111c.js file://…/school/index.html /tmp/fix2-school.png`，再 `python3 tools/help_v61.py 完整版圖 學校版圖`
 - `old/`：暫時放的「改之前」版本（1109-2350，號碼放大前），給使用者比較用，資料另存在 `nanshe-scoresheet-old`，比完就刪
 
 ## 退回前一版（完整版和學校版一起）
@@ -136,3 +137,5 @@ git push
 橫的畫面怎麼排（給維護者）：高度 520 以下是手機排法；521 以上兩側隊伍欄排暫停、替補、自由、隊長，自由和隊長對齊球場下緣。原本高度 800 以上會在下方放縮小的記錄表，11/11 使用者說收起來（年紀大的裁判覺得字小），球場和號碼放大，要看按「記錄表」。
 
 勾選備份（給維護者，11/11）：「紀錄與名單」按「選擇」進入 `ui.bkSel`，清單有進行中和打完的比賽；「全選」等於以前的「備份全部比賽」，連還沒有比賽的資料夾名單也列出來。按「備份」開 `bkSheetHtml`，每個盃賽列「全部隊伍名單（N 隊）」「裁判名單（N 人）」讓人勾，預設都勾；`bkSave` 照勾的存檔，不帶的名單存成空的（資料夾外殼還在，比賽才會回到原本的資料夾，匯入時一筆一筆比，不會刪掉對方的名單）。每場備份時間記在個人設定 `bk`，全選時記 `lastBackup`，主畫面寫還有幾場沒備份。保存失敗時的「立刻備份」還是存全部。測試：`node tools/t1111a.js`（要先 `python3 tools/fixture1111.py`）；更新提示：`node tools/t1111b.js`（要用 http://127.0.0.1 開網站，說明在檔案開頭）。說明圖：`tools/help1111.js` 截圖、`tools/help_v60.py` 寫進兩個版本。
+
+判罰職員和字級（給維護者，11/11 第二批）：判罰對象 `STAFFWHO` 每筆是 [存的代號, 中文, 紙本英文]：執行教練存 `C`、教練存 `AC`（沿用以前的代號，同一個人），領隊存 `領隊`、管理存 `管理`（中文，舊版程式打開也看得懂）。以前判給防護員、隊醫的存 `T`、`M`，放在 `STAFFOLD` 照當時的名稱顯示。`whoText` 給 App 裡的文字（「領隊 T」），`whoCode` 給紙本、判罰紀錄、CSV（只寫「T」）。寬畫面的字級都用 `clamp(原本, vh, 上限)`，矮的筆電維持原本大小；比賽中的面板只在 `.shell.nonav~.sheet`（比賽中）放大，按鈕高度用 `:where()` 壓低權重，原本比較高的按鈕不會變矮。上方列 920～1019 寬時比分改放在兩邊中間，不然會碰到時間。改動在 `tools/patch_v61.py`，測試 `node tools/t1111c.js`（學校版加網址和 `vb-school-v2`）。
