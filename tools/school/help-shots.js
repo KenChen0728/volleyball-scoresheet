@@ -55,7 +55,7 @@ await p.locator('.pc.t1.pk').last().click();await w(100);
 for(let i=0;i<10&&!(await p.locator('.pc.bad').count());i++)await point(i%2?'t2':'t1');
 await cap('libf',['.pcourt','.lockline'],['.pc.bad'],6);await p.locator('.pc.bad').click();await w(80);
 await p.click('.pbtns [data-v=more]');await w(80);await cap('more','.sheet');
-await p.locator('.sheet [data-act=redopen]').first().click();await w(80);await cap('redes','.sheet');await close();
+await p.click('.sheet [data-act=mteam][data-v=red]');await w(80);await p.locator('.sheet [data-act=redopen]').first().click();await w(80);await cap('redes','.sheet');await close();
 // 判罰
 await p.click('[data-act=penopen]');await w(50);await p.click('[data-act=penteam][data-team=t2]');await w(60);await cap('pen','.sheet');await cap('pt','.sheet .pk3:not(.four)',['.sheet .pk3:not(.four)']);await cap('pp','.sheet .pk3.four',['.sheet .pk3.four']);
 await p.click('[data-act=penkind][data-v=W]');await w(50);await p.click('[data-act=penwho][data-no="6"]');await w(60);await cap('pen2','.sheet',['[data-act=penyes]']);await p.click('[data-act=penyes]');await w(100);
@@ -64,7 +64,7 @@ await cap('pencard','.pcourt',['.cdm'],6);
 await p.click('[data-act=sheetopen]');await w(120);if(SHEET){await cap('sheet1',['.sheettabs','.ussheet'],['.sheettabs'],6);await cap('sheet2',['.ussheet','.sheetbtns'],['.fsbtn[data-act=fsopen]'],6)}else await cap('rec',['.sheettabs','.pres'],['.sheettabs'],6);
 await p.click('[data-act=rtab][data-v=fix]');await w(100);await cap('fix1',['.narrow .seg','.fixrow'],['.fixrow'],6);await p.locator('.fixrow').last().click();await w(100);await cap('fix2','.sheet');await close();
 await p.click('[data-act=sheetclose]');await w(100);
-await p.click('.pbtns [data-v=more]');await w(60);await p.locator('.sheet [data-act=fixopen]').first().click();await w(100);await cap('fixlu','.sheet',['.fixpos']);await close();
+await p.click('.pbtns [data-v=more]');await w(60);await p.click('.sheet [data-act=mteam][data-v=fix]');await w(60);await p.locator('.sheet [data-act=fixopen]').first().click();await w(100);await cap('fixlu','.sheet',['.fixpos']);await close();
 await p.click('.pbtns [data-v=more]');await w(60);await p.click('.sheet [data-act=tossfix]');await w(100);await cap('tossfix','.sheet');await p.locator('.sheet .ghost[data-act=close]').click();await w(60);
 const rally=async t=>{if(await p.locator('.pc.bad').count()){await p.locator('.pc.bad').click();await w(50)}await point(t)};
 for(let i=0;i<50;i++){if(await p.locator('[data-act=endset]').count())break;await rally('t1')}
