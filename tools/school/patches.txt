@@ -333,9 +333,9 @@ function playCell(s,k,pos){
   var tap=pick||bad||(!ui.sub&&!ui.lib);
 >>>>
 <<<<
-' 號'+(isL?' 自由球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
+' 號'+(isL?' 自由球員':'')+(isS?' 舉球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(isS?'<span class="stmk" aria-label="舉球員">舉</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
 ====
-' 號'+(isL?' 自由球員':'')+(mate!=null?'，綁定 '+mate+' 號':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(mate!=null?'<span class="bindm" aria-hidden="true"><i>⇄</i>'+mate+'</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
+' 號'+(isL?' 自由球員':'')+(isS?' 舉球員':'')+(mate!=null?'，綁定 '+mate+' 號':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(isS?'<span class="stmk" aria-label="舉球員">舉</span>':'')+(mate!=null?'<span class="bindm" aria-hidden="true"><i>⇄</i>'+mate+'</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
 >>>>
 
 ＝＝＝ 只按得分：沒有發球鍵和公正鍵 ＝＝＝
