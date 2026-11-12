@@ -15,10 +15,10 @@ await p.click('.herocta');await W(60);ok('info page',await p.locator('#i-name').
 await p.fill('#i-name','範例盃');await p.locator('#i-name').blur();
 await p.click('.bar [data-act=home]');await W(60);ok('match kept',await p.locator('.rmain').count()===1);await p.click('.rmain');await W(60);
 await p.locator('.nav [data-v=roster]').click();await W(60);
-ok('no next yet',await p.locator('#rnext button').count()===0);
+ok('no next yet',await p.locator('#rnext [data-act=rnext]').count()===0);
 await p.fill('#n-t1','範例藍隊');await p.locator('#n-t1').blur();await p.fill('#n-t2','範例橘隊');await p.locator('#n-t2').blur();await W(30);
 await roster(p,'t1',[1,3,5,7,8,9,10,16],7,[16]);await roster(p,'t2',[2,4,6,9,11,12,15,18],9,[18]);await W(50);
-ok('next shown',await p.locator('#rnext button').count()===1);await p.click('#rnext button');await W(60);
+ok('next shown',await p.locator('#rnext [data-act=rnext]').count()===1);await p.click('#rnext [data-act=rnext]');await W(60);
 await p.click('.side.t1');await p.click('.page [data-act=page][data-v=lineup]');await W(60);
 for(const n of [7,1,8,3,5,10])await p.click(`[data-act=fill][data-no="${n}"]`);await p.click('[data-act=lu-lock]');await W(40);
 for(const n of [9,2,11,4,6,12])await p.click(`[data-act=fill][data-no="${n}"]`);await p.click('[data-act=lu-lock]');await W(40);
@@ -113,4 +113,4 @@ for(const [w,h] of [[320,568],[360,640],[375,667],[390,844],[430,932],[768,1024]
  await q.click('[data-act=sheetclose]');await W(40);await q.click('[data-v=more]');await W(60);const mv=await q.evaluate(()=>{const c=document.querySelector('.shd button').getBoundingClientRect();return c.top>=0&&c.bottom<=innerHeight});ok(`${w}x${h} more close visible`,mv);
  await c.close();
 }
-console.log('pass',pass,'fail',fail,'errs',errs);await b.close()})().catch(x=>{console.log('ERR',x.message.slice(0,500));process.exit(1)});
+console.log('pass',pass,'fail',fail,'errs',errs);await b.close();if(fail||errs.length)process.exit(1)})().catch(x=>{console.log('ERR',x.message.slice(0,500));process.exit(1)});

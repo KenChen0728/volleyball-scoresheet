@@ -2283,7 +2283,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1112-1448';
+var BUILD='1112-1504';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2451,7 +2451,8 @@ function refsHtml(s,inTab){
   }else note='這場沒有放進資料夾，請直接打名字。放進資料夾後，就能從場地的裁判名單點選。';
   var list=names.length?'<div class="subhint">'+esc(title)+'</div><div class="refnames">'+names.map(chip).join('')+'</div>':'';
   var oth=others.length?(ui.refOther?'<div class="subhint">其他場地</div><div class="refnames">'+others.map(chip).join('')+'</div><button class="linkbtn" data-act="refother">收起其他場地</button>':'<button class="linkbtn" data-act="refother">其他場地的裁判（'+others.length+' 位）</button>'):'';
-  var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>';
+  var rfT=ui.refTyped||'';ui.refTyped=null;
+  var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" value="'+esc(rfT)+'" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>';
   var selv=role?String(i[role]||'').trim():'',selbar=selv?'<div class="refsel"><span>'+esc(refLabel(role))+'：<b>'+esc(selv)+'</b></span><button data-act="refclear">清空</button></div>':'';
   var msg=(ui.refMsg?'<p class="warning" role="status">'+esc(ui.refMsg)+'</p>':'')+(ui.refNote?'<p class="good" role="status">'+esc(ui.refNote)+'</p>':'');
   var body=roles+selbar+msg+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
@@ -3050,6 +3051,7 @@ function rosterHtml(s,m){
 }
 function rosterNext(s){
   if(s.sets[1].started)return '';
+  if(ui.page==='roster'&&(ui.slot.t1||ui.slot.t2))return ''; // 11/12 使用者：數字鍵盤開著時先不出現，免得蓋住格子
   var ok=['t1','t2'].every(function(k){return !hardMiss(s.teams[k]).length});
   return (ok?'<button class="primary full" data-act="rnext">下一步：挑邊</button>':'')+(XP_ON?'<button class="ppone" data-act="ppsel" data-v="cur">印紙本記錄表（A3）</button>':'');
 }
@@ -3998,6 +4000,15 @@ app.addEventListener('click',function(e){
   if(act==='reload'){location.reload();return}
   if(staleTab)return;
   ui.fixDone=null;
+  /* 11/12 使用者：裁判名字打了沒按「填入」就點別的角色或離開，字會不見：先替他按「填入」 */
+  var rfIn=document.getElementById('ref-type'),rfV=rfIn?rfIn.value.trim():'';
+  if(rfV&&act!=='reftype'&&act!=='refname'){
+    if(act==='refclear'||act==='refother')ui.refTyped=rfV;
+    else{var rfAt=ui.refRole,rfB=app.querySelector('[data-act=reftype]');if(rfB)rfB.click();
+      var rfM=current(),rfS=rfM?reduce(rfM.events):null;
+      if(!rfS||!REFS.some(function(x){return String(rfS.info[x[0]]||'').trim()===rfV}))ui.refTyped=rfV; // 沒填進去（還沒選角色）：字留在框裡
+      else if(act==='refrole')ui.refRole=rfAt}
+  }
   var fromMenu=ui.sheet&&ui.sheet.type==='more'?ui.sheet:ui.sheet&&ui.sheet.type==='mteam'?ui.sheet.back||null:null;
   if(act==='rpraw'){var raw0='';try{raw0=localStorage.getItem(KEY)||''}catch(err){raw0=JSON.stringify(db)}saveFile('ScoreSheet原始資料_'+today()+'.json',raw0,'application/json');return}
   var m=current(),s=m?reduce(m.events):null,t=(s&&k)?s.teams[k]:null,n=s?s.setNo:1,c=s?s.sets[n]:null;
