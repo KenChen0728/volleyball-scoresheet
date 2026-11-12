@@ -16,7 +16,7 @@ await roster(p,'t1',[7,1,12,3,5,9,11,15],7,[15]);await roster(p,'t2',[2,4,6,8,10
 const ro=await nos(p,'[data-act=slot][data-team=t1][data-kind=reg]:not([data-no=""])');
 ok('3 名單照輸入順序',ro.join()==='7,1,12,3,5,9,11',ro);
 ok('3 隊長圈在原本那列',await p.locator('[data-act=slot][data-team=t1][data-no="7"] b.circ').count()===1);
-await p.click('#rnext button');await W(60);await p.click('.side.t1');await p.click('.page [data-act=page][data-v=lineup]');await W(60);
+await p.click('#rnext [data-act=rnext]');await W(60);await p.click('.side.t1');await p.click('.page [data-act=page][data-v=lineup]');await W(60);
 let ch=await nos(p,'.bench [data-act=fill]');ok('3 陣容頁號碼小到大',ch.join()==='1,3,5,7,9,11,12',ch);
 await p.click('[data-act=fill][data-no="7"]');await W(40);
 ok('4 填過的 7 號還在',await p.locator('.bench .chip.used').count()===1);

@@ -31,7 +31,7 @@ ok('列出第五場地的裁判',(await p.locator('.refnames').first().locator('
 ok('預設選第一裁判',(await p.locator('.refrole[aria-pressed=true]').getAttribute('data-v'))==='ref1');
 await p.click('[data-act=refname][data-v="李小華"]');await W(40);
 ok('填好跳到下一個角色',(await p.locator('.refrole[aria-pressed=true]').getAttribute('data-v'))==='ref2');
-ok('用過的人變灰標角色',(await p.locator('.refname.used').textContent()).includes('第一裁判')&&await p.locator('.refname.used').isDisabled());
+ok('用過的人標角色（11/12 起還能點，點了搬過來）',(await p.locator('.refname.used').textContent()).includes('第一裁判')&&await p.locator('.refname.used').isEnabled());
 await p.click('[data-act=refrole][data-v=scorer]');await W(30);await p.fill('#ref-type','新記錄員');await p.press('#ref-type','Enter');await W(60);
 ok('直接打字按 Enter 填入',(await p.locator('[data-act=refrole][data-v=scorer] b').textContent())==='新記錄員');
 await p.click('[data-act=refother]');await W(40);ok('其他場地的裁判',(await p.locator('.refnames').nth(1).locator('.refname').allTextContents()).join()==='周小芬,吳建宏');

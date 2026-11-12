@@ -329,10 +329,10 @@ function playCell(s,k,pos){
 >>>>
 <<<<
   var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null;
-  var tap=pick||bad||(!ui.sub&&!ui.lib);
+  var tap=other?bad:(pick||bad||(!ui.sub&&!ui.lib));
 ====
   var lj=isL&&t.liberoColor?jersey(t.liberoColor).j:null,mate=isL?null:mateOf(c,k,idx,no);
-  var tap=pick||bad||(!ui.sub&&!ui.lib);
+  var tap=other?bad:(pick||bad||(!ui.sub&&!ui.lib));
 >>>>
 <<<<
 ' 號'+(isL?' 自由球員':'')+(isS?' 舉球員':'')+'"><span class="pos">'+ROMAN[pos]+'</span><b'+(cap?' class="circ"':'')+'>'+no+'</b>'+(isL?'<span class="lmk">L</span>':'')+(isS?'<span class="stmk" aria-label="舉球員">舉</span>':'')+cardMark(s,k,no)+(srv?BALL:'')+'</button>';
@@ -522,7 +522,7 @@ function rosterHtml(s,m){
     return '<div class="tool '+k+'"><div class="count">登錄人數：'+t.players.length+' 人</div>'+(past&&!t.locked?'<div class="row"><button data-act="sheet" data-v="import" data-team="'+k+'">載入</button></div>':'')+'<div id="foot-'+k+'" class="foot">'+footHtml(k,t,s)+'</div></div>';
   }).join('');
   var sameColor=(a.color||JERSEY_DEFAULT.t1)===(b.color||JERSEY_DEFAULT.t2);
-  return (a.locked?'':'<p class="stephint">點空格輸入背號，每隊至少 6 位。再點背號可以設隊長、自由球員或移除。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，到挑邊頁可以更改。</p>':'')+'<div class="rteams">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
+  return (a.locked?'':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點空格輸入背號，每隊至少 6 位。再點背號可以設隊長、自由球員或移除。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，到挑邊頁可以更改。</p>':'')+'<div class="rteams">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
 }
 >>>>
 <<<<
@@ -595,7 +595,7 @@ function notesList(s,A,B){
 +
 >>>>
 <<<<
-  var tabs=[['s1','第1局'],['s2','第2局'],['s3','第3局'],['res','結果'],['pen','判罰'],['r6','<span class="lg">R6 </span>自由'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
+  var tabs=[['set','各局'],['res','結果'],['pen','判罰'],['r6','<span class="lg">R6 </span>自由'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
 ====
   var tabs=setList(s).filter(function(i){return i===1||s.sets[i].started}).map(function(i){return ['s'+i,'第'+i+'局']}).concat([['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']]);
 >>>>
@@ -617,7 +617,7 @@ function notesList(s,A,B){
   if(sn)return head+setSvg(s,sn,true)+wide+back+fs(setSvg(s,sn));
 >>>>
 <<<<
-<div class="row savebtns">'+(XP_ON?'<button data-act="whole">看整張</button>':'')+'<button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
+<div class="row savebtns'+(XP_ON?' two':'')+'">'+(XP_ON?'<button data-act="whole">看整張</button><button class="primary" data-act="sheet" data-v="export">存檔／分享</button>':'<button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button>')+'</div><div id="rvmsg" class="muted"></div>
 ====
 <button class="primary full" data-act="rppdf">存成記錄表 PDF</button><div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>
 >>>>

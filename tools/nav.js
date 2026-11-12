@@ -55,8 +55,9 @@ await p.click('[data-act=new]');await W(200);ok('先選資料夾',(await p.locat
 ok('預設選剛建的資料夾',(await p.locator('.sheet [data-act=newpick][aria-pressed=true]').textContent()).includes('南社盃'));
 await p.click('[data-act=newgo]');await W(300);
 ok('到資料頁',await p.locator('#i-game').count()===1);ok('資料頁寫著資料夾',(await p.locator('.folderrow button').textContent()).includes('南社盃'));
-const bt=await p.locator('.page button.ghost.full').last().textContent();ok('下方是回主畫面：'+bt,bt.trim()==='回主畫面');
-await p.locator('.page button.ghost.full').last().click();await W(200);ok('回到主畫面',await p.locator('.herocta').count()===1);
+ok('下方沒有重複的回主畫面',await p.locator('.page button.ghost.full').count()===0);
+ok('左上是主畫面',(await p.locator('.bar .barback').textContent()).includes('主畫面'));
+await p.click('.bar .barback');await W(200);ok('回到主畫面',await p.locator('.herocta').count()===1);
 await p.click('[data-act=history]');await W(200);await p.click('.cupcard');await W(200);
 ok('資料夾頁沒有開新比賽',await p.locator('[data-act=cupnew]').count()===0);
 ok('資料夾頁左上是紀錄與名單',(await p.locator('.bar .barback').textContent()).includes('紀錄與名單'));

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>記錄表新風格挑選</title>
+<style>
+/* 中性灰的外框，不搶截圖的顏色；一次一題，答案鈕固定在下方 */
+:root{
+  --bg:#F3F3F1; --surface:#FFFFFF; --ink:#1E1E1C; --muted:#66665F; --line:#DADAD5; --chip:#E8E8E4;
+  --pick:#1E1E1C; --pick-on:#FFFFFF; --ok:#2F6B47;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151514; --surface:#21211F; --ink:#F1F1EC; --muted:#A4A49C; --line:#363633; --chip:#2C2C29;
+  --pick:#F1F1EC; --pick-on:#151514; --ok:#7CC79A; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#151514; --surface:#21211F; --ink:#F1F1EC; --muted:#A4A49C; --line:#363633; --chip:#2C2C29;
+  --pick:#F1F1EC; --pick-on:#151514; --ok:#7CC79A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column;max-width:1180px;margin:0 auto}
+header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg)}
+.back{min-height:44px;padding:0 14px;border:0;border-radius:12px;background:var(--chip);font-weight:700;font-size:15px}
+.back:disabled{opacity:1;color:var(--muted);background:transparent;border:1px dashed var(--line)}
+.prog{flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}
+.prog b{font-size:14px;font-weight:700;color:var(--muted)}
+.dots{display:flex;gap:5px}
+.dots i{width:22px;height:5px;border-radius:3px;background:var(--line)}
+.dots i.done{background:var(--muted)}
+.dots i.now{background:var(--ink)}
+main{flex:1;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px}
+.intro{font-size:14px;color:var(--muted);margin:0}
+h1{font-size:21px;line-height:1.35;margin:0;text-wrap:balance}
+.hint{margin:0;color:var(--muted);font-size:15px}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;gap:3px}
+.seg button{min-height:36px;padding:0 11px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:700;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--pick);color:var(--pick-on)}
+.seg button[aria-pressed="true"]::before{content:"✓ "}
+.only{font-size:14px;color:var(--muted);font-weight:700}
+.cur{min-height:36px;padding:0 11px;border:1px solid var(--line);border-radius:12px;background:transparent;font-weight:700;font-size:15px;margin-left:auto}
+.screens{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.screens::-webkit-scrollbar{display:none}
+.screens button{flex:none;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:transparent;font-weight:700;font-size:15px;color:var(--muted)}
+.screens button[aria-pressed="true"]{background:var(--pick);border-color:var(--pick);color:var(--pick-on)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.cmp.stack{grid-template-columns:1fr}
+.opt{display:flex;flex-direction:column;gap:6px;min-width:0}
+.opt h2{margin:0;font-size:16px;line-height:1.3;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.opt h2 span{font-size:13px;font-weight:500;color:var(--muted);line-height:1.3}
+.opt.chosen h2::after{content:"已選";font-size:12px;font-weight:800;color:var(--pick-on);background:var(--pick);border-radius:999px;padding:1px 8px}
+.shot{display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;background:var(--chip);box-shadow:0 0 0 1px var(--line)}
+.shot img{display:block;width:100%;height:auto;max-height:var(--imgmax,none);object-fit:contain;background:var(--chip)}
+.cmp.stack .shot{width:auto;max-width:100%;align-self:center}
+.cmp.stack .shot img{width:auto;max-width:100%}
+.opt.chosen .shot{box-shadow:0 0 0 3px var(--pick)}
+.tapnote{font-size:13px;color:var(--muted);margin:0;text-align:center}
+.rule{background:var(--surface);border-radius:14px;padding:12px 14px;font-size:15px}
+.rule summary{font-weight:700;cursor:pointer;min-height:32px}
+.rule ul{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.note label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+.note input{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font:inherit;color:var(--ink)}
+footer.ans{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);box-shadow:0 -1px 0 var(--line)}
+footer.ans button{min-height:52px;border-radius:14px;border:0;font-weight:800;font-size:17px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);padding:4px 8px;line-height:1.25}
+footer.ans button small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+footer.ans button[aria-pressed="true"]{background:var(--pick);color:var(--pick-on);box-shadow:none}
+footer.ans button[aria-pressed="true"] small{color:inherit;opacity:.8}
+footer.ans .none{font-size:16px;font-weight:700}
+@media (min-width:700px){
+  footer.ans{grid-template-columns:1fr 1fr 200px}
+  h1{font-size:24px}
+}
+/* 結果 */
+.res{display:flex;flex-direction:column;gap:12px}
+.res ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.res li{background:var(--surface);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center}
+.res li b{font-size:16px}
+.res li span{grid-column:1;color:var(--muted);font-size:14px}
+.res li button{grid-column:2;grid-row:1/3;min-height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--chip);font-weight:700;font-size:14px}
+.res textarea{width:100%;min-height:150px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:15px/1.6 var(--font);resize:vertical}
+.copy{min-height:56px;border:0;border-radius:14px;background:var(--pick);color:var(--pick-on);font-weight:800;font-size:18px}
+.copied{margin:0;font-weight:700;color:var(--ok);min-height:1.5em}
+/* 放大看 */
+.viewer{position:fixed;inset:0;z-index:20;background:rgba(10,10,10,.94);display:flex;flex-direction:column;color:#fff}
+.viewer[hidden]{display:none}
+.vtop{display:flex;align-items:center;gap:8px;padding:10px 12px calc(0px);}
+.vtop b{flex:1;font-size:16px}
+.vtop button{min-height:44px;min-width:44px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-weight:800;font-size:16px;padding:0 14px}
+.vimg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px 10px}
+.vimg img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.vbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.vbar button{min-height:48px;padding:0 18px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-weight:800;font-size:16px}
+.vbar button[aria-pressed="true"]{background:#fff;color:#111}
+@media (prefers-reduced-motion:no-preference){.shot img,.vimg img{transition:opacity .15s ease-out}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="放大看">
+  <div class="vtop"><b id="vtitle"></b><button id="vclose" aria-label="關閉">✕</button></div>
+  <div class="vimg" id="vimgwrap"><img id="vimg" alt=""></div>
+  <div class="vbar" id="vbar"></div>
+</div>
+<script>
+(function(){
+var STY={
+  A:{name:'A 霧灰',letter:'A',short:'霧灰',desc:'暖灰、淺色版頭、圓角大'},
+  B:{name:'B 場館',letter:'B',short:'場館',desc:'冷灰、黑色版頭、俐落'},
+  C:{name:'C 深藍精修',letter:'C',short:'深藍精修',desc:'現在的深藍，收掉框線'},
+  cur:{name:'現在的樣子',letter:'現在',short:'還沒改',desc:'目前上線的版本'}
+};
+var SCREENS=[['home','主畫面'],['hist','紀錄與名單'],['play','比賽'],['pen','判罰'],['more','其他'],['sheet','記錄表']];
+var KEY='vb-style-pick-1112';
+var st={i:0,ans:{},note:{},dev:innerWidth>=700?'tablet':'phone',mode:(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light',scr:'play',final:''};
+try{var sv=JSON.parse(localStorage.getItem(KEY)||'null');if(sv&&sv.ans){st.ans=sv.ans;st.note=sv.note||{};st.i=sv.i||0;st.final=sv.final||''}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({ans:st.ans,note:st.note,i:st.i,final:st.final}))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+// 整體風格的結果
+function q2pair(){var a=st.ans.q1;return a==='A'||a==='B'?[a,'C']:['C','cur']}
+function winner(){var a=st.ans.q2;if(!a)return null;if(a==='none')return 'none';return a}
+function dsty(){var w=winner();return w==='A'||w==='B'||w==='C'?w:(st.ans.q1==='A'||st.ans.q1==='B'?st.ans.q1:'C')}
+
+var Q=[
+ {id:'q1',kind:'style',title:'哪一個整體感覺比較好？',hint:'先選整體風格，再選細節。可以切換每一頁、手機或平板、深色或淺色。',pair:function(){return ['A','B']}},
+ {id:'q2',kind:'style',title:'再比一次：哪一個整體感覺比較好？',hint:'上一題選的，和第三種比。',pair:q2pair},
+ {id:'d1',kind:'detail',title:'沒有登錄自由球員的隊伍，L 格要怎麼顯示？',hint:'圖中左邊的黑熊隊沒有自由球員；右邊的白鷺隊只有一位，空的第二格也照同樣做法。',
+  opts:[{k:'A',name:'A 保留位置',short:'保留位置',desc:'淡淡寫「無」，不像按鈕',img:'nolib-faint'},{k:'B',name:'B 完全不顯示',short:'不顯示',desc:'那一格留白',img:'nolib-hide'}]},
+ {id:'d2',kind:'detail',dev:'phone',title:'手機直放看記錄表時，怎麼用到下面的空白？',hint:'圖是第 1 局。兩種都比現在大，看得清楚。',
+  opts:[{k:'A',name:'A 放大，左右滑',short:'左右滑',desc:'放大 3 倍，一次看一段',img:'sheet-zoom'},{k:'B',name:'B 兩隊上下分開',short:'上下分開',desc:'放大約 1.7 倍，不用滑',img:'sheet-stack'}]},
+ {id:'d3',kind:'detail',dev:'tablet',title:'平板的替補面板放在旁邊，怎麼讓人看懂為什麼在這邊？',hint:'替補要點球場上的人，所以面板放在不擋到那一隊的那一邊。',
+  rule:true,
+  opts:[{k:'A',name:'A 現在的樣子',short:'現在',desc:'只寫「點場上要換下的人」',img:'bench-now'},{k:'B',name:'B 加隊色提示',short:'加提示',desc:'寫出「白鷺隊的場地在右邊 →」',img:'bench-new'}]}
+];
+var TOTAL=Q.length;
+
+function img(sty,shot,dev,mode){return 'img/'+sty+'-'+(mode||st.mode)+'-'+(dev||st.dev)+'-'+shot+'.webp'}
+function optsFor(q){
+  if(q.kind==='style')return q.pair().map(function(s){return {k:s,letter:STY[s].letter,short:STY[s].short,name:STY[s].name,desc:STY[s].desc,sty:s}});
+  var s=dsty();return q.opts.map(function(o){return {k:o.k,letter:o.k,short:o.short,name:o.name,desc:o.desc,sty:s,img:o.img}});
+}
+function srcFor(q,o,dev,mode){return q.kind==='style'?img(o.sty,st.scr,dev,mode):img(o.sty,o.img,dev,mode)}
+function devFor(q){return q.dev||st.dev}
+
+function render(){
+  var app=document.getElementById('app');
+  if(st.i>=TOTAL){app.innerHTML=resultHtml();bindResult();return}
+  var q=Q[st.i],os=optsFor(q),dev=devFor(q),a=st.ans[q.id];
+  var dots='';for(var k=0;k<TOTAL;k++)dots+='<i class="'+(k<st.i?'done':k===st.i?'now':'')+'"></i>';
+  var h='<header class="top"><button class="back" id="back"'+(st.i===0?' disabled':'')+'>‹ 上一題</button><div class="prog"><b>第 '+(st.i+1)+' 題／共 '+TOTAL+' 題</b><div class="dots" aria-hidden="true">'+dots+'</div></div></header><main>';
+  h+='<h1>'+esc(q.title)+'</h1><p class="hint">'+esc(q.hint)+'</p>';
+  if(q.rule)h+='<details class="rule"><summary>彈出視窗位置的規則（建議）</summary><ul><li>手機：全部從下面出來。</li><li>平板：全部在畫面中間。</li><li>例外：要一邊點球場的替補、一邊點格子的名單數字鍵。手機一樣從下面出來；平板放在旁邊，不擋到要點的那一隊。</li><li>使用教學：整頁。</li></ul></details>';
+  h+='<div class="ctrls">';
+  if(q.dev)h+='<span class="only">'+(q.dev==='phone'?'只有手機直放':'只有平板')+'</span>';
+  else h+='<div class="seg" role="group" aria-label="裝置"><button data-dev="phone" aria-pressed="'+(dev==='phone')+'">手機</button><button data-dev="tablet" aria-pressed="'+(dev==='tablet')+'">平板</button></div>';
+  h+='<div class="seg" role="group" aria-label="顏色"><button data-mode="light" aria-pressed="'+(st.mode==='light')+'">淺色</button><button data-mode="dark" aria-pressed="'+(st.mode==='dark')+'">深色</button></div>';
+  if(q.kind==='style'&&os[1].sty!=='cur')h+='<button class="cur" id="seecur">對照現在</button>';
+  h+='</div>';
+  if(q.kind==='style')h+='<div class="screens" role="group" aria-label="頁面">'+SCREENS.map(function(s){return '<button data-scr="'+s[0]+'" aria-pressed="'+(st.scr===s[0])+'">'+s[1]+'</button>'}).join('')+'</div>';
+  var stack=dev==='tablet'&&(innerWidth<700||innerHeight>innerWidth);
+  h+='<div class="cmp'+(stack?' stack':'')+'">';
+  os.forEach(function(o,n){
+    h+='<section class="opt'+(a===o.k?' chosen':'')+'"><h2>'+esc(o.name)+'<span>'+esc(o.desc)+'</span></h2><button class="shot" data-view="'+n+'" aria-label="放大看 '+esc(o.name)+'"><img src="'+srcFor(q,o,dev)+'" alt="'+esc(o.name)+'的畫面" loading="eager" decoding="async"></button></section>';
+  });
+  h+='</div><p class="tapnote">點圖可以放大，放大後能直接切換比較。</p>';
+  h+='<div class="note"><label for="note">想補充的話（可不填）</label><input id="note" type="text" value="'+esc(st.note[q.id]||'')+'" placeholder="例如：喜歡 A 的版頭、B 的按鈕"></div>';
+  h+='</main><footer class="ans">'+os.map(function(o){return '<button data-ans="'+o.k+'" aria-pressed="'+(a===o.k)+'">選 '+esc(o.letter)+'<small>'+esc(o.short)+'</small></button>'}).join('')+'<button class="none" data-ans="none" aria-pressed="'+(a==='none')+'">都不喜歡</button></footer>';
+  app.innerHTML=h;
+  // 手機截圖在平板或橫的畫面上不要太高
+  var mx=dev==='phone'?Math.max(320,innerHeight-(innerWidth>=700?330:260)):stack&&innerWidth>=700?Math.max(260,(innerHeight-420)/2):9999;
+  app.style.setProperty('--imgmax',mx+'px');
+  bind(q,os);
+}
+function bind(q,os){
+  var $=function(s){return document.querySelector(s)};
+  $('#back').onclick=function(){if(st.i>0){st.i--;save();render();scrollTo(0,0)}};
+  [].forEach.call(document.querySelectorAll('[data-dev]'),function(b){b.onclick=function(){st.dev=b.getAttribute('data-dev');render()}});
+  [].forEach.call(document.querySelectorAll('[data-mode]'),function(b){b.onclick=function(){st.mode=b.getAttribute('data-mode');render()}});
+  [].forEach.call(document.querySelectorAll('[data-scr]'),function(b){b.onclick=function(){st.scr=b.getAttribute('data-scr');render()}});
+  [].forEach.call(document.querySelectorAll('[data-view]'),function(b){b.onclick=function(){openViewer(q,os,Number(b.getAttribute('data-view')))}});
+  var c=$('#seecur');if(c)c.onclick=function(){openViewer(q,os,os.length)};
+  var n=$('#note');if(n)n.oninput=function(){st.note[q.id]=n.value;save()};
+  [].forEach.call(document.querySelectorAll('[data-ans]'),function(b){b.onclick=function(){
+    var v=b.getAttribute('data-ans');
+    if(q.id==='q1'&&st.ans.q1!==v)delete st.ans.q2;
+    st.ans[q.id]=v;st.i++;save();render();scrollTo(0,0);
+  }});
+}
+// 放大看：同一個畫面在選項之間切換
+var V={q:null,os:null,n:0};
+function openViewer(q,os,n){V.q=q;V.os=os;V.n=n;var v=document.getElementById('viewer');v.hidden=false;drawViewer();document.getElementById('vclose').focus()}
+function drawViewer(){
+  var q=V.q,os=V.os,dev=devFor(q),list=os.slice();
+  if(q.kind==='style'&&os[1].sty!=='cur')list.push({k:'cur',name:STY.cur.name,sty:'cur'});
+  var o=list[V.n]||list[0];
+  document.getElementById('vtitle').textContent=o.name+'　'+(dev==='phone'?'手機':'平板')+'・'+(st.mode==='dark'?'深色':'淺色');
+  document.getElementById('vimg').src=q.kind==='style'?img(o.sty,st.scr,dev):srcFor(q,o,dev);
+  document.getElementById('vimg').alt=o.name+'的畫面';
+  document.getElementById('vbar').innerHTML=list.map(function(x,i){return '<button data-vn="'+i+'" aria-pressed="'+(i===V.n)+'">'+esc(x.name)+'</button>'}).join('');
+  [].forEach.call(document.querySelectorAll('[data-vn]'),function(b){b.onclick=function(){V.n=Number(b.getAttribute('data-vn'));drawViewer()}});
+}
+function closeViewer(){document.getElementById('viewer').hidden=true}
+document.getElementById('vclose').onclick=closeViewer;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeViewer()});
+(function(){var x0=null,w=document.getElementById('vimgwrap');
+  w.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  w.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;var n=document.querySelectorAll('[data-vn]').length;V.n=(V.n+(dx<0?1:-1)+n)%n;drawViewer()});
+})();
+
+function label(q,v){
+  if(!v)return '（沒有選）';if(v==='none')return '都不喜歡';
+  if(q.kind==='style')return STY[v].name;
+  var o=q.opts.filter(function(x){return x.k===v})[0];return o.name+'（'+o.desc+'）';
+}
+function summary(){
+  var q1=Q[0],q2=Q[1],w=winner(),p=q2pair(),L=[];
+  L.push('【記錄表新風格的選擇結果】');
+  L.push('整體風格：'+(w&&w!=='none'?STY[w].name:'都不喜歡'));
+  L.push('・第一輪 '+STY.A.name+' 對 '+STY.B.name+'：'+label(q1,st.ans.q1));
+  L.push('・第二輪 '+STY[p[0]].name+' 對 '+STY[p[1]].name+'：'+label(q2,st.ans.q2));
+  [['d1','沒有自由球員的 L 格'],['d2','手機直放的記錄表'],['d3','平板的替補面板']].forEach(function(x){var q=Q.filter(function(y){return y.id===x[0]})[0];L.push(x[1]+'：'+label(q,st.ans[x[0]]))});
+  var notes=Q.filter(function(q){return st.note[q.id]&&st.note[q.id].trim()}).map(function(q){return '・第 '+(Q.indexOf(q)+1)+' 題：'+st.note[q.id].trim()});
+  if(notes.length){L.push('補充：');L=L.concat(notes)}
+  if(st.final&&st.final.trim())L.push('其他想說的：'+st.final.trim());
+  return L.join('\n');
+}
+function resultHtml(){
+  var dots='';for(var k=0;k<TOTAL;k++)dots+='<i class="done"></i>';
+  var w=winner();
+  var rows=[[0,'整體風格',w&&w!=='none'?STY[w].name:'都不喜歡',w&&w!=='none'?STY[w].desc:'三種都不喜歡，要再做新的'],
+    [2,'沒有自由球員的 L 格',label(Q[2],st.ans.d1),''],[3,'手機直放的記錄表',label(Q[3],st.ans.d2),''],[4,'平板的替補面板',label(Q[4],st.ans.d3),'']];
+  return '<header class="top"><button class="back" id="back">‹ 上一題</button><div class="prog"><b>完成</b><div class="dots" aria-hidden="true">'+dots+'</div></div></header><main class="res">'+
+    '<h1>你的選擇</h1><ol>'+rows.map(function(r){return '<li><b>'+esc(r[1])+'：'+esc(r[2])+'</b>'+(r[3]?'<span>'+esc(r[3])+'</span>':'<span>&nbsp;</span>')+'<button data-go="'+r[0]+'">改</button></li>'}).join('')+'</ol>'+
+    '<div class="note"><label for="final">其他想說的（可不填）</label><input id="final" type="text" value="'+esc(st.final||'')+'" placeholder="例如：深色模式再暗一點"></div>'+
+    '<button class="copy" id="copy">複製結果</button><p class="copied" id="copied" role="status"></p>'+
+    '<label for="out" class="hint">複製下來的內容（不能複製時，長按下面的文字選取）</label><textarea id="out" readonly>'+esc(summary())+'</textarea></main>';
+}
+function bindResult(){
+  var $=function(s){return document.querySelector(s)};
+  $('#back').onclick=function(){st.i=TOTAL-1;save();render();scrollTo(0,0)};
+  [].forEach.call(document.querySelectorAll('[data-go]'),function(b){b.onclick=function(){st.i=Number(b.getAttribute('data-go'));save();render();scrollTo(0,0)}});
+  $('#final').oninput=function(){st.final=$('#final').value;save();$('#out').value=summary()};
+  $('#copy').onclick=function(){
+    var t=summary(),msg=$('#copied');
+    var done=function(){msg.textContent='已複製，可以貼回對話了。'};
+    var fallback=function(){var ta=$('#out');ta.value=t;ta.focus();ta.select();try{ta.setSelectionRange(0,t.length)}catch(e){}var ok=false;try{ok=document.execCommand('copy')}catch(e){}if(ok)done();else msg.textContent='這裡不能自動複製，請長按下面的文字，選「全選」再「拷貝」。'};
+    try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fallback);else fallback()}catch(e){fallback()}
+  };
+}
+var lastW=innerWidth;addEventListener('resize',function(){if(Math.abs(innerWidth-lastW)<40)return;lastW=innerWidth;if(st.i<TOTAL&&!document.activeElement.matches('input'))render()});
+render();
+})();
+</script>
+</body>
+</html>

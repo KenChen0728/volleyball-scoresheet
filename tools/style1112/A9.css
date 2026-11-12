@@ -1,0 +1,32 @@
+/* A9 霧灰：A 的顏色，圓角介於 A 和 B 中間 */
+html.mock[data-sty="A9"]{--rb:9px;--rc:12px;--rs:16px}
+html.mock[data-sty="A9"] .pcourt .pc{border-radius:5px}
+html.mock[data-sty="A9"] .board>.wbar{border-radius:8px}
+html.mock[data-sty="A9"] .setbox{border-radius:6px}
+html.mock[data-sty="A9"] .lc,html.mock[data-sty="A9"] .capbox{border-radius:8px}
+html.mock[data-sty="A9"] .mkfoot button,html.mock[data-sty="A9"] .shead .linkbtn,html.mock[data-sty="A9"] .mkset2 button{border-radius:var(--rb)}
+/* 第二輪：空的 L 格完全不顯示（使用者 11/12 選的） */
+html.mock .lc.empty{visibility:hidden}
+html.mock[data-sty="A9"] .homebody h2{letter-spacing:.04em;font-weight:600}
+html.mock[data-sty="A9"][data-mode="light"]{
+ --brand:#F4F1EC;--hdr-ink:#2C2925;--hdr-sub:#6B655C;--hdr-btn:rgba(44,41,37,.07);--hdr-mute:rgba(44,41,37,.3);--hero:#E2DCD2;--hero-ink:#2C2925;--hero-sub:#5F594F;--hero-btn:rgba(44,41,37,.08);--hero-line:rgba(44,41,37,.09);
+ --note:#E4DDCF;--note-ink:#5A4F3E;
+ --bg:#ECE8E1;--panel:#F7F5F1;--soft:#E2DDD5;--line:#D5CFC5;--line2:#CBC4B8;--ink:#2C2925;--muted:#6B655C;
+ --btn:#E2DDD4;--btn-edge:transparent;--btn-ink:#2C2925;--off:#EFEBE5;--off-edge:#C4BCB0;--off-ink:#8A8378;
+ --field:#FBFAF7;--field-edge:#D5CFC5;
+ --accent:#F2C14B;--accent-ink:#2C2925;--accent-shadow:0 1px 0 rgba(90,70,20,.12);
+ --track:#E2DDD4;--sel:#3B3833;--sel-on:#F7F5F1;--sel-shadow:none;
+ --scrim:rgba(44,38,32,.42);--sheet:#F7F5F1;--sheet-shadow:0 -12px 40px rgba(44,38,32,.22);
+ --card:#F7F5F1;--card-shadow:0 1px 2px rgba(60,50,40,.07);--box:#56616B;--net:#3B3833;--faint:#A39B8F;--paper-shadow:0 1px 3px rgba(60,50,40,.14);
+ --del:#9E4A3F;--del-on:#FFFFFF;--focus:#2C2925}
+html.mock[data-sty="A9"][data-mode="dark"]{
+ --brand:#272624;--hdr-ink:#ECE8E1;--hdr-sub:#ADA69B;--hdr-btn:rgba(255,255,255,.08);--hdr-mute:rgba(255,255,255,.28);--hero:#2A2826;--hero-ink:#ECE8E1;--hero-sub:#BDB6AB;--hero-btn:rgba(255,255,255,.09);--hero-line:rgba(255,255,255,.06);
+ --note:#34302A;--note-ink:#D9CFBE;
+ --bg:#1D1C1A;--panel:#262523;--soft:#302E2B;--line:#413E39;--line2:#4C4842;--ink:#ECE8E1;--muted:#ADA69B;
+ --btn:#3A3733;--btn-edge:transparent;--btn-ink:#ECE8E1;--off:#232220;--off-edge:#4C4842;--off-ink:#7C766C;
+ --field:#232220;--field-edge:#45423C;
+ --accent:#F0C24E;--accent-ink:#2A2723;--accent-shadow:none;
+ --track:#2D2B28;--sel:#E8E3DB;--sel-on:#1D1C1A;--sel-shadow:none;
+ --scrim:rgba(0,0,0,.55);--sheet:#2A2926;--sheet-shadow:0 -12px 40px rgba(0,0,0,.5);
+ --card:#272624;--card-shadow:none;--box:#3D444B;--net:#D8D2C8;--faint:#6F695F;--paper-shadow:none;
+ --del:#B4594D;--del-on:#FFFFFF;--focus:#F0C24E}

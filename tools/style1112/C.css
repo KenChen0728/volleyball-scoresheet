@@ -1,0 +1,27 @@
+/* C 深藍精修：保留現在的深藍和黃色，收掉框線、選中改墨色加勾 */
+html.mock[data-sty="C"]{--rb:10px;--rc:14px;--rs:18px}
+html.mock[data-sty="C"] .pcourt .pc{border-radius:5px}
+html.mock[data-sty="C"][data-mode="light"]{
+ --hdr-sub:rgba(255,255,255,.72);--hero-ink:#FFFFFF;--hero-sub:rgba(255,255,255,.86);--hero-line:rgba(255,255,255,.16);
+ --note:#E3E9F0;--note-ink:#2E465E;
+ --bg:#EDF1F5;--panel:#FFFFFF;--soft:#E1E7EE;--line:#CCD5DF;--line2:#BFCAD6;--ink:#0F2438;--muted:#4F6276;
+ --btn:#E1E7EE;--btn-edge:transparent;--btn-ink:#0F2438;--off:#EFF3F7;--off-edge:#B5C1CE;--off-ink:#7A8A9B;
+ --field:#FFFFFF;--field-edge:#CCD5DF;
+ --accent:#FFD21F;--accent-ink:#12324F;--accent-shadow:none;
+ --track:#E1E7EE;--sel:#12324F;--sel-on:#FFFFFF;--sel-shadow:none;
+ --brand:#12324F;--hero:#12324F;--hdr-ink:#FFFFFF;--hdr-btn:rgba(255,255,255,.14);--hdr-mute:rgba(255,255,255,.38);--hero-btn:rgba(255,255,255,.14);
+ --scrim:rgba(8,24,40,.45);--sheet:#FFFFFF;--sheet-shadow:0 -10px 32px rgba(8,24,40,.2);
+ --card:#FFFFFF;--card-shadow:0 1px 2px rgba(15,36,56,.08);--box:#12324F;--net:#0F2438;--faint:#8E9DAD;--paper-shadow:0 1px 3px rgba(15,36,56,.14);
+ --del:#A3211A;--del-on:#FFFFFF;--focus:#0F2438}
+html.mock[data-sty="C"][data-mode="dark"]{
+ --hdr-sub:rgba(255,255,255,.66);--hero-ink:#EEF3F9;--hero-sub:rgba(255,255,255,.8);--hero-line:rgba(255,255,255,.13);
+ --note:#16304B;--note-ink:#C5D4E4;
+ --bg:#0B1828;--panel:#122438;--soft:#1A3049;--line:#2A4562;--line2:#35526F;--ink:#EEF3F9;--muted:#A3B6CA;
+ --btn:#203A57;--btn-edge:transparent;--btn-ink:#EEF3F9;--off:#0F2033;--off-edge:#35526F;--off-ink:#6C849E;
+ --field:#0F2033;--field-edge:#2A4562;
+ --accent:#FFD21F;--accent-ink:#12324F;--accent-shadow:none;
+ --track:#0F2236;--sel:#EEF3F9;--sel-on:#0F2438;--sel-shadow:none;
+ --brand:#0A1C30;--hero:#0F2A44;--hdr-ink:#EEF3F9;--hdr-btn:rgba(255,255,255,.1);--hdr-mute:rgba(255,255,255,.3);--hero-btn:rgba(255,255,255,.11);
+ --scrim:rgba(0,0,0,.6);--sheet:#132A43;--sheet-shadow:0 -10px 32px rgba(0,0,0,.55);
+ --card:#122438;--card-shadow:none;--box:#203A57;--net:#DCE6F1;--faint:#5A728C;--paper-shadow:none;
+ --del:#B23A30;--del-on:#FFFFFF;--focus:#FFD21F}
