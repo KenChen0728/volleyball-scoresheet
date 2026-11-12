@@ -32,7 +32,10 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
   // ---------- 視窗 ----------
   await setup();const s0=await st();ok(tag+'24:20',s0.score.t1===24&&s0.score.t2===20,s0.score);
   ok(tag+'no window before end',await win.count()===0);
-  await point('t1');
+  await serve();await p.click('[data-act=point][data-team=t1]');await W(250);
+  ok(tag+'ok guarded',await p.locator('.sheet.setend [data-act=endok]').isDisabled());
+  ok(tag+'undo guarded',await p.locator('.sheet.setend [data-act=undo]').isDisabled());
+  await W(450);
   ok(tag+'window shown',await win.count()===1);
   ok(tag+'window title',(await p.locator('.sheet.setend h2').innerText()).includes('第 1 局結束'));
   const sc=await p.locator('.sescore b').allTextContents(),s1=await st();
@@ -43,8 +46,6 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
   ok(tag+'end = start + 20',env===hmAdd(act0,20),[env,act0]);
   ok(tag+'duration 20',(await p.locator('#sedur').innerText()).includes('經過 20 分鐘'),await p.locator('#sedur').innerText());
   ok(tag+'hint',(await p.locator('.sehint').innerText()).includes(SCHOOL?'結果':'記錄表'));
-  ok(tag+'ok guarded',await p.locator('.sheet.setend [data-act=endok]').isDisabled());
-  ok(tag+'undo guarded',await p.locator('.sheet.setend [data-act=undo]').isDisabled());
   await W(450);ok(tag+'ok enabled after 1s',await p.locator('.sheet.setend [data-act=endok]').isEnabled());
   const bx=await p.locator('.sheet.setend').boundingBox();ok(tag+'window fits',bx&&bx.y>=0&&bx.y+bx.height<=h+1&&bx.x>=0&&bx.x+bx.width<=w+1,bx);
   const ob=await p.locator('.sheet.setend [data-act=endok]').boundingBox();ok(tag+'ok big',ob&&ob.height>=44,ob);
@@ -81,10 +82,10 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
   }else{
     ok(tag+'end tab first and on',await p.locator('.sheettabs [data-act=rtab]').first().getAttribute('data-v')==='end'&&await p.locator('[data-act=rtab][data-v=end][aria-pressed=true]').count()===1);
     ok(tag+'end view',await p.locator('.endview .ctv.hot').count()>=1&&await p.locator('.endview .ctv-res').count()===1);
-    ok(tag+'end hint',(await p.locator('.endhint').innerText()).includes('格子點一下'));
-    const hot=p.locator('rect.hot');ok(tag+'hot cells 14',await hot.count()===14,await hot.count());
+    ok(tag+'end hint',(await p.locator('.endhint').innerText()).includes('點一下，就能修改或補記'));
+    const hot=p.locator('rect.hot');ok(tag+'hot cells 26',await hot.count()===26,await hot.count()); // 11/13 加發球格 12 格
     if(w<600){ok(tag+'two parts on phone',await p.locator('.ctparts .ctv').count()===2);
-      ok(tag+'part A has A cells',await p.locator('.ctparts .ctv').nth(0).locator(`rect.hot[data-team=${s1.A}]`).count()===7&&await p.locator('.ctparts .ctv').nth(1).locator(`rect.hot[data-team=${s1.B}]`).count()===7);
+      ok(tag+'part A has A cells',await p.locator('.ctparts .ctv').nth(0).locator(`rect.hot[data-team=${s1.A}]`).count()===13&&await p.locator('.ctparts .ctv').nth(1).locator(`rect.hot[data-team=${s1.B}]`).count()===13);
     }else ok(tag+'one sheet on tablet',await p.locator('.ctparts').count()===0&&await p.locator('.ctv.hot').count()===1);
     const ws=await p.locator('rect.hot[data-v$=":P:0"]').evaluateAll(a=>a.map(e=>{const r=e.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)]}));
     ok(tag+'cells big enough',ws.every(x=>x[0]>=30&&x[1]>=60),ws);
