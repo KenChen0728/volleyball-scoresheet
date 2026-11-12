@@ -666,7 +666,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 /* 步驟列 */
 .nav{border-top:1px solid var(--line)}
 .nav button{gap:3px;min-height:60px;font-size:14px;color:var(--muted);border-top:0}
-.nav button:disabled{opacity:.45}
+.nav button:disabled,.nav button.dim{opacity:.45}
+.page>.vc{margin-top:auto} /* 11/13 內容放中間：和下面按鈕列的 margin-top:auto 平分空白 */
+.ftoast{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top,0px) + 66px);z-index:95;width:max-content;max-width:min(560px,calc(100vw - 32px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:700;font-size:15px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;text-align:center}
 .stepn{font-style:normal;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);font-family:var(--num);font-weight:700;font-size:15px;line-height:1;color:var(--muted);background:var(--panel)}
 .stepn.done{background:var(--brand);border-color:var(--brand);color:#fff;font-size:13px}
 .nav button[aria-current="true"]{background:transparent;color:var(--ink);font-weight:800}
@@ -2245,7 +2247,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1113-0529';
+var BUILD='測試版 1113-0557';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2521,6 +2523,7 @@ function draw(){
   var flip=flipPrep(s);
   app.innerHTML=barHtml(s)+saveBar()+'<div class="shell'+(inGame?' nonav':'')+'"><main class="page'+(kp&&ui.page!=='play'?' kpopen':'')+(ui.page==='play'&&!ui.liveSheet&&!matchOver(s)&&!setWinner(s)&&isWide()?' pagewide':'')+'">'+body+'</main>'+(inGame?'':navHtml(s))+'</div>'+kp+sheetHtml(s,m)+setEndWin(s,m)+modalHtml(s)+penHtml(s)+landHtml(s)+timerPop(s)+(ui.report?reportHtml(s,m):'')+helpHtml()+staleHtml();
   lastPgKey=pgKey;
+  if(ui.toast&&Date.now()<ui.toast.until&&!app.querySelector('.lockline.toast')){var ftn=document.createElement('div');ftn.className='ftoast';ftn.setAttribute('role','status');ftn.textContent=ui.toast.t;app.appendChild(ftn)}
   fitNums();flipRun(flip);helpPlace();
   var pg=app.querySelector('.page');pg.scrollTop=top;
   var newTabs=app.querySelector('.sheettabs');if(newTabs)newTabs.scrollLeft=tabX;
@@ -2681,7 +2684,7 @@ function elapsed(from,to){
   var n=Math.max(0,Math.floor(((to?new Date(to):new Date())-new Date(from))/1000));
   return Math.floor(n/60)+':'+('0'+n%60).slice(-2);
 }
-setInterval(function(){if(ui.toast&&Date.now()>ui.toast.until){ui.toast=null;if(view==='setup'&&ui.page==='play'&&!ui.liveSheet&&!ui.pen&&!ui.sub&&!ui.sheet)render()}var c=document.querySelectorAll('[data-cd]');for(var j=0;j<c.length;j++)c[j].textContent=cdText(Number(c[j].getAttribute('data-cd')));var a=document.querySelectorAll('[data-el]');for(var i=0;i<a.length;i++)a[i].textContent=elapsed(a[i].getAttribute('data-el'))},1000);
+setInterval(function(){var ftx=document.querySelector('.ftoast');if(ftx&&!(ui.toast&&Date.now()<ui.toast.until))ftx.remove();if(ui.toast&&Date.now()>ui.toast.until){ui.toast=null;if(view==='setup'&&ui.page==='play'&&!ui.liveSheet&&!ui.pen&&!ui.sub&&!ui.sheet)render()}var c=document.querySelectorAll('[data-cd]');for(var j=0;j<c.length;j++)c[j].textContent=cdText(Number(c[j].getAttribute('data-cd')));var a=document.querySelectorAll('[data-el]');for(var i=0;i<a.length;i++)a[i].textContent=elapsed(a[i].getAttribute('data-el'))},1000);
 function barHtml(s){
   var over=matchOver(s),c=s.sets[s.setNo],started=s.sets[1].started,title;
   if(over)title=tName(s,s.sets[1].left||'t1')+' 對 '+tName(s,other(s.sets[1].left||'t1'));
@@ -2710,11 +2713,11 @@ function navHtml(s){
   ].concat(XP_ON?[['refs','裁判',st(2,begun||REFS.some(function(x){return s.info[x[0]]})||s.teams.t1.players.length+s.teams.t2.players.length>0,'refs'),false]]:[]).concat([
     ['roster','名單',rosterStat(s),false],
     ['toss','挑邊',st(3+NAV_OFF(),tossed,'toss'),false],
-    ['lineup','陣容',st(4+NAV_OFF(),c.started||(c.locked.t1&&c.locked.t2),'lineup'),!tossed],
-    ['play','比賽',st(5+NAV_OFF(),false,'play'),!begun]
+    ['lineup','陣容',st(4+NAV_OFF(),c.started||(c.locked.t1&&c.locked.t2),'lineup'),!tossed,'先挑邊，才能填陣容'],
+    ['play','比賽',st(5+NAV_OFF(),false,'play'),!begun,'兩隊陣容確認後，按「開始比賽」']
   ]);
   return '<nav class="nav" aria-label="賽前步驟">'+items.map(function(i){
-    return '<button data-act="page" data-v="'+i[0]+'" aria-current="'+(ui.page===i[0])+'"'+(i[3]?' disabled':'')+'>'+i[2]+'<span id="nav-'+i[0]+'">'+esc(i[1])+'</span></button>';
+    return '<button data-act="page" data-v="'+i[0]+'" aria-current="'+(ui.page===i[0])+'"'+(i[3]?' class="dim" aria-disabled="true" data-why="'+esc(i[4]||'')+'"':'')+'>'+i[2]+'<span id="nav-'+i[0]+'">'+esc(i[1])+'</span></button>';
   }).join('')+'</nav>';
 }
 function pageHtml(s,m){
@@ -3031,7 +3034,7 @@ function infoHtml(s){
   var div=['男子組','女子組'].map(function(x){return '<button data-act="div" data-v="'+x+'" aria-pressed="'+(i.division===x)+'"'+(lk?' disabled':'')+'>'+x+'</button>'}).join('');
   var mm=current(),cf=cupOf(mm),sug=!cf&&String(i.name||'').trim()?db.cups.filter(function(c){return c.name.trim()===String(i.name).trim()})[0]:null;
   var fold=db.cups.length?'<div class="wide folderrow"><span>資料夾</span><button data-act="sheet" data-v="folder">'+(cf?esc(cf.name):'不屬於任何盃賽')+' ›</button></div>'+(sug?'<div class="wide note">比賽名稱和資料夾「'+esc(sug.name)+'」一樣，要放進去嗎？<button class="linkbtn" data-act="setcup" data-id="'+esc(sug.id)+'">放進「'+esc(sug.name)+'」</button></div>':''):'';
-  return (lk?'':'<p class="stephint">這一頁都可以空著，不確定就直接按下一步。</p>')+'<div class="fields">'+
+  return (lk?'<p class="note">已開局，比賽資料不能再修改。</p>':'<p class="stephint">這一頁都可以空著，不確定就直接按下一步。</p>')+'<div class="fields">'+
     fold+field('i-name','比賽名稱',i.name,lk,{wide:true,field:'name',kind:'info',ph:'例如：校際盃'})+
     '<div class="wide seg">'+div+'</div>'+
     (XP_ON?field('i-group','組別',i.group||'',lk,{field:'group',kind:'info',ph:'例如：國中甲組',list:'grp-list'})+groupDatalist():'')+ // 協會記錄表要的（學校版沒有）
@@ -3145,7 +3148,7 @@ function tossCard(s,k,isA,fixed){
 function tossHtml(s){
   var n=s.setNo,c=s.sets[n],L=sideLeft(s),R=other(L),fixed=n===2||c.started;
   var A=n===1?L:s.sets[1].left;
-  var h='<p class="stephint">'+(n===1?'點先發球隊伍的排球。左邊是 A 隊，要換邊按中間的按鈕。':n===2?'第 2 局自動換邊，同一端發球，不用挑邊。':'決勝局重新挑邊：點先發球隊伍的排球，要換邊按中間的按鈕。A、B 隊不變。')+'</p>';
+  var h='<p class="stephint'+(c.started?'':' vc')+'">'+(n===1?'點先發球隊伍的排球。左邊是 A 隊，要換邊按中間的按鈕。':n===2?'第 2 局自動換邊，同一端發球，不用挑邊。':'決勝局重新挑邊：點先發球隊伍的排球，要換邊按中間的按鈕。A、B 隊不變。')+'</p>';
   h+='<div class="toss">'+tossCard(s,L,L===A,fixed)+'<button class="swap" data-act="swap" aria-label="兩隊換邊"'+(fixed?' disabled':'')+'>⇄</button>'+tossCard(s,R,R===A,fixed)+'</div>';
   h+='<div class="scorer">記錄台</div>';
   if(n===1&&!c.started)h+='<div class="tosscolors">'+[L,R].map(function(k){var q=s.teams[k];return '<button data-act="sheet" data-v="color" data-team="'+k+'" aria-label="'+esc(tName(s,k))+' 球衣顏色"><span class="jsys">'+jerseyIcon(jersey(q.color||JERSEY_DEFAULT[k]).j)+jerseyIcon(jersey(q.liberoColor||q.color||JERSEY_DEFAULT[k]).j,true)+'</span><span>換球衣顏色</span></button>'}).join('')+'</div>';
@@ -4412,7 +4415,7 @@ function sheetHtml(s,m){
       return '<strong>第 '+n+' 局</strong>'+field('i-p'+n,'局分',target(s,n),dis,{field:'p'+n,kind:'info',type:'number'})+
         '<div class="sw"><span class="muted">Deuce 上限</span><div class="seg"><button data-act="capmode" data-v="'+n+'" data-m="off" aria-pressed="'+!cap+'"'+d+'>無上限</button><button data-act="capmode" data-v="'+n+'" data-m="on" aria-pressed="'+!!cap+'"'+d+'>搶分</button></div></div>'+
         (cap?field('i-c'+n,'搶到',cap,dis,{field:'c'+n,kind:'info',type:'number'}):'<span></span>');
-    }).join('')+'</div>'+(ui.ptErr?'<p class="fielderr" role="alert">'+esc(ui.ptErr)+'</p>':'')+'<button class="primary" data-act="close">完成</button>';
+    }).join('')+'</div>'+([1,2,3].some(function(n){return s.sets[n].started})?'<p class="muted">已經開始的局不能改。</p>':'')+(ui.ptErr?'<p class="fielderr" role="alert">'+esc(ui.ptErr)+'</p>':'')+'<button class="primary" data-act="close">完成</button>';
   }else if(x.type==='export'||x.type==='export2'){
     h=xpSheet(s,x);
   }else if(x.type==='more'){
@@ -4869,7 +4872,8 @@ app.addEventListener('click',function(e){
       var sm=db.matches.filter(function(x){var q=safeReduce(x);return q&&q.info.sample&&!matchOver(q)})[0];
       if(!sm){makeSample();sm=db.matches[0]}
       db.currentId=sm.id; save(); resetUi(); ui.page=firstPage(reduce(sm.events)); view='setup'; break;
-    case 'page': ui.page=b.getAttribute('data-v'); ui.sheet=null; ui.liveSheet=false; ui.rtab=null; ui.sel=null; ui.luTeam=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; break;
+    case 'page': if(b.getAttribute('aria-disabled')==='true'){ui.toast={t:b.getAttribute('data-why')||'這一步還不能用',until:Date.now()+3000};break} // 11/13 還不能按的步驟點了說原因
+      ui.page=b.getAttribute('data-v'); ui.sheet=null; ui.liveSheet=false; ui.rtab=null; ui.sel=null; ui.luTeam=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; break;
     case 'div': dispatch('INFO_SET',{field:'division',value:s.info.division===b.getAttribute('data-v')?'':b.getAttribute('data-v')}); break;
     case 'key':
       ui.msg[k]='';
