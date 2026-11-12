@@ -21,26 +21,45 @@
 /* 版面概念：整頁固定一個畫面不上下滑。手機用底部分頁，平板用側邊分頁，細節用浮動面板。
    系統字型為刻意選擇：比賽現場可能沒有網路，不能依賴線上字型。 */
 :root{
-  --bg:#EDF1F6; --panel:#FFFFFF; --ink:#0F2438; --muted:#4F6377; --line:#C4D0DC; --soft:#DFE7F0;
+  --bg:#ECE8E1; --panel:#F7F5F1; --ink:#2C2925; --muted:#5E584F; --line:#D5CFC5; --soft:#E2DDD5; --line2:#CBC4B8;
   --t1:#0A5AA8; --t1-soft:#DCEAF7; --t1-on:#FFFFFF; --t2:#B8420B; --t2-soft:#FBE6DA; --t2-on:#FFFFFF;
   --ok:#0E7A4B; --ok-soft:#D9F0E4; --warn:#8A5A00; --warn-soft:#FDF0CC; --bad:#B3261E; --bad-soft:#FBE4E2;
-  --on-accent:#12324F; --scrim:rgba(8,24,40,.5); --del:#A3211A; --del-on:#FFFFFF;
-  --brand:#12324F; --box:#12324F; --accent:#FFD21F; --accent-ink:#12324F; --sel:#12324F; --sel-on:#FFFFFF;
+  --on-accent:#2C2925; --scrim:rgba(44,38,32,.42); --del:#9E4A3F; --del-on:#FFFFFF;
+  --brand:#F4F1EC; --box:#56616B; --accent:#F2C14B; --accent-ink:#2C2925; --sel:#3B3833; --sel-on:#F7F5F1;
+  /* 11/12 霧灰：一般按鈕、不能按、版頭、主畫面、面板、卡片 */
+  --btn:#E2DDD4; --btn-edge:transparent; --btn-ink:#2C2925; --off:#EFEBE5; --off-edge:#C4BCB0; --off-ink:#8A8378;
+  --field:#FBFAF7; --field-edge:#D5CFC5; --accent-shadow:0 1px 0 rgba(90,70,20,.12); --track:#E2DDD4;
+  --hdr-ink:#2C2925; --hdr-sub:#5E584F; --hdr-btn:rgba(44,41,37,.07); --hdr-mute:rgba(44,41,37,.3);
+  --hero:#E2DCD2; --hero-ink:#2C2925; --hero-sub:#5F594F; --hero-btn:rgba(44,41,37,.08); --hero-line:rgba(44,41,37,.09);
+  --sheet:#F7F5F1; --sheet-shadow:0 -12px 40px rgba(44,38,32,.22); --card:#F7F5F1; --card-shadow:0 1px 2px rgba(60,50,40,.07);
+  --net:#3B3833; --faint:#A39B8F; --paper-shadow:0 1px 3px rgba(60,50,40,.14); --note:#E4DDCF; --note-ink:#5A4F3E;
   --font:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
   --num:"Avenir Next Condensed","DIN Alternate","Bahnschrift","Roboto Condensed","sans-serif-condensed","Arial Narrow",var(--font);
-  --r:10px;
+  --r:9px; --rb:9px; --rc:12px; --rs:16px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0C1E30; --panel:#15304A; --ink:#EEF3F9; --muted:#A3B8CB; --line:#2B4B69; --soft:#1D3D5B;
+  --bg:#1D1C1A; --panel:#262523; --ink:#ECE8E1; --muted:#ADA69B; --line:#413E39; --soft:#302E2B; --line2:#4C4842;
   --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
   --ok:#5FD39A; --ok-soft:#123A2C; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
-  --on-accent:#12324F; --scrim:rgba(0,0,0,.6); --del:#8E2A24; --del-on:#FFE3E0; --brand:#0F2A44; --box:#1D3D5B; --sel:#FFD21F; --sel-on:#12324F; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --accent:#F0C24E; --accent-ink:#2A2723; --accent-shadow:none;
+  --btn:#3A3733; --btn-ink:#ECE8E1; --off:#232220; --off-edge:#4C4842; --off-ink:#7C766C; --field:#232220; --field-edge:#45423C; --track:#2D2B28;
+  --hdr-ink:#ECE8E1; --hdr-sub:#ADA69B; --hdr-btn:rgba(255,255,255,.08); --hdr-mute:rgba(255,255,255,.28);
+  --hero:#2A2826; --hero-ink:#ECE8E1; --hero-sub:#BDB6AB; --hero-btn:rgba(255,255,255,.09); --hero-line:rgba(255,255,255,.06);
+  --sheet:#2A2926; --sheet-shadow:0 -12px 40px rgba(0,0,0,.5); --card:#272624; --card-shadow:none;
+  --net:#D8D2C8; --faint:#6F695F; --paper-shadow:none; --note:#34302A; --note-ink:#D9CFBE;
 }}
 :root[data-theme="dark"]{
-  --bg:#0C1E30; --panel:#15304A; --ink:#EEF3F9; --muted:#A3B8CB; --line:#2B4B69; --soft:#1D3D5B;
+  --bg:#1D1C1A; --panel:#262523; --ink:#ECE8E1; --muted:#ADA69B; --line:#413E39; --soft:#302E2B; --line2:#4C4842;
   --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
   --ok:#5FD39A; --ok-soft:#123A2C; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
-  --on-accent:#12324F; --scrim:rgba(0,0,0,.6); --del:#8E2A24; --del-on:#FFE3E0; --brand:#0F2A44; --box:#1D3D5B; --sel:#FFD21F; --sel-on:#12324F; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --accent:#F0C24E; --accent-ink:#2A2723; --accent-shadow:none;
+  --btn:#3A3733; --btn-ink:#ECE8E1; --off:#232220; --off-edge:#4C4842; --off-ink:#7C766C; --field:#232220; --field-edge:#45423C; --track:#2D2B28;
+  --hdr-ink:#ECE8E1; --hdr-sub:#ADA69B; --hdr-btn:rgba(255,255,255,.08); --hdr-mute:rgba(255,255,255,.28);
+  --hero:#2A2826; --hero-ink:#ECE8E1; --hero-sub:#BDB6AB; --hero-btn:rgba(255,255,255,.09); --hero-line:rgba(255,255,255,.06);
+  --sheet:#2A2926; --sheet-shadow:0 -12px 40px rgba(0,0,0,.5); --card:#272624; --card-shadow:none;
+  --net:#D8D2C8; --faint:#6F695F; --paper-shadow:none; --note:#34302A; --note-ink:#D9CFBE;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -608,7 +627,7 @@ button,label,.bar,.nav,.pc,.ss,.mid,.setbox{-webkit-user-select:none;user-select
 button{transition:background-color .1s}
 button:active:not(:disabled){filter:brightness(.92)}
 :root{--focus:#1F5FC4}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--focus:#FFD21F}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--focus:#F0C24E}}
 :root[data-theme="dark"]{--focus:#FFD21F}
 button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 .bar button:focus-visible,.hero button:focus-visible,.tbar button:focus-visible{outline-color:#FFD21F}
@@ -1518,6 +1537,140 @@ button.dim{opacity:.45}
 .fixrow{grid-template-columns:1fr 1.4fr auto auto}
 .fixrow::after{content:'\203A';font-size:22px;line-height:1;color:var(--muted);font-weight:700}
 
+/* ===== 11/12 霧灰：使用者兩輪比較選的（A 霧灰配色、中圓角）。顏色都用上面的變數，學校版在 extra.css 換回深藍和金色 ===== */
+/* 一般按鈕：實心、低飽和，不靠細框；:where 讓有自己樣式的按鈕（球場格子、號碼）照舊 */
+:where(:root) button{background:var(--btn);border-color:var(--btn-edge);color:var(--btn-ink);border-radius:var(--rb)}
+input{background:var(--field);border-color:var(--field-edge);border-radius:var(--rb)}
+/* 暫時不能按：實色灰底加虛線框，字看得清楚 */
+.pmb:disabled,.mbtn:disabled,.tg button:disabled,.pbtns button:disabled,.histtools button:disabled,.homefoot button:disabled,.sheet .row>button:disabled{opacity:1;background:var(--off);border:1px dashed var(--off-edge);color:var(--off-ink)}
+/* 主要按鈕：只有它是鮮明的顏色 */
+.primary,.go,.sv{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:var(--accent-shadow)}
+.primary:disabled,.go:disabled,.sv:disabled{box-shadow:none}
+.danger{background:var(--del);border-color:var(--del);color:var(--del-on)}
+/* 選中：深色（深色模式用亮色）加 ✓，黃色只留給主要按鈕 */
+.seg,.rtabs{border:0;background:var(--track);border-radius:var(--rb);padding:3px;gap:3px}
+.seg button,.rtabs button{background:transparent;border:0;color:var(--muted);border-radius:calc(var(--rb) - 3px)}
+.seg button+button{border-left:0}
+.seg button[aria-pressed="true"],.rtabs button[aria-pressed="true"],.setpick button[aria-pressed="true"]{background:var(--sel);color:var(--sel-on);border-color:var(--sel)}
+.seg button[aria-pressed="true"]::before,.rtabs button[aria-pressed="true"]::before,.setpick button[aria-pressed="true"]::before{content:"✓";margin-right:4px;font-weight:900}
+.sheettabs{display:flex;gap:3px}
+.sheettabs button{flex:1 1 0;min-height:44px;font-size:15px;font-weight:700;padding:0 2px}
+@media (min-width:920px) and (min-height:621px){.sheettabs button{font-size:clamp(15px,2.2vh,18px);min-height:clamp(44px,6vh,52px)}}
+/* 窄手機：記錄表 7 顆分頁放不下勾，選中的靠深色底分辨 */
+@media (max-width:389px){.sheettabs button[aria-pressed="true"]::before{content:none}}
+/* 記錄表「各局」裡選第幾局 */
+.setpick{display:flex;gap:8px;justify-content:center;flex:none}
+.setpick button{min-height:44px;padding:0 16px;font-size:15px;font-weight:700;background:transparent;border:1px solid var(--line2);color:var(--muted)}
+.setpick button[aria-pressed="true"]{border-color:var(--sel)}
+/* 版頭 */
+.bar{background:var(--brand);color:var(--hdr-ink)}
+.bar h1{color:var(--hdr-ink)}
+.bartime{color:var(--hdr-sub)}
+.bartime b{color:var(--hdr-ink)}
+.bar>.barmid small{color:var(--hdr-sub)}
+.bar button,.barback{background:var(--hdr-btn);border:0!important;color:var(--hdr-ink);border-radius:var(--rb)}
+.bar .helpbtn{border-radius:50%}
+.bar button:disabled{opacity:1;background:transparent;color:var(--hdr-mute);border:1px dashed var(--hdr-mute)!important}
+.bar h1 .btgt{background:var(--hdr-btn);color:var(--hdr-ink)}
+/* 浮動面板：圓角、陰影，用留白分組 */
+.scrim{background:var(--scrim)}
+.sheet{background:var(--sheet);border:0;box-shadow:var(--sheet-shadow);border-radius:var(--rs) var(--rs) 0 0;gap:12px}
+@media (min-width:760px){.sheet{border-radius:var(--rs)}}
+.sheet::before{background:var(--line2)}
+.sheet .msec{border-top:0;padding-top:6px}
+.sheet .mbtn{border:0;background:var(--btn);color:var(--btn-ink);border-radius:var(--rb)}
+.sheet .pk3 button{border:0;background:var(--btn);color:var(--btn-ink);border-radius:var(--rb)}
+@media (orientation:landscape) and (max-height:520px){
+ .sheet>.row:last-child{background-color:var(--sheet);box-shadow:0 -8px 8px var(--sheet)}
+ .sheet>button:last-child:not(.primary):not(.danger):not(.dellink):not(.linkbtn){background-color:var(--btn);box-shadow:0 -8px 8px var(--sheet)}
+}
+.sheet>.sheetback{background:var(--btn);border:0}
+.sheet button:is([data-act=close],[data-act=penclose],[data-act=pmback]):not(.primary):not(.linkbtn):not(.go){background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+.teampick button{border:0;border-radius:var(--rb)}
+/* 離開這場比賽：比賽會保留，不是紅色；刪除才是紅色 */
+/* 底線字改成有框的小按鈕：刪除這場比賽、賽前沒收是紅框（救不回來），其他照一般按鈕 */
+.linkbtn.dangerlink{text-decoration:none;align-self:center;min-height:44px;padding:0 18px;border:1.5px solid var(--del);border-radius:var(--rb);background:transparent;color:var(--del);font-weight:700}
+/* 例外替補「宣告受傷」選中：和其他選中一樣用深色 */
+.excinj button[aria-pressed="true"]{background:var(--sel);border-color:var(--sel);color:var(--sel-on)}
+/* 主畫面 App：版頭和狀態列色帶是淺色時，狀態列的字要用深色（以前深藍色帶配白字） */
+@media (display-mode:standalone){html{color-scheme:light}}
+@media (display-mode:standalone) and (prefers-color-scheme:dark){html:not([data-theme="light"]){color-scheme:dark}}
+@media (display-mode:standalone){html[data-theme="dark"]{color-scheme:dark}}
+/* 下方步驟列：完成的步驟用一般按鈕的底色和深色勾（淺色版頭的白勾會看不見） */
+.stepn.done{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+/* 挑邊頁「賽前沒收」入口：紅框小按鈕，不是底線字 */
+.foot .pfbtn.ghost.full{width:auto;align-self:center;min-height:44px;padding:0 18px;background:transparent;border:1.5px solid var(--del);border-radius:var(--rb);color:var(--del);text-decoration:none;font-size:15px;font-weight:700}
+/* 退格、清空、移除、刪掉還沒確定的一組替補：可以再補回來，不用紅色 */
+.pad button.back,.chip.blank.clear,.bench .chip.blank.clear{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+.sheet .linkbtn.dangerlink,.sheet .linkbtn.dangerlink:last-child{text-decoration:none;color:var(--btn-ink);background:var(--btn);border:0;min-height:44px;padding:0 18px;border-radius:var(--rb);align-self:center;font-weight:700}
+.sheet .dellink,.sheet .dellink:last-child{align-self:center;min-height:44px;padding:0 18px;background:transparent;border:1.5px solid var(--del);color:var(--del);font-weight:700;box-shadow:none;margin-top:4px}
+/* 主畫面 */
+.hero{background:var(--hero);color:var(--hero-ink)}
+.hero h1{color:var(--hero-ink)}
+.hero p{color:var(--hero-sub)}
+.herocourt g{stroke:var(--hero-line);stroke-opacity:1}
+.herobtns button{background:var(--hero-btn);border:0;color:var(--hero-ink);border-radius:var(--rb)}
+.herocta{border-radius:var(--rb)}
+.herocta.second{background:var(--hero-btn);border:0;color:var(--hero-ink);box-shadow:none}
+.homebody h2{font-size:14px;letter-spacing:.04em;color:var(--muted);font-weight:600;border:0}
+.homebody section>h2{border-bottom:0;padding-bottom:0}
+.rlist{border-top:0}
+.rlist>*{border-bottom:0}
+.homebody .rrow{background:var(--card);border-radius:var(--rc);padding:4px 14px 14px;box-shadow:var(--card-shadow);border:0}
+.rmain{border:0}
+.rmain em{background:var(--accent);color:var(--accent-ink);border-radius:var(--rb);box-shadow:var(--accent-shadow)}
+.bkrow{border:0;padding:10px 14px;background:var(--note);border-radius:var(--rb)}
+.bkrow .muted{color:var(--note-ink);font-size:15px}
+.homefoot{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:4px}
+.homefoot button,.homefoot .aboutbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;border-radius:var(--rb);background:var(--btn);color:var(--btn-ink);font-size:15px;font-weight:700;margin:0}
+.homefoot svg{width:18px;height:18px}
+.verbtn{background:none!important;border:0!important}
+@media (orientation:landscape) and (min-width:640px){.homebody{justify-content:center}}
+/* 卡片加「打開 ›」：比賽、資料夾、隊伍、場地 */
+.shead .linkbtn{text-decoration:none;background:var(--btn);border:0;min-height:44px;padding:0 14px;border-radius:var(--rb);font-size:15px;color:var(--btn-ink)}
+.hrow.cupcard,.hrow.card{background:var(--card);border:0;border-radius:var(--rc);box-shadow:var(--card-shadow);margin:8px 0;padding:12px 14px}
+.hrow.card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px}
+.hrow.card>:not(.hgo){grid-column:1}
+.hrow.card>.hgo{grid-column:2;grid-row:1/span 2;font-weight:700;font-size:15px;color:var(--muted);white-space:nowrap}
+.cupcard .cupgo,.cupcard .cupic{color:var(--muted)}
+.rrow{border:0}
+.ftag{background:var(--track);color:var(--muted);border:0}
+.histtools button,.histtools .ghost-file{background:var(--btn);border:0;color:var(--btn-ink)}
+section>h2{border-color:transparent}
+/* 比賽頁 */
+.tg button,.pbtns button{background:var(--btn);border:0;color:var(--btn-ink)}
+.tg button b{color:var(--ink)}
+.setbox{background:var(--box);border-color:var(--box)!important;border-radius:6px}
+.net{background:var(--net)}
+.pcourt .pc{border-radius:5px}
+.board>.wbar{border-radius:8px}
+.capbox{background:var(--btn);border:0!important;border-radius:8px}
+.lc{border-radius:8px}
+.capbox span,.lc .lno{color:var(--muted)}
+.lc:not(.empty) .lno{color:inherit;opacity:.85}
+/* 空的 L 格不顯示（那一格留白）；整隊沒有自由球員時「自由」兩個字也不顯示 */
+.lc.empty{visibility:hidden}
+.wcol .strip.nolib::before{visibility:hidden}
+@media (orientation:portrait) and (max-width:759px){.pcourt{max-height:352px}}
+/* 記錄表頁 */
+.fsbtn,.xpbtn{background:var(--btn);border:0;color:var(--btn-ink)}
+.sheetfoot{background:var(--bg)}
+.ctv{border-radius:6px;box-shadow:var(--paper-shadow)}
+@media (min-width:760px){
+ .page:has(>.sheettabs)>.ctv{margin-top:auto}
+ .page:has(>.sheettabs)>.fsbtn{margin-bottom:auto}
+}
+
+/* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
+   選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
+:root{--bg:#EDF1F5;--panel:#FFFFFF;--soft:#E1E7EE;--line:#CCD5DF;--line2:#BFCAD6;--ink:#0F2438;--muted:#4F6276;--btn:#E1E7EE;--btn-edge:transparent;--btn-ink:#0F2438;--off:#EFF3F7;--off-edge:#B5C1CE;--off-ink:#7A8A9B;--field:#FFFFFF;--field-edge:#CCD5DF;--accent:#FFD21F;--accent-ink:#12324F;--on-accent:#12324F;--accent-shadow:none;--track:#E1E7EE;--sel:#12324F;--sel-on:#FFFFFF;--brand:#12324F;--hero:#12324F;--hdr-ink:#FFFFFF;--hdr-sub:rgba(255,255,255,.72);--hdr-btn:rgba(255,255,255,.14);--hdr-mute:rgba(255,255,255,.38);--hero-ink:#FFFFFF;--hero-sub:rgba(255,255,255,.86);--hero-btn:rgba(255,255,255,.14);--hero-line:rgba(255,255,255,.16);--scrim:rgba(8,24,40,.45);--sheet:#FFFFFF;--sheet-shadow:0 -10px 32px rgba(8,24,40,.2);--card:#FFFFFF;--card-shadow:0 1px 2px rgba(15,36,56,.08);--box:#12324F;--net:#0F2438;--faint:#8E9DAD;--paper-shadow:0 1px 3px rgba(15,36,56,.14);--note:#E3E9F0;--note-ink:#2E465E;--del:#A3211A;--del-on:#FFFFFF;--focus:#0F2438;--r:10px;--rb:10px;--rc:14px;--rs:18px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1828;--panel:#122438;--soft:#1A3049;--line:#2A4562;--line2:#35526F;--ink:#EEF3F9;--muted:#A3B6CA;--btn:#203A57;--btn-edge:transparent;--btn-ink:#EEF3F9;--off:#0F2033;--off-edge:#35526F;--off-ink:#6C849E;--field:#0F2033;--field-edge:#2A4562;--accent:#FFD21F;--accent-ink:#12324F;--on-accent:#12324F;--accent-shadow:none;--track:#0F2236;--sel:#EEF3F9;--sel-on:#0F2438;--brand:#0A1C30;--hero:#0F2A44;--hdr-ink:#EEF3F9;--hdr-sub:rgba(255,255,255,.66);--hdr-btn:rgba(255,255,255,.1);--hdr-mute:rgba(255,255,255,.3);--hero-ink:#EEF3F9;--hero-sub:rgba(255,255,255,.8);--hero-btn:rgba(255,255,255,.11);--hero-line:rgba(255,255,255,.13);--scrim:rgba(0,0,0,.6);--sheet:#132A43;--sheet-shadow:0 -10px 32px rgba(0,0,0,.55);--card:#122438;--card-shadow:none;--box:#203A57;--net:#DCE6F1;--faint:#5A728C;--paper-shadow:none;--note:#16304B;--note-ink:#C5D4E4;--del:#B23A30;--del-on:#FFFFFF;--focus:#FFD21F}}
+:root[data-theme="dark"]{--bg:#0B1828;--panel:#122438;--soft:#1A3049;--line:#2A4562;--line2:#35526F;--ink:#EEF3F9;--muted:#A3B6CA;--btn:#203A57;--btn-edge:transparent;--btn-ink:#EEF3F9;--off:#0F2033;--off-edge:#35526F;--off-ink:#6C849E;--field:#0F2033;--field-edge:#2A4562;--accent:#FFD21F;--accent-ink:#12324F;--on-accent:#12324F;--accent-shadow:none;--track:#0F2236;--sel:#EEF3F9;--sel-on:#0F2438;--brand:#0A1C30;--hero:#0F2A44;--hdr-ink:#EEF3F9;--hdr-sub:rgba(255,255,255,.66);--hdr-btn:rgba(255,255,255,.1);--hdr-mute:rgba(255,255,255,.3);--hero-ink:#EEF3F9;--hero-sub:rgba(255,255,255,.8);--hero-btn:rgba(255,255,255,.11);--hero-line:rgba(255,255,255,.13);--scrim:rgba(0,0,0,.6);--sheet:#132A43;--sheet-shadow:0 -10px 32px rgba(0,0,0,.55);--card:#122438;--card-shadow:none;--box:#203A57;--net:#DCE6F1;--faint:#5A728C;--paper-shadow:none;--note:#16304B;--note-ink:#C5D4E4;--del:#B23A30;--del-on:#FFFFFF;--focus:#FFD21F}
+
+.stepn.done{background:var(--brand);border-color:var(--brand);color:#fff}
+/* 學校版色帶一直是深藍，主畫面 App 的狀態列維持白字 */
+@media (display-mode:standalone){html,html[data-theme]{color-scheme:dark}}
+
 /* ========== 美國學校版 ========== */
 /* 強制深色的瀏覽器：網頁開頭已宣告有深淺兩種樣式；選了淺色就不讓瀏覽器改（主畫面 App 不動，狀態列顏色靠它）；球衣色票維持原色 */
 @media not all and (display-mode:standalone){:root[data-theme="light"]{color-scheme:only light}}
@@ -2071,7 +2224,7 @@ function doSub(ix,no){
 }
 function subPairs(){
   var m=current(),ids=ui.sub&&ui.sub.ids||[];if(!m||!ids.length)return '';
-  return '<div class="subpairs">'+ids.map(function(id){var e=m.events.filter(function(x){return x.id===id})[0];if(!e)return '';return '<div class="subpair"><span><b>'+e.data.out+'</b> 號下・<b>'+e.data.in+'</b> 號上</span><button class="danger" data-act="subdel" data-id="'+esc(id)+'" aria-label="刪除 '+e.data.out+' 號換 '+e.data.in+' 號">刪除</button></div>'}).join('')+'</div>';
+  return '<div class="subpairs">'+ids.map(function(id){var e=m.events.filter(function(x){return x.id===id})[0];if(!e)return '';return '<div class="subpair"><span><b>'+e.data.out+'</b> 號下・<b>'+e.data.in+'</b> 號上</span><button data-act="subdel" data-id="'+esc(id)+'" aria-label="刪除 '+e.data.out+' 號換 '+e.data.in+' 號">刪除</button></div>'}).join('')+'</div>';
 }
 function excAvail(s,k,idx){var lg=subOptions(s,k,idx,false);if(lg.err==='自由球員要先換回原本的球員')return false;if(lg.nos&&lg.nos.length)return false;var ex=subOptions(s,k,idx,true);return !!(ex.nos&&ex.nos.length)}
 function sheetLibs(t){return t.regLib||t.liberos}
@@ -2102,7 +2255,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1112-0722';
+var BUILD='測試版 1112-0915';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2409,7 +2562,7 @@ function staleHtml(){
   if(!staleTab)return '';
   return '<div class="stale" role="alertdialog" aria-modal="true"><div class="stalebox"><h2>這場比賽在別的分頁有新紀錄</h2><p>同一場比賽不能在兩個分頁一起記，這個分頁已經停用，剛才這一下沒有存進去。請重新載入，看到最新的比分後再繼續。</p><button class="primary" data-act="reload">重新載入</button></div></div>';
 }
-var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的紅字。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"fixsc","t":"改替補、暫停的比分","d":"按完替補，下方會寫「已記錄 3:2」，比分不對就按「修正比分」，打當時的比分。暫停的比分或之後才發現的，按「其他」→「修正比分」，或到「比賽紀錄」→「更正」點那一筆。只能改成這局打過的比分。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除，暫停和替補改人不會動到比分；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」→「陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選要備份的比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消。要全部就按「全選」，選好按「備份」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
+var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的「隊伍沒到或人數不足」。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"fixsc","t":"改替補、暫停的比分","d":"按完替補，下方會寫「已記錄 3:2」，比分不對就按「修正比分」，打當時的比分。暫停的比分或之後才發現的，按「其他」→「修正比分」，或到「比賽紀錄」→「更正」點那一筆。只能改成這局打過的比分。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆。各局開始和結束時間也在這裡改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除，暫停和替補改人不會動到比分；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」→「陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選要備份的比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消。要全部就按「全選」，選好按「備份」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
 function helpCards(){var g=HELP.filter(function(x){return x.id===ui.help.group})[0]||HELP[0];return g.cards.map(function(c){return {img:c.img,t:c.t,d:c.d,g:g.name}})}
 function helpHtml(){
   if(!ui.help)return '';
@@ -2563,15 +2716,15 @@ function setsText(s){var w=setsWon(s),T=matchTitle(s);return w[T[2]]+':'+w[T[3]]
 function resumeRow(m,s){
   var T=matchTitle(s),c=s.sets[s.setNo],started=s.sets[1].started;
   if(ui.delMatch===m.id)return '<div class="rrow ask"><span>刪除「'+esc(T[0])+' 對 '+esc(T[1])+'」？這場的紀錄會消失。</span><div class="row"><button data-act="del-no">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div></div>';
-  return '<div class="rrow"><button class="rmain" data-act="open" data-id="'+esc(m.id)+'"><strong>'+esc(T[0])+' 對 '+esc(T[1])+(s.info.sample?' <i class="pill">練習</i>':'')+'</strong><span class="muted">'+(started?'第 '+s.setNo+' 局，局數 '+setsText(s):'還沒開賽，接著準備')+'</span>'+(started&&c.started?'<b class="rscore">'+c.score[T[2]]+':'+c.score[T[3]]+'</b>':'')+'<em>'+(started?'繼續記錄':'繼續準備')+'</em></button><button class="rdel" data-act="del-ask" data-id="'+esc(m.id)+'" aria-label="刪除這場比賽">刪除</button></div>';
+  return '<div class="rrow"><button class="rmain" data-act="open" data-id="'+esc(m.id)+'"><strong>'+esc(T[0])+' 對 '+esc(T[1])+(s.info.sample?' <i class="pill">練習</i>':'')+'</strong><span class="muted">'+(started?'第 '+s.setNo+' 局，局數 '+setsText(s):'還沒開賽，接著準備')+'</span>'+(started&&c.started?'<b class="rscore">'+c.score[T[2]]+':'+c.score[T[3]]+'</b>':'')+'<em>'+(started?'繼續記錄':'繼續準備')+'</em></button></div>';
 }
 function shortTime(ms){var d=new Date(ms);return (d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
 function backedUp(m){var a=(prefs.bk&&prefs.bk[m.id])||0,b=prefs.lastBackup||0,e=m.events[m.events.length-1],t=e?new Date(e.at).getTime():0;return Math.max(a,b)>=t}
 function historyRow(m,s,del){
   var T=matchTitle(s),w=setsWon(s),aw=w[T[2]]>w[T[3]];
   if(del&&ui.delMatch===m.id)return '<div class="rrow ask"><span>刪除「'+esc(T[0])+' 對 '+esc(T[1])+'」？紀錄會一起消失。</span><div class="row"><button data-act="del-no">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div></div>';
-  if(del)return '<div class="rrow">'+historyRow(m,s)+'<button class="rdel" data-act="del-ask" data-id="'+esc(m.id)+'" aria-label="刪除這場比賽">刪除</button></div>';
-  return '<button class="hrow" data-act="open" data-from="history" data-id="'+esc(m.id)+'"><span class="muted">'+esc(s.info.date||'')+(s.info.game?'　第 '+esc(s.info.game)+' 場':'')+(s.info.sample?'　練習':'')+'</span><span class="hnames"><span'+(aw?' class="win"':'')+'>'+esc(T[0])+'</span><b>'+setsText(s)+'</b><span'+(aw?'':' class="win"')+'>'+esc(T[1])+'</span></span></button>';
+  if(del)return historyRow(m,s);
+  return '<button class="hrow card" data-act="open" data-from="history" data-id="'+esc(m.id)+'"><span class="muted">'+esc(s.info.date||'')+(s.info.game?'　第 '+esc(s.info.game)+' 場':'')+(s.info.sample?'　練習':'')+'</span><span class="hnames"><span'+(aw?' class="win"':'')+'>'+esc(T[0])+'</span><b>'+setsText(s)+'</b><span'+(aw?'':' class="win"')+'>'+esc(T[1])+'</span></span><span class="hgo" aria-hidden="true">打開 ›</span></button>';
 }
 function badRow(m){
   if(ui.delMatch===m.id)return '<div class="rrow ask"><span>刪除這場資料有問題的比賽？</span><div class="row"><button data-act="del-no">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div></div>';
@@ -2688,12 +2841,12 @@ function cupHtml(){
   if(cupView.grp&&gs.indexOf(cupView.grp)<0)cupView.grp='';
   if(gs.length)seg+='<div class="seg grpseg">'+[''].concat(gs).map(function(g){return '<button data-act="cupgrp" data-v="'+esc(g)+'" aria-pressed="'+(cupView.grp===g)+'">'+(g?esc(g):'全部')+'</button>'}).join('')+'</div>';
   var ts=dts.filter(function(x){return !cupView.grp||groupName(x.group)===cupView.grp});
-  var tr=ts.map(function(x){return '<button class="hrow" data-act="cupteam" data-id="'+esc(x.id)+'"><strong>'+esc(x.team.name)+'</strong><span class="muted">'+(groupName(x.group)?esc(groupName(x.group))+'・':'')+x.team.players.length+' 人'+(x.team.liberos.length?'・自由球員 '+x.team.liberos.length+' 人':'')+(x.team.captain===null?'・還沒有隊長':'')+'</span></button>'}).join('');
+  var tr=ts.map(function(x){return '<button class="hrow card" data-act="cupteam" data-id="'+esc(x.id)+'"><strong>'+esc(x.team.name)+'</strong><span class="muted">'+(groupName(x.group)?esc(groupName(x.group))+'・':'')+x.team.players.length+' 人'+(x.team.liberos.length?'・自由球員 '+x.team.liberos.length+' 人':'')+(x.team.captain===null?'・還沒有隊長':'')+'</span><span class="hgo" aria-hidden="true">打開 ›</span></button>'}).join('');
   var ms=all.filter(function(x){return cupDivOf(x.s)===cupView.div&&(!cupView.grp||groupName(x.s.info.group)===cupView.grp)}).map(function(x){
     var h=matchOver(x.s)?historyRow(x.m,x.s,true):resumeRow(x.m,x.s);
     return h.replace('data-from="history"','data-from="cup"').replace('class="rmain" data-act="open"','class="rmain" data-act="open" data-from="cup"');
   }).join('');
-  var cts=XP_ON?courtList(c):[],refSec=XP_ON?'<section><div class="shead"><h2>裁判名單</h2><button class="linkbtn" data-act="cupcourt">新增場地</button></div>'+(cts.length?'<div class="rlist">'+cts.map(function(q){return '<button class="hrow" data-act="cupcourt" data-v="'+esc(q.key)+'"><strong>'+esc(q.label)+'</strong><span class="muted">'+q.n+' 位裁判</span></button>'}).join('')+'</div>':'<p class="muted">依場地建裁判名單，記錄時點名字就好。比賽結束後，那一場的裁判也會自動加進該場地的名單。</p>')+'</section>':'';
+  var cts=XP_ON?courtList(c):[],refSec=XP_ON?'<section><div class="shead"><h2>裁判名單</h2><button class="linkbtn" data-act="cupcourt">新增場地</button></div>'+(cts.length?'<div class="rlist">'+cts.map(function(q){return '<button class="hrow card" data-act="cupcourt" data-v="'+esc(q.key)+'"><strong>'+esc(q.label)+'</strong><span class="muted">'+q.n+' 位裁判</span><span class="hgo" aria-hidden="true">打開 ›</span></button>'}).join('')+'</div>':'<p class="muted">依場地建裁判名單，記錄時點名字就好。比賽結束後，那一場的裁判也會自動加進該場地的名單。</p>')+'</section>':'';
   var liveN=all.filter(function(x){return !matchOver(x.s)}).length;
   return '<header class="bar"><button class="barback" data-act="history">‹ 紀錄與名單</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+refSec+seg+'<section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">先把各隊名單放進來，名單頁按「載入」就能選。</p>')+'</section><section><h2>比賽</h2>'+(ms?'<div class="rlist">'+ms+'</div>':'<p class="muted">這一組還沒有比賽。</p>')+'</section><div class="histtools"><button data-act="cupadd">把舊比賽加進來</button><button data-act="cupsave">存成檔案</button><button data-act="cuprename">改名</button><button data-act="cupdel">刪除資料夾</button></div><p class="muted">存成檔案後傳到另一台裝置，在「紀錄與名單」按匯入：名單、比賽都會帶過去，匯入前會先列出會改什麼。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></main>';
 }
@@ -2725,6 +2878,11 @@ var BIGCOURT='<svg class="herocourt" viewBox="0 0 400 300" preserveAspectRatio="
 var REPO_URL='https://github.com/KenChen0728/volleyball-scoresheet',introChecked=false;
 function aboutHtml(){
   if(!ui.about)return '';
+  if(ui.about==='settings'){var th=prefs.theme||'auto';
+    return '<div class="scrim" data-act="aboutclose"></div><div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="sett"><h2 id="sett">設定</h2>'+
+      '<div class="themerow"><span class="muted">提示字</span><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(x){return '<button data-act="hints" data-v="'+x[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+
+      '<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+
+      '<button data-act="aboutclose">關閉</button></div>';}
   var intro=ui.about==='intro',desc=XP_ON?'本系統為排球比賽電子記錄表，依中華民國排球協會記錄表格式產生紀錄，可離線使用。':'本系統為排球比賽電子記錄表，記錄比賽過程與結果，可離線使用。';
   return '<div class="scrim" data-act="aboutclose"></div><div class="sheet about" role="dialog" aria-modal="true" aria-labelledby="abt"><h2 id="abt">'+esc(document.title)+'</h2><dl class="abl">'+
     '<dt>系統說明</dt><dd>'+desc+'</dd>'+
@@ -2734,6 +2892,7 @@ function aboutHtml(){
     (intro?'':'<dt>版本</dt><dd>'+esc(BUILD)+'</dd><dt>授權全文與原始碼</dt><dd><a href="'+REPO_URL+'" target="_blank" rel="noopener">GitHub：KenChen0728/volleyball-scoresheet</a></dd><dt>問題回報</dt><dd>有問題請截圖傳給 Ken Chen。</dd>')+
     '</dl><button class="primary" data-act="aboutclose">'+(intro?'開始使用':'關閉')+'</button></div>';
 }
+var GEAR='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.3-2.9a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7z"/></svg>';
 function homeHtml(){
   var g=splitMatches(),inst='';
   if(canInstall()&&!prefs.hideInstall){
@@ -2746,11 +2905,9 @@ function homeHtml(){
   if(g.live.length)body+='<section><h2>進行中</h2><div class="rlist">'+g.live.map(function(x){return resumeRow(x.m,x.s)}).join('')+'</div></section>';
   var real=g.live.concat(g.done).filter(function(x){return !x.s.info.sample}),nb=real.filter(function(x){return !backedUp(x.m)}).length,lastBk=prefs.lastBackup||0;
   real.forEach(function(x){var t=prefs.bk&&prefs.bk[x.m.id];if(t>lastBk)lastBk=t});
-  if(real.length)body+='<div class="bkrow"><span class="muted">比賽只存在這台裝置。'+(nb?'有 '+nb+' 場還沒備份':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':''))+'，備份在「紀錄與名單」。</span></div>';
-  var th=prefs.theme||'auto';
-  body+=inst+'<div class="themerow"><span class="muted">提示字</span><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(x){return '<button data-act="hints" data-v="'+x[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>';
-  body+='<div class="themerow"><span class="muted">外觀</span><div class="seg three">'+[['auto','跟著裝置'],['light','淺色'],['dark','深色']].map(function(x){return '<button data-act="theme" data-v="'+x[0]+'" aria-pressed="'+(th===x[0])+'">'+x[1]+'</button>'}).join('')+'</div></div>'+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
-  return '<div class="home"><section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p><button class="primary herocta" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
+  if(real.length)body+='<div class="bkrow"><span class="muted">'+(nb?'有 '+nb+' 場還沒備份，備份在「紀錄與名單」。':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':'')+'。')+'</span></div>';
+  body+=inst+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<div class="homefoot"><button data-act="settings">'+GEAR+'設定</button><button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
+  return '<div class="home"><section class="hero"><h1 class="hmark" aria-label="Volleyball Score Sheet">'+HERO_MARK+'</h1><p>美國學校賽事專用<br>按得分，輪轉和發球自動處理</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
   var a=ui.importAsk;if(!a||!a.length)return '';
@@ -2762,7 +2919,7 @@ function historyHtml(){
   var g=splitMatches(),head='<header class="bar"><button class="barback" data-act="home">‹ 主畫面</button><h1>紀錄與名單</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
   if(ui.bkSel)return head+'<main class="page"><div class="narrow">'+bkPickHtml()+'</div></main>';
   var rows=g.done.map(function(x){var c=cupOf(x.m);return historyRow(x.m,x.s,true).replace('<span class="muted">','<span class="muted"><em class="ftag'+(c?'':' none')+'">'+esc(c?c.name:'未分類')+'</em>')}).join(''),can=g.live.length+g.done.length>0;
-  return head+'<main class="page"><div class="narrow">'+cupHomeHtml()+'<section><div class="shead"><h2>打完的比賽</h2>'+(can?'<button class="linkbtn" data-act="bksel">選擇</button>':'')+'</div><div id="rvmsg" class="muted" role="status"></div>'+(rows?'<p class="muted">點一場比賽就能看結果。前面標的是放在哪個資料夾。要備份就按「選擇」。</p><div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'</section><section><h2>備份和匯入</h2><div class="histtools"><button data-act="bksel"'+(can?'':' disabled')+'>選擇要備份的比賽</button><label class="ghost-file">匯入備份或資料夾<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div><div id="import-msg" class="muted" role="status">'+esc(ui.importMsg||'')+'</div><p class="muted">比賽只存在這台裝置。換手機或清除瀏覽器資料前，請先備份。資料夾的名單也可以到資料夾裡「存成檔案」。匯入前會先列出會改什麼。</p></section></div></main>';
+  return head+'<main class="page"><div class="narrow">'+cupHomeHtml()+'<section><div class="shead"><h2>打完的比賽</h2>'+(can?'<button class="linkbtn" data-act="bksel">選擇</button>':'')+'</div><div id="rvmsg" class="muted" role="status"></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'</section><section><h2>備份和匯入</h2><div class="histtools"><button data-act="bksel"'+(can?'':' disabled')+'>選擇要備份的比賽</button><label class="ghost-file">匯入備份或資料夾<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div><div id="import-msg" class="muted" role="status">'+esc(ui.importMsg||'')+'</div><p class="muted">換手機或清除瀏覽器資料前，請先備份。</p></section></div></main>';
 }
 /* ========== 11/11 勾選比賽再備份（使用者）：按「選擇」後單選、多選、全選，選好按「備份」，跳出視窗確定才存檔。
    每場比賽本身的兩隊名單和裁判在比賽紀錄裡，一定會帶；盃賽的全部隊伍名單、裁判名單寫出盃賽名稱和數量，讓使用者勾要不要帶。
@@ -2830,7 +2987,7 @@ function infoHtml(s){
     '<div class="wide seg">'+[[3,'三局兩勝'],[5,'五局三勝']].map(function(x){return '<button data-act="fmt" data-v="'+x[0]+'" aria-pressed="'+(fmtOf(s)===x[0])+'"'+(lk?' disabled':'')+'>'+x[1]+'</button>'}).join('')+'</div>'+
     '<button class="wide ptbtn" data-act="sheet" data-v="points"><span>每局分數設定</span><small>'+ptText(s)+'</small></button>'+
 
-    '</div>'+(lk?'':XP_ON?'<button class="primary full" data-act="page" data-v="refs">下一步：裁判</button>':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="danger full" data-act="sheet" data-v="leave">離開這場比賽</button>':'');
+    '</div>'+(lk?'':XP_ON?'<button class="primary full" data-act="page" data-v="refs">下一步：裁判</button>':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>')+(going?'<button class="full" data-act="sheet" data-v="leave">離開這場比賽</button>':'');
 }
 function ptText(s){var c=setList(s).map(function(n){return target(s,n)+(capOf(s,n)?'（搶 '+capOf(s,n)+'）':'')}).join('、');return setList(s).some(function(n){return capOf(s,n)})?c:c+'　Deuce 無上限'}
 function autoSlot(t){
@@ -2904,7 +3061,7 @@ function kpHtml(s){
   function key(n){return '<button data-act="key" data-team="'+k+'" data-v="'+n+'">'+n+'</button>'}
   if(m)hint='<span class="err" role="status">'+esc(m)+'</span>';
   else hint='<span>'+esc(tName(s,k))+'・'+(sl.kind==='lib'?'自由球員':'一般球員')+(sl.no!==null?' '+sl.no+' 號':'')+'</span>';
-  var acts=sl.no!==null?'<div class="acts"><button data-act="cap" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.captain===sl.no)+'"><i class="mk c">C</i>隊長</button><button data-act="lib" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.liberos.indexOf(sl.no)>=0)+'"><i class="mk">L</i>自由</button><button class="danger" data-act="rm" data-team="'+k+'" data-no="'+sl.no+'">移除</button></div>':'';
+  var acts=sl.no!==null?'<div class="acts"><button data-act="cap" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.captain===sl.no)+'"><i class="mk c">C</i>隊長</button><button data-act="lib" data-team="'+k+'" data-no="'+sl.no+'" aria-pressed="'+(t.liberos.indexOf(sl.no)>=0)+'"><i class="mk">L</i>自由</button><button data-act="rm" data-team="'+k+'" data-no="'+sl.no+'">移除</button></div>':'';
   return '<div class="kp '+k+'"><div class="kphead">'+hint+'<button class="go" data-act="kpclose" data-team="'+k+'">完成</button></div>'+acts+'<div class="pad">'+[1,2,3,4,5].map(key).join('')+
     '<button class="back" data-act="back" data-team="'+k+'" aria-label="刪除一碼">⌫</button>'+[6,7,8,9,0].map(key).join('')+
     '<button class="add" data-act="add" data-team="'+k+'">'+(sl.no===null&&sl.kind==='reg'?'下一格':'確定')+'</button></div></div>';
@@ -3031,7 +3188,7 @@ function libStrip(s,k,mir){
   });
   var cap=actingCap(c,t,k),capOn=c.cur[k].indexOf(t.captain)>=0,noCap=t.captain===null;
   var cb='<button class="capbox '+k+(noCap||cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+(noCap?' 還沒有隊長，點一下指定':' 場上隊長 '+(cap==null?'未指定':cap+' 號'))+'"><span class="lno">隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
-  return '<div class="strip '+k+(mir?' mir':'')+'"><div class="ls">'+slots.join('')+'</div>'+cb+'</div>';
+  return '<div class="strip '+k+(mir?' mir':'')+(t.liberos.length?'':' nolib')+'"><div class="ls">'+slots.join('')+'</div>'+cb+'</div>';
 }
 function teamTools(s,k){
   var c=s.sets[s.setNo],ok=canPause(c),ex=c.subs[k].length-c.subCount[k];
@@ -3143,13 +3300,22 @@ function fixList(s){
   var lufix=fixable?'<div class="fixblock"><strong>先發背號打錯</strong><div class="mteams">'+[L,other(L)].map(function(q){return '<button class="'+q+'" data-act="fixopen" data-team="'+q+'" data-v="'+n+'">'+esc(tName(s,q))+'</button>'}).join('')+'</div></div>':'';
   return '<div class="narrow">'+seg+times+'<p class="subhint">暫停、替補或判罰按錯，點那一筆</p>'+(ui.fixDone?'<p class="good fixdone" role="status">'+esc(ui.fixDone.t)+'</p>':'')+(rows.length?'<div class="fixlist">'+rows.join('')+'</div>':'<p class="note">這局沒有暫停、替補或判罰。</p>')+lufix+'<p class="muted">更正暫停、替補和先發後，分數和輪轉不變。</p></div>';
 }
+/* 記錄表「各局」：預設是現在這一局；下面只列打過的局，只有一局時不顯示 */
+function setTabNo(s){var n=s.setNo;while(n>1&&!(s.sets[n]&&s.sets[n].started))n--;return n}
+function setPick(s,tab){
+  if(!/^s[123]$/.test(tab))return '';
+  var ns=[1,2,3].filter(function(n){return s.sets[n]&&s.sets[n].started});
+  return ns.length>1?'<div class="setpick" role="group" aria-label="第幾局">'+ns.map(function(n){return '<button data-act="rtab" data-v="s'+n+'" aria-pressed="'+(tab==='s'+n)+'">第 '+n+' 局</button>'}).join('')+'</div>':'';
+}
 function resultHtml(s,pv){
   var w=setsWon(s),win=w.t1>w.t2?'t1':'t2',over=matchOver(s)&&!pv;
   var tabs=[['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
   if(XP_ON)tabs.splice(tabs.length-1,0,['ref','裁判']);
   var tab=ui.rtab||'res';
   var pend=pv?'<div class="foot pendfoot"><div class="row pendrow"><button data-act="undo">↶ 復原上一步</button><button class="go guarded" data-act="endset" data-team="'+pv+'"'+(Date.now()<(ui.noEnd||0)?' disabled':'')+'>確定'+(matchOver(s)?'比賽':'本局')+'結束</button></div></div>':'';
-  var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+wholeHtml(s)+'<div class="rtabs sheettabs">'+tabs.map(function(x){return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+'';
+  var head=(pv?'<div class="good">'+esc(tName(s,pv))+' 贏下第 '+s.setNo+' 局，請先核對比分</div>'+pend:'')+wholeHtml(s)+'<div class="rtabs sheettabs">'+tabs.map(function(x){
+      if(x[0]==='set'){var onSet=/^s[123]$/.test(tab);return '<button data-act="rtab" data-v="'+(onSet?tab:'s'+setTabNo(s))+'" aria-pressed="'+onSet+'">'+x[1]+'</button>'}
+      return '<button data-act="rtab" data-v="'+x[0]+'" aria-pressed="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+setPick(s,tab);
   var back=pv||over?'':'<div class="foot sheetfoot"><div class="row">'+wholeBtn()+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';
   if(back&&typeof wide==='string'&&wide&&wide.indexOf('sheetbtns')<0&&isWide()){back='<div class="foot sheetfoot"><div class="row">'+wide+wholeBtn()+xpBtn()+'<button class="sv" data-act="sheetclose">返回比賽</button></div></div>';wide=''}
   if(XP_ON&&(tab==='pen'||tab==='note'||tab==='res'&&!over||/^s[123]$/.test(tab)))return head+ctPage(s,tab)+(/^s/.test(tab)?wide:'')+back+(/^s/.test(tab)?fs(ctPage(s,tab)):'');
@@ -3320,11 +3486,11 @@ function penHtml(s){
     function cnt(q){return s.sanctions.filter(function(x){return x.team===k&&x.kind===q}).length}
     var ir=cnt('IR'),dw=cnt('DW'),yw=cnt('W');
     if(p.who!=null){var pg=sanGone(s,k,p.who);
-      h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+p.who+' 號 判罰</h2><p class="muted">照裁判的判決點選。'+(pg==='E'?'這局已出局，只能再判出場。':'')+'</p><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw||pg?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"'+(pg?' disabled':'')+'><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"'+(pg?' disabled':'')+'><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>一手舉兩張</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>兩手各一張</small></button></div><button data-act="penclose">取消</button>';
+      h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+p.who+' 號 判罰</h2><p class="muted">照裁判的判決點選。'+(pg==='E'?'這局已出局，只能再判出場。':'')+'</p><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw||pg?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"'+(pg?' disabled':'')+'><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"'+(pg?' disabled':'')+'><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場</button></div><button data-act="penclose">取消</button>';
       return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(p.back?BACK_BTN:'')+h+'</div>';}
     h='<h2>判罰</h2><p class="muted">照裁判的判決點選。'+(ir||dw||yw?'標示已用的項目，一隊一場只能記一次。':'')+'</p>'+teams+'<div class="muted">球隊</div><div class="pk3"><button data-act="pendo" data-team="'+k+'" data-v="IR"'+(ir?' disabled':'')+'>不當請求'+(ir?'（已用）':'')+'</button><button class="yl" data-act="pendo" data-team="'+k+'" data-v="DW"'+(dw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>延誤警告'+(dw?'（已用）':'')+'</button><button class="rd" data-act="pendo" data-team="'+k+'" data-v="DP"><span class="ic"><i class="cd cr"></i></span>延誤懲罰</button></div>'+
-      '<div class="muted">個人</div><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局<small>一手舉兩張</small></button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場<small>兩手各一張</small></button></div>'+
-      '<div class="row"><button data-act="penkind" data-team="'+k+'" data-v="LOG">判罰紀錄（'+s.sanctions.length+'）</button><button class="primary" data-act="penclose">關閉</button></div>';
+      '<div class="muted">個人</div><div class="pk3 four"><button class="yl" data-act="penkind" data-team="'+k+'" data-v="W"'+(yw?' disabled':'')+'><span class="ic"><i class="cd cy"></i></span>黃牌警告'+(yw?'（已用）':'')+'</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="P"><span class="ic"><i class="cd cr"></i></span>紅牌懲罰</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="E"><span class="ic same"><i class="cd cy"></i><i class="cd cr"></i></span>出局</button><button class="rd" data-act="penkind" data-team="'+k+'" data-v="D"><span class="ic apart"><i class="cd cy"></i><i class="cd cr"></i></span>出場</button></div>'+
+      '<div class="row"><button data-act="penkind" data-team="'+k+'" data-v="LOG">判罰紀錄（'+s.sanctions.length+'）</button><button data-act="penclose">關閉</button></div>';
   }
   return '<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true">'+(sb!==null?sb:(p.back?BACK_BTN:''))+h+'</div>';
 }
@@ -3492,9 +3658,10 @@ function sheetHtml(s,m){
     if(!ask)h+='<button class="mbtn big" data-act="tfask" data-v="swap"'+(tb?' disabled':'')+'><strong>左右寫反，兩隊對調</strong><small>隊名和背號交換，比分留在原本那一邊</small></button>'+(tb?'<p class="cuperr">這局已有替補、自由球員或判罰紀錄。請先按復原退回那些動作。</p>':'')+'<button class="mbtn big" data-act="tfask" data-v="serve"><strong>只有先發球記錯</strong><small>改成 '+esc(tName(s,other(tc.serve)))+' 先發球，比分不變，輪轉重算</small></button><button class="ghost" data-act="close">取消</button>';
     else h+='<p class="muted">'+(ask==='swap'?'左邊會變成 '+esc(tName(s,other(tc.left)))+'，右邊變成 '+esc(tName(s,tc.left))+'。比分 '+tc.score[tc.left]+' : '+tc.score[other(tc.left)]+' 留在原本的位置。':'改成 '+esc(tName(s,other(tc.serve)))+' 先發球。')+'</p><button class="primary" data-act="tfdo">確定修正</button><button class="ghost" data-act="tfask" data-v="">上一步</button>';
   }else if(x.type==='delmatch'){
+    if(x.back)stepBack=BACK_BTN;
     h='<h2>刪除這場比賽？</h2><p class="muted">紀錄會一起消失，無法復原。要保留的話先下載備份。</p><div class="row"><button data-act="close">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div>';
   }else if(x.type==='leave'){
-    h='<h2>離開這場比賽？</h2><p class="muted">比賽還沒打完。紀錄會保留，之後在主畫面按「繼續記錄」。</p><div class="row"><button data-act="close">取消</button><button class="danger" data-act="home">確定離開</button></div>';
+    h='<h2>離開這場比賽？</h2><p class="muted">紀錄會保留，之後在主畫面按「繼續記錄」。</p><div class="row"><button data-act="close">取消</button><button class="primary" data-act="home">確定離開</button></div><button class="dellink" data-act="leavedel">刪除這場比賽</button>';
   }else if(x.type==='pf'){
     var pn=s.teams.t1.name.trim()&&s.teams.t2.name.trim();
     if(!pn)h='<h2>賽前沒收</h2><p class="subhint">請先到名單填好兩隊隊名</p><button data-act="close">關閉</button>';
@@ -3878,6 +4045,8 @@ app.addEventListener('click',function(e){
     case 'pfwin': ui.sheet.win=k; break;
     case 'pfdo': dispatch('PRE_FORFEIT',{winner:ui.sheet.win,reason:ui.sheet.reason}); ui.sheet=null; ui.page='play'; ui.rtab='note'; break;
     case 'about': ui.about='about'; break;
+    case 'settings': ui.about='settings'; break;
+    case 'leavedel': ui.sheet={type:'delmatch',back:ui.sheet}; break;
     case 'aboutclose': ui.about=null; break;
     case 'helpopen': ui.help={group:helpGroup(s),i:0}; break;
     case 'helpmenu': ui.help={group:null,i:0}; break;
