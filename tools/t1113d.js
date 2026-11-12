@@ -23,6 +23,7 @@ for(const [w,h] of [[402,874],[1180,820]]){
   const path=async()=>{const e=await evs(),dead={},pt={};e.forEach(x=>{if(x.type==='UNDO')dead[x.data.target]=1});
     e.forEach(x=>{if(x.type!=='AMEND'||dead[x.id])return;if(x.data.multi)x.data.multi.forEach(q=>{pt[q.target]=Object.assign(pt[q.target]||{},q.patch)});else if(x.data.del)dead[x.data.target]=1;else if(x.data.target)pt[x.data.target]=Object.assign(pt[x.data.target]||{},x.data.patch)});
     const out=[];e.forEach(x=>{if(dead[x.id]||x.type==='UNDO'||x.type==='AMEND')return;const d=Object.assign({},x.data,pt[x.id]||{});if(d.set!==1)return;if(x.type==='POINT')out.push(d.team);if(x.type==='SANCTION'&&(d.kind==='P'||d.kind==='DP'))out.push(d.team==='t1'?'t2':'t1')});return out};
+  const show=async sel=>{if(await p.locator(sel).count()||!await p.locator('.ctov').count())return;for(const f of [.7,.3,.5,.15,.9]){const o=await p.locator('.ctov').first().boundingBox();await p.mouse.click(o.x+o.width*f,o.y+o.height/2);await W(250);if(await p.locator(sel).count())return}};
   const setup=async pen=>{await fresh();await flow.start(p,{serve:'t1'});await W(300);
     const e0=await evs();const toss=e0.filter(x=>x.type==='TOSS_SET'&&x.data.set===1).pop().data,N=toss.serve,Z=N==='t1'?'t2':'t1';
     const seq=[Z,Z,Z,Z,N,Z].concat(Array(10).fill(Z),[N,Z,N,N,Z,N,Z,N,Z,N,Z],Array(4).fill(Z)); // 打到 7:24，最後一分用按的
@@ -36,15 +37,15 @@ for(const [w,h] of [[402,874],[1180,820]]){
   const elec=boxes(seq.concat([Z]),N);ok(tag+'setup boxes',elec[Z].join()==='4,15,16,17,18,19,25'&&elec[N].join()==='0,1,2,4,5,6,7',elec);
   // 還在打的局：記錄表只能點暫停、替補、先發，不能點發球格
   await p.click('[data-act=sheetopen]');await W(350);await p.locator('.sheettabs [data-act=rtab][data-v^=s]').first().click();await W(300);
-  ok(tag+'live set: P cells',await p.locator('rect.hot[data-v^="1:P:"]').count()===12,await p.locator('rect.hot').count());
+  ok(tag+'live set: P cells',await p.locator('rect.hot[data-v^="1:P:"]').count()===(w<600?6:12),await p.locator('rect.hot').count());
   ok(tag+'live set: no box cells',await p.locator('rect.hot[data-v^="1:B:"]').count()===0);
   ok(tag+'live set note',(await p.locator('.ctnote').innerText()).includes('這局打完，發球格也能改'));
   await p.click('[data-act=sheetclose]');await W(250);
   await point(Z);await W(450);await p.click('.sheet.setend [data-act=endok]');await W(300);
-  ok(tag+'box cells on end view',await p.locator('rect.hot[data-v^="1:B:"]').count()===12,await p.locator('rect.hot').count());
+  ok(tag+'box cells on end view',await p.locator('rect.hot[data-v^="1:B:"]').count()===(w<600?6:12),await p.locator('rect.hot').count());
   ok(tag+'end hint mentions box',(await p.locator('.endhint').innerText()).includes('發球格'));
   // 點 Z 隊 III 位的發球格
-  await p.locator(`rect.hot[data-team=${Z}][data-v="1:B:2"]`).first().click();await W(200);
+  await show(`rect.hot[data-team=${Z}][data-v="1:B:2"]`);await p.locator(`rect.hot[data-team=${Z}][data-v="1:B:2"]`).first().click();await W(200);
   let t=await sheet();ok(tag+'box sheet',t.includes('第 1 局發球格')&&t.includes('照紙本改不一樣的格子'),t);
   ok(tag+'six columns',await p.locator('.sheet .bxcol').count()===6);
   ok(tag+'tapped column on',(await p.locator('.sheet .bxcol.on > b').innerText())==='III');
@@ -78,17 +79,17 @@ for(const [w,h] of [[402,874],[1180,820]]){
   ok(tag+'still pending after undo',await p.locator('.foot [data-act=endset]').count()===1);
   // 「各局」也能改發球格（這局已經有勝隊）
   await p.click('.sheettabs [data-act=rtab][data-v^=s]');await W(300);
-  ok(tag+'set tab box cells',await p.locator('rect.hot[data-v^="1:B:"]').count()===12);
+  const sbc=await p.locator('rect.hot[data-v^="1:B:"]').count();ok(tag+'set tab box cells',w<600?sbc>=3:sbc===12,sbc);
   ok(tag+'set tab note',(await p.locator('.ctnote').innerText()).includes('發球格點一下'));
-  if(w<600)ok(tag+'set tab parts on phone',await p.locator('.ctparts .ctv').count()===2);
-  await p.locator(`rect.hot[data-team=${N}][data-v="1:B:0"]`).first().click();await W(200);
+  if(w<600)ok(tag+'set tab loupe on phone',await p.locator('.loupe .lmag').count()===1);
+  await show(`rect.hot[data-team=${N}][data-v="1:B:0"]`);await p.locator(`rect.hot[data-team=${N}][data-v="1:B:0"]`).first().click();await W(200);
   ok(tag+'N sheet: first box editable',(await p.locator('.sheet .bxcol').nth(0).locator('input.bxc').count())===1&&(await p.locator('.sheet .bxcol').nth(0).locator('.bxlast').innerText())==='7');
   await p.click('.sheet [data-act=close]');await W(200);
   // 比賽確定結束後不能改：這裡只確認下一局之後上一局還能改
   await p.click('.foot [data-act=endset]');await W(400);
   // 判罰給分那一分不能被改到
   await setup(true);await point(Z);await W(450);await p.click('.sheet.setend [data-act=endok]');await W(300);
-  await p.locator(`rect.hot[data-team=${Z}][data-v="1:B:2"]`).first().click();await W(200);
+  await show(`rect.hot[data-team=${Z}][data-v="1:B:2"]`);await p.locator(`rect.hot[data-team=${Z}][data-v="1:B:2"]`).first().click();await W(200);
   await inp(2,0).fill('14');await inp(3,0).fill('15');await p.click('.sheet [data-act=bxgo]');await W(250);
   ok(tag+'penalty point blocked',(await sheet()).includes('會動到判罰給分的那一分'),await sheet());
   await p.click('.sheet [data-act=close]');await W(200);

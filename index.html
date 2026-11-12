@@ -1761,7 +1761,11 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .landsheet .ctv{width:100%;height:100%;background:none;box-shadow:none;border-radius:0}
 .landsheet .ctv svg{width:100%;height:100%}
 .endhint{margin:0 2px}
-.ctparts{display:grid;gap:8px}
+/* 手機直放的放大鏡 */
+.loupe{display:flex;flex-direction:column;gap:6px}
+.ctov{position:relative;cursor:pointer}
+.ctov .lframe{position:absolute;top:0;bottom:0;border:2px solid var(--focus,#2e6cb7);border-radius:4px;box-shadow:0 0 0 999px rgba(0,0,0,.10);pointer-events:none}
+.lhint{margin:0;text-align:center;font-size:14px;color:var(--muted)}
 .ctv.hot rect.hot{fill:transparent;cursor:pointer}
 .ctv.hot rect.hot:active{fill:rgba(46,108,183,.18)}
 @media (hover:hover){.ctv.hot rect.hot:hover{fill:rgba(46,108,183,.10)}}
@@ -2242,7 +2246,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1113-0518';
+var BUILD='1113-0529';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -3638,15 +3642,17 @@ function ctHot(s,n,box,o){ o=o||{pt:true}; // o.pt 位置和暫停、o.sv 發球
   else{blk(T.L,g.B1,g.P1);blk(T.R,g.B2,g.P2);if(c.swapSnap)blk(T.L,g.B3,g.P3)}
   return h;
 }
-/* 手機寬度：兩隊（決勝局是換場前後和另一隊）分開裁，上下排，格子放大才點得到 */
-var CT_PARTS={1:[[32.9,112.6,391.9,310.2],[391.9,112.6,637.6,310.2]],2:[[639.4,109.8,913.7,311.4],[913.7,109.8,1161.7,311.4]],3:[[33.2,324.1,396.3,531.2],[396.3,324.1,641.2,531.2],[641.2,324.1,927.1,531.2]]};
+/* 11/13 手機直放（使用者 11/12 選 A）：上面整局縮小，框起來的那一塊在下面放大；點上面哪裡就放大哪裡，紙本的樣子不拆開。
+   放大的寬度固定（記錄表的 242 單位，第 1 局大約四成），下面那塊才有可以點的格子 */
+var LOUPE_W=242;
+function loupeX(s,n){var b=CTG.setBox[n],W=b[2]-b[0],fw=Math.min(LOUPE_W,W),g=CTG.sets[n],blk=n<3?g.L:g.B1,x=ui.loupe&&ui.loupe[n]!=null?ui.loupe[n]:blk.cols[0]-6;return Math.max(b[0],Math.min(b[2]-fw,x))}
 function ctViewHot(s,n,o){
-  var m0=1.2,ed=o&&(o.pt||o.sv),lab=' role="img" aria-label="第 '+n+' 局記錄表'+(ed?'，點格子可以修改':'')+'">';
-  function mask(b){var y=b[1]-m0,hh=b[3]-b[1]+m0*2,ww=m0-.5;return '<rect x="'+(b[0]-m0)+'" y="'+y+'" width="'+ww+'" height="'+hh+'" fill="#fff"/><rect x="'+(b[2]+.5)+'" y="'+y+'" width="'+ww+'" height="'+hh+'" fill="#fff"/>'} // 分開裁時，旁邊那一隊露出來的一點點邊蓋掉
-  function one(b,w){var v=ctSvg(s,[b[0]-m0,b[1]-m0,b[2]-b[0]+m0*2,b[3]-b[1]+m0*2],false,(w?mask(b):'')+(ed?ctHot(s,n,b,o):'')).replace(/ width="[\d.]+" height="[\d.]+">/,lab);return '<div class="ctv ctv-set'+(ed?' hot':'')+'"'+(w?' style="width:'+w+'%"':'')+'>'+v+'</div>'}
-  if(innerWidth>=600)return one(CTG.setBox[n]);
-  var ps=CT_PARTS[n].filter(function(b,i){return n<3||i<2||s.sets[3].swapSnap}),mw=Math.max.apply(null,ps.map(function(b){return b[2]-b[0]}));
-  return '<div class="ctparts">'+ps.map(function(b){return one(b,((b[2]-b[0])/mw*100).toFixed(1))}).join('')+'</div>';
+  var m0=1.2,ed=o&&(o.pt||o.sv),box=CTG.setBox[n];
+  function one(b,cls,hot){var v=ctSvg(s,[b[0]-m0,b[1]-m0,b[2]-b[0]+m0*2,b[3]-b[1]+m0*2],false,hot?ctHot(s,n,b,o):'').replace(/ width="[\d.]+" height="[\d.]+">/,' role="img" aria-label="第 '+n+' 局記錄表'+(hot?'，點格子可以修改':'')+'">');return '<div class="ctv ctv-set'+(hot?' hot':'')+(cls?' '+cls:'')+'">'+v+'</div>'}
+  if(innerWidth>=600)return one(box,'',ed);
+  var W=box[2]-box[0],fw=Math.min(LOUPE_W,W),x=loupeX(s,n),cw=W+m0*2;
+  var ov=one(box,'',false).replace('<div class="ctv ctv-set">','<div class="ctv ctv-set ctov" data-act="loupe" data-v="'+n+'">').replace('</svg></div>','</svg><i class="lframe" style="left:'+((x-box[0]+m0)/cw*100).toFixed(2)+'%;width:'+(fw/cw*100).toFixed(2)+'%"></i></div>');
+  return '<div class="loupe">'+ov+'<p class="lhint">點上面的記錄表，下面就放大那一塊</p>'+one([x,box[1],x+fw,box[3]],'lmag',ed)+'</div>';
 }
 /* App 記錄表分頁：各局、結果、判罰、記事都直接從協會記錄表裁出來，和匯出一樣（11/7 使用者） */
 function ctView(s,box,cls,m){m=m==null?4:m;var cr=[box[0]-m,box[1]-m,box[2]-box[0]+m*2,box[3]-box[1]+m*2],v=ctSvg(s,cr).replace(/ width="[\d.]+" height="[\d.]+">/,' role="img" aria-label="記錄表">');return '<div class="ctv '+(cls||'')+'">'+v+'</div>'}
@@ -5113,6 +5119,9 @@ app.addEventListener('click',function(e){
       break;
     case 'forfeit': dispatch('FORFEIT',{team:k}); ui.pen=null; ui.sub=null; ui.timer=null; ui.page='play'; break;
     case 'rtab': ui.rtab=b.getAttribute('data-v'); break;
+    case 'loupe': // 手機直放：點上面的整局，下面放大那一塊（點的地方放在中間）
+      var lpn=Number(b.getAttribute('data-v')),lpb=CTG.setBox[lpn],lpr=b.getBoundingClientRect(),lpw=lpb[2]-lpb[0]+2.4,lpx=lpb[0]-1.2+(e.clientX-lpr.left)/lpr.width*lpw;
+      (ui.loupe=ui.loupe||{})[lpn]=lpx-Math.min(LOUPE_W,lpb[2]-lpb[0])/2; ui.loupe[lpn]=loupeX(s,lpn); break;
     case 'fsopen':
       ui.fs=true;
       try{var fe=document.documentElement;if(fe.requestFullscreen){var fp=fe.requestFullscreen();if(fp&&fp.then)fp.then(function(){if(screen.orientation&&screen.orientation.lock)return screen.orientation.lock('landscape')}).catch(function(){})}}catch(err){}

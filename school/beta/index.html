@@ -1761,7 +1761,11 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .landsheet .ctv{width:100%;height:100%;background:none;box-shadow:none;border-radius:0}
 .landsheet .ctv svg{width:100%;height:100%}
 .endhint{margin:0 2px}
-.ctparts{display:grid;gap:8px}
+/* 手機直放的放大鏡 */
+.loupe{display:flex;flex-direction:column;gap:6px}
+.ctov{position:relative;cursor:pointer}
+.ctov .lframe{position:absolute;top:0;bottom:0;border:2px solid var(--focus,#2e6cb7);border-radius:4px;box-shadow:0 0 0 999px rgba(0,0,0,.10);pointer-events:none}
+.lhint{margin:0;text-align:center;font-size:14px;color:var(--muted)}
 .ctv.hot rect.hot{fill:transparent;cursor:pointer}
 .ctv.hot rect.hot:active{fill:rgba(46,108,183,.18)}
 @media (hover:hover){.ctv.hot rect.hot:hover{fill:rgba(46,108,183,.10)}}
@@ -2383,7 +2387,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1113-0518';
+var BUILD='測試版 1113-0529';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4719,6 +4723,9 @@ app.addEventListener('click',function(e){
       break;
     case 'forfeit': dispatch('FORFEIT',{team:k}); ui.pen=null; ui.sub=null; ui.timer=null; ui.page='play'; break;
     case 'rtab': ui.rtab=b.getAttribute('data-v'); break;
+    case 'loupe': // 手機直放：點上面的整局，下面放大那一塊（點的地方放在中間）
+      var lpn=Number(b.getAttribute('data-v')),lpb=CTG.setBox[lpn],lpr=b.getBoundingClientRect(),lpw=lpb[2]-lpb[0]+2.4,lpx=lpb[0]-1.2+(e.clientX-lpr.left)/lpr.width*lpw;
+      (ui.loupe=ui.loupe||{})[lpn]=lpx-Math.min(LOUPE_W,lpb[2]-lpb[0])/2; ui.loupe[lpn]=loupeX(s,lpn); break;
     case 'sheetopen': ui.liveSheet=true; ui.sub=null; ui.rtab='res'; break;
     case 'sheetclose': ui.liveSheet=false; ui.rtab=null; ui.whole=false; break;
 

@@ -28,6 +28,8 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
       localStorage.setItem(k,JSON.stringify(d))},KEY);
     await p.reload();await W(400);await closeAbout()};
   const win=p.locator('.sheet.setend');
+  // 手機直放：上面整局、下面放大（11/13 第 18 項）。要點的格子不在下面時，點上面把那一塊移過來
+  const show=async sel=>{if(await p.locator(sel).count()||!await p.locator('.ctov').count())return;for(const f of [.7,.3,.5,.15,.9]){const o=await p.locator('.ctov').first().boundingBox();await p.mouse.click(o.x+o.width*f,o.y+o.height/2);await W(250);if(await p.locator(sel).count())return}};
 
   // ---------- 視窗 ----------
   await setup();const s0=await st();ok(tag+'24:20',s0.score.t1===24&&s0.score.t2===20,s0.score);
@@ -83,10 +85,13 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
     ok(tag+'end tab first and on',await p.locator('.sheettabs [data-act=rtab]').first().getAttribute('data-v')==='end'&&await p.locator('[data-act=rtab][data-v=end][aria-pressed=true]').count()===1);
     ok(tag+'end view',await p.locator('.endview .ctv.hot').count()>=1&&await p.locator('.endview .ctv-res').count()===1);
     ok(tag+'end hint',(await p.locator('.endhint').innerText()).includes('點一下，就能修改或補記'));
-    const hot=p.locator('rect.hot');ok(tag+'hot cells 26',await hot.count()===26,await hot.count()); // 11/13 加發球格 12 格
-    if(w<600){ok(tag+'two parts on phone',await p.locator('.ctparts .ctv').count()===2);
-      ok(tag+'part A has A cells',await p.locator('.ctparts .ctv').nth(0).locator(`rect.hot[data-team=${s1.A}]`).count()===13&&await p.locator('.ctparts .ctv').nth(1).locator(`rect.hot[data-team=${s1.B}]`).count()===13);
-    }else ok(tag+'one sheet on tablet',await p.locator('.ctparts').count()===0&&await p.locator('.ctv.hot').count()===1);
+    const hot=p.locator('rect.hot');
+    if(w<600){ok(tag+'loupe on phone',await p.locator('.loupe .ctov').count()===1&&await p.locator('.loupe .lmag').count()===1&&await p.locator('.ctov rect.hot').count()===0);
+      ok(tag+'loupe shows team A cells',await p.locator(`.lmag rect.hot[data-team=${s1.A}][data-v*=":P:"]`).count()===6&&await p.locator(`.lmag rect.hot[data-team=${s1.B}][data-v*=":P:"]`).count()===0,await hot.count());
+      const f0=await p.locator('.lframe').boundingBox();const o0=await p.locator('.ctov').boundingBox();await p.mouse.click(o0.x+o0.width*.85,o0.y+o0.height/2);await W(250);const f1=await p.locator('.lframe').boundingBox();
+      ok(tag+'tap moves frame',f1.x>f0.x+40&&await p.locator(`.lmag rect.hot[data-team=${s1.B}]`).count()>0,[f0,f1]);
+      await p.mouse.click(o0.x+o0.width*.2,o0.y+o0.height/2);await W(250);
+    }else ok(tag+'hot cells 26',await hot.count()===26,await hot.count()),ok(tag+'one sheet on tablet',await p.locator('.ctparts').count()===0&&await p.locator('.ctv.hot').count()===1);
     const ws=await p.locator('rect.hot[data-v$=":P:0"]').evaluateAll(a=>a.map(e=>{const r=e.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)]}));
     ok(tag+'cells big enough',ws.every(x=>x[0]>=30&&x[1]>=60),ws);
     // 重新整理：確定過就不再跳
@@ -123,7 +128,7 @@ for(const [w,h] of SCHOOL?[[402,874]]:[[402,874],[1180,820]]){
     ok(tag+'sub listed',await p.locator('.sheet .fixrow').count()===1&&(await p.locator('.sheet .fixrow b').innerText()).includes('換'),await sheet());
     await p.click('.sheet [data-act=close]');await W(150);
     // 先發背號真的改
-    await p.locator(`rect.hot[data-team=${s1.B}][data-v="1:P:1"]`).click();await W(150);
+    await show(`rect.hot[data-team=${s1.B}][data-v="1:P:1"]`);await p.locator(`rect.hot[data-team=${s1.B}][data-v="1:P:1"]`).click();await W(150);
     await p.click('.sheet [data-act=cellfix][data-v="1:L:1"]');await W(150);await p.locator('.sheet [data-act=fixno]').first().click();await W(120);
     await p.click('.sheet [data-act=fixdo]');await W(200);ok(tag+'lineup corrected',(await live()).some(x=>x.type==='LINEUP_CORRECTED')&&await p.locator('.sheet').count()===0);
     ok(tag+'still end tab',await p.locator('[data-act=rtab][data-v=end][aria-pressed=true]').count()===1);
