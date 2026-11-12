@@ -70,14 +70,14 @@ await p.click('.shead [data-act=bksel]');await W(60);await p.click('[data-act=bk
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=bksave]')]);await dl2.saveAs(__dirname+'/all.json');await W(60);ok('bk mode off',await p.locator('.bkpick').count()===0);
 // 11/12：清單上沒有刪除，要打開比賽才能刪
 ok('no delete in list',await p.locator('.hrow [data-act=del-ask]').count()===0);
-await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=close]');await W(40);await p.click('.barback');await W(80);ok('del cancel',await p.locator('.hrow').count()===1);
-await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted',await p.locator('.hrow').count()===0);
+await p.locator('.hrow').first().click();await W(80);await p.click('[data-v=delmatch]');await W(40);await p.click('.sheet [data-act=close]');await W(40);await p.click('.barback');await W(80);ok('del cancel',await p.locator('.hrow').count()===1);
+await p.locator('.hrow').first().click();await W(80);await p.click('[data-v=delmatch]');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted',await p.locator('.hrow').count()===0);
 await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('import plan',(await p.locator('.sheet').innerText()).includes('新增 1 場'));await p.click('[data-act=impgo]');await W(100);ok('import all',await p.locator('.hrow').count()===1);ok('import msg',(await p.locator('#import-msg').innerText()).includes('已匯入'));
 await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('dup msg',(await p.locator('.sheet').innerText()).includes('已經有了'));await p.click('.sheet [data-act=impcancel]');await W(60);
 await p.setInputFiles('#import-file',__dirname+'/sim.json');await W(200);await p.click('[data-act=impgo]');await W(100);await p.click('.barback');await W(80);ok('old format imported',await p.locator('.rmain').count()===1,await p.locator('.rmain').count());
 await p.click('[data-act=history]');await W(80);
 // 從結果頁刪除
-await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted from sheet',await p.locator('.hrow').count()===0,await p.locator('.hrow').count());
+await p.locator('.hrow').first().click();await W(80);await p.click('[data-v=delmatch]');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted from sheet',await p.locator('.hrow').count()===0,await p.locator('.hrow').count());
 // 空比賽自動清除
 await p.goto(URL);await W(80);const c0=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);if(await p.locator('.herocta').count()){await p.click('.herocta');await W(40);await p.click('.bar [data-act=home]');await W(40)}const c1=await p.evaluate(()=>JSON.parse(localStorage['nanshe-scoresheet-v1']).matches.length);ok('empty removed',c0===c1,[c0,c1]);
 // 賽前沒收、棄權、不完整

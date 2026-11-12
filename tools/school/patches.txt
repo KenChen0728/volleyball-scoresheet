@@ -272,6 +272,12 @@ ui.luTeam=null; ui.lib=null; ui.sub=null; ui.page=afterSetPage(reduce(m.events))
 >>>>
 
 ＝＝＝ 替補：次數不限，綁定一對 ＝＝＝
+同一次死球可以換好幾次，不問「是不是一起到替補區」（完整版的 REQ_ONCE）。
+<<<<
+var REQ_ONCE=true;
+====
+var REQ_ONCE=false;
+>>>>
 SUB 不再把位置標成 done；subOptions 拿掉 6 次和「已換回」，換過的位置只給配對的另一人。
 <<<<
         else{sb.subCount[d.team]++; if(ps.sub==null)ps.sub=d.in; else ps.done=true}
@@ -285,21 +291,6 @@ SUB 不再把位置標成 done；subOptions 拿掉 6 次和「已換回」，換
   if(ps.sub!=null){var st0=c.lineups[k][idx];return (c.expelled[k].indexOf(st0)>=0||s.matchOut[k].indexOf(st0)>=0||t.liberos.indexOf(st0)>=0)?{err:'原先發不能上場，請用例外替補'}:{nos:[st0]}}
 ====
   if(ps.sub!=null){var st0=c.lineups[k][idx],mate=now===st0?ps.sub:st0;return (c.expelled[k].indexOf(mate)>=0||s.matchOut[k].indexOf(mate)>=0||t.liberos.indexOf(mate)>=0)?{err:'綁定的 '+mate+' 號不能上場，請用例外替補'}:{nos:[mate]}}
->>>>
-<<<<
-sw2=c.live?'球在進行中，得分後才能替補':c.subRally[k]===c.rally?'這次死球已換過人，打完一球才能再換':'';
-====
-sw2=c.live?'球在進行中，得分後才能替補':'';
->>>>
-<<<<
-  var subDone=[L,R].filter(function(k){return c.subRally[k]===c.rally&&c.rally>0})[0];
-====
-  var subDone=null;
->>>>
-<<<<
-sOk=pOk&&pc.subRally[k]!==pc.rally&&lgN.length>0,eOk=
-====
-sOk=pOk&&lgN.length>0,eOk=
 >>>>
 <<<<
     var head='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+pno+' 號'+(pL?'（自由）':'')+'</h2>';

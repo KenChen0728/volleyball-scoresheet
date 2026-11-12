@@ -42,13 +42,13 @@ for(const [w,h] of [[390,844],[1180,820]]){
   ok(tag+'leave: primary is not red',await p.evaluate(()=>{const b=document.querySelector('.sheet [data-act=home]');return !!b&&!b.classList.contains('danger')}));
   ok(tag+'leave: no delete in match',await p.locator('.sheet [data-act=leavedel],.sheet .dellink').count()===0);
   await p.click('.sheet [data-act=home]');await W(300);
-  ok(tag+'left: live card, no delete',await p.locator('.rmain').count()===1&&await p.locator('.rrow [data-act=del-ask],.rrow .rdel').count()===0);
+  ok(tag+'left: live card has delete (11/13)',await p.locator('.rmain').count()===1&&await p.locator('.rrow .rcdel[data-act=del-ask]').count()===1);
   // 進行中的比賽改到「紀錄與名單」→「選擇」刪除
   await p.click('.herobtns [data-act=history]');await W(300);
   await p.click('.shead [data-act=bksel]');await W(200);
   await p.locator('[data-act=bkpick]').first().click();await W(150);
   await p.click('.selacts [data-act=seldel]');await W(200);
-  ok(tag+'delete confirm red',await p.locator('.sheet .danger[data-act=seldelyes]').count()===1);
+  ok(tag+'delete confirm not red (goes to trash, 11/13)',await p.locator('.sheet [data-act=seldelyes]:not(.danger)').count()===1);
   await p.click('.sheet [data-act=seldelyes]');await W(300);
   await p.click('.bar [data-act=home]');await W(300);
   ok(tag+'deleted live match',await p.locator('.rmain').count()===0&&await p.evaluate(k=>JSON.parse(localStorage.getItem(k)).matches.length,KEY)===0);
@@ -68,7 +68,7 @@ for(const [w,h] of [[390,844],[1180,820]]){
   if(!SCHOOL){
     // 打完的比賽：各局按鈕帶最後一局，下面可以選局；刪除是紅框小按鈕
     await p.locator('.hrow[data-id=mdone1]').click();await W(400);
-    const del=p.locator('.linkbtn.dangerlink[data-v=delmatch]');
+    const del=p.locator('[data-v=delmatch]');
     ok(tag+'done: delete outlined',await del.count()===1&&await del.evaluate(e=>{const c=getComputedStyle(e);return parseFloat(c.borderTopWidth)>=1&&c.textDecorationLine==='none'}));
     await p.locator('.sheettabs [data-act=rtab][data-v^=s]').first().click();await W(250);
     const sp=await p.locator('.setpick [data-act=rtab]').evaluateAll(a=>a.map(e=>e.getAttribute('data-v')));

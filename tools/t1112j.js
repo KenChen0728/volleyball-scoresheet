@@ -44,7 +44,7 @@ for(const [w,h] of [[390,844],[1180,820]]){
   ok(tag+'enabled',await p.locator('.selacts button:disabled').count()===0);
   // 刪除鍵是紅框、在最右邊
   const del=await p.evaluate(()=>{const bs=[...document.querySelectorAll('.selacts button')],d=bs[bs.length-1];return {last:d.getAttribute('data-act'),color:getComputedStyle(d).color,bw:getComputedStyle(d).borderTopWidth}});
-  ok(tag+'delete last and outlined',del.last==='seldel'&&del.bw==='2px',del);
+  ok(tag+'delete last, plain outline (goes to trash, 11/13)',del.last==='seldel'&&del.bw==='1px',del);
   // 移到資料夾
   await p.click('.selacts [data-act=selmove]');await W(200);
   const folders=await p.locator('.sheet [data-act=selmoveto]').evaluateAll(bs=>bs.map(x=>x.getAttribute('data-id')));
@@ -81,7 +81,7 @@ for(const [w,h] of [[390,844],[1180,820]]){
   const rows=await p.locator('.sheet .dellist .hrow').evaluateAll(xs=>xs.map(x=>x.textContent));
   ok(tag+'delete lists 2',rows.length===2,rows);
   ok(tag+'delete shows status',rows.some(r=>/還沒打完|還沒開賽/.test(r))&&rows.some(r=>r.includes('打完了')),rows);
-  ok(tag+'delete red confirm',await p.locator('.sheet .danger[data-act=seldelyes]').count()===1);
+  ok(tag+'delete confirm not red (goes to trash, 11/13)',await p.locator('.sheet [data-act=seldelyes]:not(.danger)').count()===1);
   await p.click('.sheet [data-act=close]');await W(200);
   d=await db();ok(tag+'cancel keeps',d.matches.length===all.length);
   await p.click('.selacts [data-act=seldel]');await W(200);await p.click('.sheet [data-act=seldelyes]');await W(300);
