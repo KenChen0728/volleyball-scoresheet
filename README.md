@@ -37,7 +37,7 @@ App 裡每天第一次打開會出現說明頁，主畫面最下面的「關於�
 - `sw.js` 不快取 `version.json`，安裝新版時用 `cache:'reload'` 直接向網站拿檔案，不會拿到瀏覽器 10 分鐘快取裡的舊版
 - `sw.js` 只刪 `scoresheet-` 開頭的快取，同網域的其他程式不受影響；開啟時最多等網站 1.5 秒，沒回應就先用離線版
 - 瀏覽器資料的 key 是 `nanshe-scoresheet-v1`，不要更改，否則舊比賽讀不到
-- `tools/` 放建置和測試腳本：`reg.js` 跑完整流程與各尺寸版面，`cap.js` 重截教學圖，`help-gen.py` 把教學圖寫進網頁，路徑寫死在 `/home/claude/nanshe`
+- `tools/` 放建置和測試腳本：`reg.js` 跑完整流程與各尺寸版面，`help1113.js` 重截教學圖（`help1113_import.py` 換進原始檔；名字一律用範例，資料夾和備份那幾張用 `fixture1113.py` 的資料），`help_img.py` 只換一張，路徑寫死在 `/home/claude/nanshe`
 - 原始檔：`index.html` 去掉開頭的 meta 和最後的 service worker script 就是原始檔（`/home/claude/nanshe/nanshe-scoresheet.html`），改完跑 `python3 tools/build.py`
 
 ## 美國學校版 Volleyball Score Sheet（`school/`）
@@ -58,9 +58,9 @@ App 裡每天第一次打開會出現說明頁，主畫面最下面的「關於�
 
 - `school/index.html` 是由完整版的 `index.html` 產生的，不要直接改。完整版更新後跑 `python3 tools/school/derive.py` 就會同步，對不上的地方會直接停下來
 - 改動都在 `tools/school/`：`patches.txt`（逐段替換）、`extra.css`、`help.json`（使用教學文字）
-- 記錄表要加回來：`derive.py` 的 `SHEET` 改成 `True`（`test.js`、`help-shots.js` 同名變數也改），會改用 `sheet.js` 和 `help-sheet.json`，不套用 `patches-nosheet.txt`；比賽事件不用動，舊比賽也看得到記錄表。名單 12 格和裁判欄位在 `sheet.js` 以外的地方不用改
+- 記錄表要加回來：`derive.py` 的 `SHEET` 改成 `True`（`test.js` 同名變數也改；`help-shots.js` 只截沒有記錄表時的圖，記錄表那幾張要另外補），會改用 `sheet.js` 和 `help-sheet.json`，不套用 `patches-nosheet.txt`；比賽事件不用動，舊比賽也看得到記錄表。名單 12 格和裁判欄位在 `sheet.js` 以外的地方不用改
 - 標題字形是 Graduate（Eduardo Tunni，SIL Open Font License 1.1）轉成的外框，存在 `lettering.json`，網頁不用帶字型檔；圖示由 `icon.js` 產生
-- 使用教學的圖：`node tools/school/help-shots.js 暫存資料夾`，`python3 tools/school/help-img.py 暫存資料夾`，再跑一次 `derive.py`
+- 使用教學的圖：`node tools/school/help-shots.js 暫存資料夾`，`python3 tools/school/help-img.py 暫存資料夾`，再跑一次 `derive.py`。`help-img.py` 只刪說明卡片沒用到的圖，沒有新截圖的照舊留著（11/13）
 - 測試：`test.js`（真實點擊跑規則）、`layout.js`（各尺寸版面）、`offline.js`（離線、和完整版並存，要先在專案根目錄開 `python3 -m http.server 8765`）。測試環境要設 `LANG=C.UTF-8`，不然中文檔名會變成 download
 - 資料 key 是 `vb-school-v2`，個人設定 `vb-school-prefs`，快取前綴 `vbschool-`，都不能用 `scoresheet-` 開頭，否則會被完整版的 service worker 刪掉
 
@@ -112,12 +112,14 @@ git push
 - 11/13 清晨手機轉橫看記錄表（第 11 項，使用者授權直接上線，完整版）：比賽中手機轉成橫的，整個畫面變成這一局的記錄表（只能看），上面一條有比分和「轉回直的就能繼續記錄」；按「橫的也要記錄」關掉，「其他」→「設定」→「手機轉橫」可以再打開。只有觸控手機橫放（高度 500px 以下）；「各局」的「橫向全螢幕」照舊（`tools/patch_v86.py`，測試 `tools/t1113e.js`）
 - 11/13 清晨手機直放的記錄表放大（第 18 項，完整版）：照使用者 11/12 第二輪選的 A，上面整局縮小、框起來的那一塊在下面放大，點上面哪裡就放大哪裡，紙本的樣子不拆開；取代凌晨先做的「兩隊上下分開」。「本局」「各局」都是，下面放大的那塊才有可以點的格子（`tools/patch_v87.py`，t1113b、t1113d 跟著改）
 - 11/13 清晨逐頁細修（第 19 項，完整版和學校版）：下方步驟列還不能按的「陣容」「比賽」點了說原因；開賽後比賽資料頁寫「已開局，比賽資料不能再修改」；每局分數設定寫「已經開始的局不能改」；挑邊頁內容放在畫面中間；提示字在比賽頁以外（步驟列、記錄表頁、局結束）也看得到，浮在上面幾秒自己消失、不擋手指（`tools/patch_v88.py`，測試 `tools/t1113f.js`）
+- 11/13 早上使用說明照新風格重截（第 20 項，完整版和學校版）：說明圖全部用新畫面重截，名字都用範例；組別重分，每組 3～5 張：自由球員、少見的狀況（「其他」、輪轉錯誤）、記錄表（手機直放、轉橫、點格子）、更正（改發球格）各自一組，完整版 19 組 75 張、學校版 17 組。在記錄表的「更正」分頁按問號直接開「更正」那組。截圖時發現的三個小問題一起修：陣容填滿 6 格後「確認這張陣容單」在矮的手機被步驟列蓋住（自動捲到看得到）；球在進行中按「復原」退掉得分，提示字寫在被得分鍵蓋住的地方（改浮在上面）；局結束視窗改了時間、還沒按「確定」時畫面重畫，時間會變回原本的（改的值記在 `ui.seEdit`）。改動在 `tools/patch_v89.py`，截圖 `tools/help1113.js`、`tools/school/help-shots.js`，測試 `tools/t1113g.js`
 - `old/`：暫時放的「改之前」版本（1109-2350，號碼放大前），給使用者比較用，資料另存在 `nanshe-scoresheet-old`，比完就刪
 
 ## 退回前一版（完整版和學校版一起）
 
 每次改版前各留一個分支，新的在上面：
 
+- `backup/before-v89-1113`：11/13 使用說明重截（第 20 項）上線之前，也就是 1113-0557
 - `backup/before-v88-1113`：11/13 逐頁細修（第 19 項）上線之前，也就是 1113-0529
 - `backup/before-v87-1113`：11/13 手機直放記錄表放大（第 18 項）上線之前，也就是 1113-0518
 - `backup/before-v86-1113`：11/13 手機轉橫看記錄表（第 11 項）上線之前，也就是 1113-0507
@@ -177,7 +179,7 @@ git push
 - 隊伍和裁判每筆都有 `at`（最後修改時間），刪除不真的刪，留 `del:true`。匯入時 `planCups` 一筆一筆比，`at` 比較新的留下；先用 `importPlanHtml` 列出會改什麼，按「匯入」才 `applyCups`。比賽紀錄不合併：同一場以紀錄多的為主。
 - 組別用 `parseGroup` 拆成級別、細分、男女，`groupTier` 決定「載入」的順序：同一組 → 同級別或沒寫組別 → 其他組（藏在按鈕後面）。
 - 選取樣式：「已選」是粗框加右上角的勾（`::after`），球場、場下號碼、陣容格、名單格、裁判角色、清單選項都一樣；發球員維持黃框和排球。
-- 使用教學的圖：完整版的圖包在 `HELP_IMG` 裡，這次只重截改過的幾張（截圖腳本不在專案，做法同 `tools/cap.js`）；學校版的圖在 `school/help/`，`help-img.py` 會先刪掉全部再重產，只換幾張時不要跑它。
+- 使用教學的圖：完整版的圖包在 `HELP_IMG` 裡，學校版的圖在 `school/help/`。11/13 起兩版都用真實畫面整套重截（`tools/help1113.js`、`tools/school/help-shots.js`）。
 - 測試：`node tools/fb1109c.js`（主畫面、選資料夾、裁判名單、自動加名單、匯入合併、選取樣式）。
 
 隊長（給維護者）：每隊一定要有球隊隊長。名單頁「下一步」或陣容頁「開始第 1 局」時缺的話，跳到名單並彈出背號讓人點（`firstNeed`、`need` 視窗）；按鈕不變灰。陣容頁不問場上隊長，隊長不在先發時，開賽後隊長格閃，在比賽頁指定。舊比賽名單沒有隊長的，比賽頁點隊長格會先選球隊隊長（`tcap`）。測試：`node tools/captain.js`。
