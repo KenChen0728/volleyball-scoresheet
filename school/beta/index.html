@@ -1751,6 +1751,15 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .bxx{color:var(--muted);border:1px dashed var(--line)}
 .bxlast{border:3px solid currentColor}
 .bxchg{margin:0;padding-left:1.2em;font-size:16px;line-height:1.55}
+/* 11/13 手機轉橫時的記錄表 */
+.land{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;gap:4px;padding:max(4px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-right,0px)) max(4px,env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.landbar{display:flex;align-items:center;gap:8px;flex:none;min-height:40px;white-space:nowrap}
+.landbar .landsc{font-family:var(--num);font-size:22px}
+.landbar .landhint{flex:1;text-align:right;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.landbar button{min-height:36px;padding:0 12px;font-size:14px;flex:none}
+.landsheet{flex:1;min-height:0;display:flex}
+.landsheet .ctv{width:100%;height:100%;background:none;box-shadow:none;border-radius:0}
+.landsheet .ctv svg{width:100%;height:100%}
 .endhint{margin:0 2px}
 .ctparts{display:grid;gap:8px}
 .ctv.hot rect.hot{fill:transparent;cursor:pointer}
@@ -2374,7 +2383,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1113-0507';
+var BUILD='測試版 1113-0518';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2649,7 +2658,7 @@ function draw(){
   syncAwake(ui.page==='play'&&s.sets[s.setNo].started&&!matchOver(s));
   upd.live=ui.page==='play'&&s.sets[s.setNo].started&&!setWinner(s)&&!matchOver(s);
   var flip=flipPrep(s);
-  app.innerHTML=barHtml(s)+saveBar()+'<div class="shell'+(inGame?' nonav':'')+'"><main class="page'+(kp&&ui.page!=='play'?' kpopen':'')+(ui.page==='play'&&!ui.liveSheet&&!matchOver(s)&&!setWinner(s)&&isWide()?' pagewide':'')+'">'+body+'</main>'+(inGame?'':navHtml(s))+'</div>'+kp+sheetHtml(s,m)+setEndWin(s,m)+modalHtml(s)+penHtml(s)+timerPop(s)+helpHtml()+staleHtml();
+  app.innerHTML=barHtml(s)+saveBar()+'<div class="shell'+(inGame?' nonav':'')+'"><main class="page'+(kp&&ui.page!=='play'?' kpopen':'')+(ui.page==='play'&&!ui.liveSheet&&!matchOver(s)&&!setWinner(s)&&isWide()?' pagewide':'')+'">'+body+'</main>'+(inGame?'':navHtml(s))+'</div>'+kp+sheetHtml(s,m)+setEndWin(s,m)+modalHtml(s)+penHtml(s)+landHtml(s)+timerPop(s)+helpHtml()+staleHtml();
   lastPgKey=pgKey;
   fitNums();flipRun(flip);helpPlace();
   var pg=app.querySelector('.page');pg.scrollTop=top;
@@ -3485,6 +3494,14 @@ function setEndWin(s,m){
 /* 11/13 「各局」：比賽確定結束前格子都能點；打完的局連發球格都能改 */
 function ctSetTab(s,n,ed){var c=s.sets[n],o=ed?{pt:true,sv:!!c.ended}:null;
   return ctViewHot(s,n,o)+(ed?'<p class="muted ctnote">'+(o.sv?'暫停、替補、先發背號、發球格點一下，就能修改或補記。':'暫停、替補、先發背號點一下，就能修改或補記。這局打完，發球格也能改。')+'</p>':'')}
+/* 11/13 手機轉橫：比賽中整個畫面變成這一局的記錄表，只能看；轉回直的繼續記錄。按「橫的也要記錄」關掉，「其他」→「設定」可以再打開 */
+var mqLand=window.matchMedia?matchMedia('(orientation: landscape) and (max-height: 500px) and (pointer: coarse)'):null;
+function landOn(s){return !!(XP_ON&&mqLand&&mqLand.matches&&prefs.landSheet!==false&&view==='setup'&&ui.page==='play'&&!ui.liveSheet&&s.sets[s.setNo].started&&!matchOver(s))}
+function landHtml(s){if(!landOn(s))return '';
+  var n=s.setNo,v=setWinner(s)?seCopy(s):s,c=v.sets[n],L=c.left||sheetTeams(v,n).L,R=other(L);
+  return '<div class="land" role="dialog" aria-label="第 '+n+' 局記錄表"><div class="landbar"><b>第 '+n+' 局</b><span class="tpill '+L+'">'+esc(tName(s,L))+'</span><b class="landsc">'+c.score[L]+' : '+c.score[R]+'</b><span class="tpill '+R+'">'+esc(tName(s,R))+'</span>'+
+    '<span class="landhint">轉回直的就能繼續記錄</span><button data-act="landoff">橫的也要記錄</button></div><div class="landsheet">'+ctView(v,CTG.setBox[n],'ctv-set',1.2)+'</div></div>';
+}
 function pendingHtml(s,win){
   var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];
   c.ended=true;c.winner=win;c.endAt=new Date().toISOString();
@@ -4006,7 +4023,8 @@ function sheetHtml(s,m){
       '<section class="msec"><h3 class="mhead">換人</h3><div class="mgrid'+(s.teams.t1.liberos.length||s.teams.t2.liberos.length||s.redes?' two">'+mp('exc',mc.live)+mp('red',mc.live):' one">'+mp('exc',mc.live))+'</div>'+(mc.live?'<p class="muted mnote">球在進行中，得分後才能換人</p>':'')+'</section>'+
       '<section class="msec"><h3 class="mhead">比賽狀況</h3><div class="mgrid">'+mb('injopen','INJ','傷停')+mb('injopen','INC','陣容不完整')+mb('injopen','FF','棄權')+'</div><div class="mgrid one">'+mp('rot',mc.live,mc.live?'球在進行中，得分後才能用':'對方的 1 分先按得分，這裡取消犯錯隊的分數')+'</div></section>'+
       '<section class="msec"><h3 class="mhead">修正</h3><div class="mgrid">'+mb('scfixpick','','修正比分')+mp('fix',false)+mb('tossfix','','挑邊',mc.live||autoSet(s,s.setNo))+'</div><div class="mgrid two">'+mp('color',false,'含自由球員')+mb('page','roster','查看名單')+'</div></section>'+
-      '<section class="msec"><h3 class="mhead">設定</h3><div class="mrow"><strong>提示字</strong><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(q){return '<button data-act="hints" data-v="'+q[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div></section>'+
+      '<section class="msec"><h3 class="mhead">設定</h3><div class="mrow"><strong>提示字</strong><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(q){return '<button data-act="hints" data-v="'+q[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>'+
+      (XP_ON?'<div class="mrow"><strong>手機轉橫</strong><div class="seg">'+[['on','顯示記錄表'],['off','照常記錄']].map(function(q){return '<button data-act="landpref" data-v="'+q[0]+'" aria-pressed="'+((prefs.landSheet===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>':'')+'</section>'+
       '<button class="linkbtn dangerlink" data-act="sheet" data-v="leave">離開這場比賽</button>';
   }else if(x.type==='rot'){ // 11/13 輪轉錯誤／非法替補：對方的 1 分照平常按得分，這裡只取消犯錯隊的分數、寫記事欄
     var rc=s.sets[s.setNo],ro=other(k),rk=x.kind||'R',rp=rc.path||[],rf=rc.score[k],rA=sheetTeams(s,1).A,rL=function(q){return q===rA?'A 隊':'B 隊'};
@@ -4252,6 +4270,7 @@ function seDur(e){var id=e.target.id;if(id!=='se-st'&&id!=='se-en')return;var a=
   if(id==='se-en')b.removeAttribute('data-auto');else if(b.hasAttribute('data-auto')&&a.value)b.value=hmAdd(a.value,Number(b.getAttribute('data-auto')));
   d.innerHTML=durText(a.value,b.value)}
 app.addEventListener('input',seDur);app.addEventListener('change',seDur);
+if(mqLand&&mqLand.addEventListener)mqLand.addEventListener('change',function(){if(view==='setup')render()}); // 手機轉橫、轉直馬上換
 app.addEventListener('input',function(e){if(e.target.matches('input,textarea'))ctLive(e.target)});
 /* 匯入前檢查：欄位型別不對就不收，避免壞資料存進來，也避免檔案裡夾帶網頁程式碼 */
 function validData(d){
@@ -4386,6 +4405,8 @@ app.addEventListener('click',function(e){
     case 'accadd': var abk=b.getAttribute('data-v')==='back'; dispatch('AC_COACH',{set:n,team:k,back:abk}); ui.toast={t:'已加入記事：'+tName(s,k)+(abk?' C 代 AC':' AC 代 C'),until:Date.now()+3000}; break;
     case 'accdel': dispatch('UNDO',{target:b.getAttribute('data-v')}); break;
     case 'hints': prefs.hints=b.getAttribute('data-v')!=='off'; savePrefs(); break;
+    case 'landoff': prefs.landSheet=false; savePrefs(); ui.toast={t:'轉橫也會照常記錄。要改回來：「其他」→「設定」→「手機轉橫」',until:Date.now()+4000}; break;
+    case 'landpref': prefs.landSheet=b.getAttribute('data-v')!=='off'; savePrefs(); break;
     case 'theme': prefs.theme=b.getAttribute('data-v'); savePrefs(); applyTheme(); break;
     case 'ver': ui.diag=!ui.diag; break;
     case 'install':

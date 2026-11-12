@@ -3,7 +3,8 @@ let pass=0,fail=0;const ok=(n,v,x)=>{if(v){pass++;console.log('ok',n)}else{fail+
 const W=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{const b=await chromium.launch();
 for(const [w,h,nm] of [[390,844,'p'],[844,390,'pl'],[1280,800,'t'],[360,640,'s']]){const ctx=await b.newContext({viewport:{width:w,height:h},hasTouch:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
-await p.goto(URL);await W(100);await flow.start(p);await W(100);
+await p.goto(URL);await W(100);if(nm==='pl'){await p.evaluate(()=>localStorage.setItem('volleyball-prefs',JSON.stringify({landSheet:false})));await p.reload();await W(100)} // 11/13 手機轉橫會變成記錄表，這裡測橫的照常記錄
+await flow.start(p);await W(100);
 await p.click('[data-act=subopen][data-team=t2]');await W(40);
 await p.click('.kp.bench [data-act=subbench][data-no="77"]');await W(40);await p.screenshot({path:`/home/claude/t/sub-${nm}-1.png`});
 await p.click('.pc.t2 >> text=8');await W(40);
