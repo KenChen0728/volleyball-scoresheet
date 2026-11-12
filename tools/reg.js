@@ -54,7 +54,12 @@ ok('set3 toss',await p.locator('.side').count()===2);await p.click('.side >> nth
 g=0;while(g++<8){await rally(p,'t1');if(await p.locator('[data-act=swap8]').count())break}ok('swap prompt',await p.locator('[data-act=swap8]').count()===1);await p.click('[data-act=swap8]');await W(60);
 g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<20)await rally(p,'t1');await W(60);ok('final btn',(await p.locator('.foot [data-act=endset]').innerText()).includes('比賽'));await p.click('[data-act=endset]');await W(100);
 ok('over: back to home',await p.locator('.bar [data-act=home]').count()===1);ok('over bar time',(await p.locator('.bartime').innerText()).includes('全場'));
-for(const t of ['s1','s2','s3','res','pen','r6','note','fix']){await p.click(`[data-act=rtab][data-v=${t}]`);await W(40)}
+// 11/12：第 1～3 局合成「各局」，打過兩局以上時下面可以選局
+await p.locator('.sheettabs [data-act=rtab][data-v^=s]').first().click();await W(40);
+const sps=await p.locator('.setpick [data-act=rtab]').evaluateAll(a=>a.map(e=>e.getAttribute('data-v')));ok('set pick lists played sets',sps.length>=2&&sps[0]==='s1',sps);
+for(const t of sps){await p.click(`.setpick [data-v=${t}]`);await W(40);ok('set pick '+t,(await p.locator('.setpick [aria-pressed=true]').getAttribute('data-v'))===t&&(await p.locator('.sheettabs [aria-pressed=true]').getAttribute('data-v'))===t)}
+for(const t of ['res','pen','r6','note','fix']){await p.click(`[data-act=rtab][data-v=${t}]`);await W(40)}
+ok('no set pick on other tabs',await p.locator('.setpick').count()===0);
 await p.click('[data-act=rtab][data-v=fix]');await p.click('[data-act=fixset][data-v="1"]');await W(40);const r0=await p.locator('.fixrow').count();ok('fix rows',r0>=2,r0);
 await p.click('[data-act=rtab][data-v=res]');await W(40);
 const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpjson]')]);await dl.saveAs(__dirname+'/one.json');
@@ -63,7 +68,10 @@ await p.reload();await W(100);ok('home after reload when over',await p.locator('
 await p.click('[data-act=history]');await W(80);await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('紀錄與名單'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='紀錄與名單');
 await p.click('.shead [data-act=bksel]');await W(60);await p.click('[data-act=bkall]');await W(40);await p.click('[data-act=bkgo]');await W(60);ok('bk sheet',(await p.locator('.sheet h2').innerText()).includes('備份 1 場'));
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=bksave]')]);await dl2.saveAs(__dirname+'/all.json');await W(60);ok('bk mode off',await p.locator('.bkpick').count()===0);
-await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-no]');await W(40);ok('del cancel',await p.locator('.hrow').count()===1);await p.click('[data-act=del-ask]');await W(40);await p.click('[data-act=del-yes]');await W(60);ok('deleted',await p.locator('.hrow').count()===0);
+// 11/12：清單上沒有刪除，要打開比賽才能刪
+ok('no delete in list',await p.locator('.hrow [data-act=del-ask]').count()===0);
+await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=close]');await W(40);await p.click('.barback');await W(80);ok('del cancel',await p.locator('.hrow').count()===1);
+await p.locator('.hrow').first().click();await W(80);await p.click('.dangerlink');await W(40);await p.click('.sheet [data-act=del-yes]');await W(80);ok('deleted',await p.locator('.hrow').count()===0);
 await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('import plan',(await p.locator('.sheet').innerText()).includes('新增 1 場'));await p.click('[data-act=impgo]');await W(100);ok('import all',await p.locator('.hrow').count()===1);ok('import msg',(await p.locator('#import-msg').innerText()).includes('已匯入'));
 await p.setInputFiles('#import-file',__dirname+'/all.json');await W(200);ok('dup msg',(await p.locator('.sheet').innerText()).includes('已經有了'));await p.click('.sheet [data-act=impcancel]');await W(60);
 await p.setInputFiles('#import-file',__dirname+'/sim.json');await W(200);await p.click('[data-act=impgo]');await W(100);await p.click('.barback');await W(80);ok('old format imported',await p.locator('.rmain').count()===1,await p.locator('.rmain').count());
@@ -85,7 +93,7 @@ await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=
 // 自由球員上場後被判出場
 await p.locator('.lc.t2').first().click();await W(40);const pk2=p.locator('.pc.t2.pk').first();await pk2.click();await W(40);
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=penkind][data-v=D]');const lb=await p.locator('.pc.isl b').first().innerText();await p.click(`[data-act=penwho][data-no="${lb}"]`);await p.click('[data-act=penyes]');await W(60);ok('libero notice',(await p.locator('.sheet').innerText()).includes('已換回'));await p.click('[data-act=nclose]');await W(40);ok('libero off court',await p.locator('.pc.isl').count()===0);ok('libero marked away',await p.locator(`.lc.t2.away[data-no="${lb}"][data-act=libaway]`).count()===1);
-await p.click('[data-act=sheetopen]');await p.click('[data-act=rtab][data-v=fix]');await W(60);await p.fill('.fixtimes input >> nth=0','18:30');await p.locator('.fixtimes input >> nth=0').blur();await W(30);await p.click('[data-act=rtab][data-v=s1]');await W(40);ok('start edited',await p.locator('.ctv-set svg').evaluate(e=>[...e.querySelectorAll('text')].map(t=>t.textContent).join('|')).then(t=>/\|18\|/.test(t)&&/\|30\|/.test(t)));
+await p.click('[data-act=sheetopen]');await p.click('[data-act=rtab][data-v=fix]');await W(60);await p.fill('.fixtimes input >> nth=0','18:30');await p.locator('.fixtimes input >> nth=0').blur();await W(30);await p.locator('.sheettabs [data-act=rtab][data-v^=s]').first().click();await W(40);if(await p.locator('.setpick [data-v=s1]').count()){await p.click('.setpick [data-v=s1]');await W(40)}ok('start edited',await p.locator('.ctv-set svg').evaluate(e=>[...e.querySelectorAll('text')].map(t=>t.textContent).join('|')).then(t=>/\|18\|/.test(t)&&/\|30\|/.test(t)));
 await p.click('[data-act=rtab][data-v=fix]');await W(40);await p.locator('[data-act=fixopen]').first().click();await W(40);await p.click('[data-act=fixpos][data-v="0"]');await W(40);await p.locator('[data-act=fixno]').first().click();await W(40);await p.click('[data-act=fixdo]');await W(40);
 await p.click('[data-act=sheetclose]');await W(60);
 console.log('errors',errs);

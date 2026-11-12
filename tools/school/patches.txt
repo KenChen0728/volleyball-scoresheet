@@ -595,7 +595,7 @@ function notesList(s,A,B){
 +
 >>>>
 <<<<
-  var tabs=[['s1','第1局'],['s2','第2局'],['s3','第3局'],['res','結果'],['pen','判罰'],['r6','<span class="lg">R6 </span>自由'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
+  var tabs=[['set','各局'],['res','結果'],['pen','判罰'],['r6','<span class="lg">R6 </span>自由'],['note','記事<span class="lg">欄</span>'],['fix','更正']];
 ====
   var tabs=setList(s).filter(function(i){return i===1||s.sets[i].started}).map(function(i){return ['s'+i,'第'+i+'局']}).concat([['res','結果'],['pen','判罰'],['note','記事<span class="lg">欄</span>'],['fix','更正']]);
 >>>>
