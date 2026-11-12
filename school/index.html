@@ -2101,7 +2101,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1111-2346';
+var BUILD='1112-1231';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -3376,18 +3376,23 @@ function csvText(m,s){
   return '﻿'+lines.join('\r\n');
 }
 function saveFile(name,text,type){
-  var msg=document.getElementById('rvmsg')||document.getElementById('savemsg'),file=null;
+  var msg=document.getElementById('rvmsg')||document.getElementById('savemsg'),file=null,pf=platform();
+  // Android 的分享只收圖片、PDF、.txt、.csv 這類檔案，不收 .json：改用 .txt（內容一樣，匯入也收 .txt）；類型不帶 charset
+  if(pf==='android'){if(/\.json$/i.test(name)){name=name.replace(/\.json$/i,'.txt');type='text/plain'}else type=String(type).split(';')[0]}
   try{file=new File([text],name,{type:type})}catch(e){}
   ui.lastFile={name:name,text:text};
   var clip='<button class="linkbtn" data-act="rpclip">複製備份內容</button>';
-  if(file&&platform()!=='pc'&&navigator.canShare&&navigator.canShare({files:[file]})){
-    navigator.share({files:[file],title:name}).then(function(){if(msg)msg.textContent='已分享，請確認檔案有存到'}).catch(function(e){if(e&&e.name==='AbortError')return;if(msg)msg.innerHTML='分享失敗，'+clip});
+  function dl(pre){
+    try{
+      var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+      if(msg)msg.innerHTML=pre+(inAppName()?'這裡可能下載不了，請改用 Safari 或 Chrome 再備份一次，或':'已送出下載，請到「下載」資料夾確認有「'+esc(name)+'」。沒看到時可以')+clip;
+    }catch(e){if(msg)msg.innerHTML=pre+'這裡不能下載，'+clip}
+  }
+  if(file&&pf!=='pc'&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:name}).then(function(){if(msg)msg.textContent='已分享，請確認檔案有存到'}).catch(function(e){if(e&&e.name==='AbortError')return;dl('這台不能用分享，改成下載。')});
     return;
   }
-  try{
-    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;document.body.appendChild(a);a.click();a.remove();
-    if(msg)msg.innerHTML=(inAppName()?'這裡可能下載不了，請改用 Safari 或 Chrome 再備份一次，或':'已送出下載，請到下載資料夾確認有「'+esc(name)+'」。沒看到時可以')+clip;
-  }catch(e){if(msg)msg.innerHTML='這裡不能下載，'+clip}
+  dl('');
 }
 function copyLast(){
   var lf=ui.lastFile,mg=document.getElementById('rvmsg')||document.getElementById('savemsg');if(!lf||!mg)return;
