@@ -1680,6 +1680,11 @@ section>h2{border-color:transparent}
 /* 11/12 賽前紙本記錄表 */
 .ppone{flex:none;width:100%;min-height:48px;margin-top:8px}
 .pplist{max-height:min(46vh,420px);overflow:auto}
+/* 11/12 使用者：手機上名單的數字鍵盤太高，打字時看不到上面。手機直放時鍵盤壓矮、打字時收起說明 */
+@media (orientation:portrait) and (max-width:599px){
+  .kp:not(.bench) .pad button{aspect-ratio:auto;height:46px}
+  .stephint.kpon{display:none}
+}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2140,7 +2145,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1112-1504';
+var BUILD='測試版 1112-1808';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2907,7 +2912,7 @@ function rosterHtml(s,m){
     return '<div class="tool '+k+'"><div class="count">登錄人數：'+t.players.length+' 人</div><div class="row"><button data-act="sheet" data-v="staff" data-team="'+k+'">職員</button>'+(past&&!t.locked?'<button data-act="sheet" data-v="import" data-team="'+k+'">載入</button>':'')+'</div><div id="foot-'+k+'" class="foot">'+footHtml(k,t,s)+'</div></div>';
   }).join('');
   var sameColor=(a.color||JERSEY_DEFAULT.t1)===(b.color||JERSEY_DEFAULT.t2);
-  return (a.locked?'':'<p class="stephint">點「號碼」空格輸入背號。每隊至少 6 位，並點背號指定隊長。姓名可以不填。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，點隊名旁的色塊可以更改。</p>':'')+'<div class="sheetgrid">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
+  return (a.locked?'':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。每隊至少 6 位，並點背號指定隊長。姓名可以不填。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，點隊名旁的色塊可以更改。</p>':'')+'<div class="sheetgrid">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
 }
 function rosterNext(s){
   if(s.sets[1].started)return '';
