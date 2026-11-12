@@ -1660,6 +1660,14 @@ section>h2{border-color:transparent}
  .page:has(>.sheettabs)>.ctv{margin-top:auto}
  .page:has(>.sheettabs)>.fsbtn{margin-bottom:auto}
 }
+/* 11/12 裁判：清空放在角色下面；已排的名字點了會搬過來 */
+.refsel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 4px 4px 14px;border-radius:var(--rc);background:var(--panel);border:1px solid var(--line)}
+.refsel span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;color:var(--muted)}
+.refsel b{font-size:17px;color:var(--ink)}
+.refsel button{flex:none;min-height:44px;padding:0 18px}
+.refname.used{color:var(--ink);border:1px solid var(--line);background:var(--soft)}
+.refname.mine{outline:2px solid var(--ink);outline-offset:-2px}
+.refpick .linkbtn{text-decoration:none;align-self:flex-start;min-height:44px;padding:0 16px;border:0;border-radius:var(--rb);background:var(--btn);color:var(--btn-ink)}
 
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
@@ -2255,7 +2263,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1112-0915';
+var BUILD='測試版 1112-1015';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2406,6 +2414,7 @@ function staffOf(t){var a=STAFF.slice();if(t&&t.staff&&t.staff.teacher)a.push(['
 /* 裁判（11/7 使用者：多一頁，可以不填；印在記錄表的證明欄） */
 var REFS=[['ref1','第一裁判員'],['ref2','第二裁判員'],['scorer','記錄員'],['ascorer','助理記錄員'],['lj1','司線員 1'],['lj2','司線員 2']]; // 裁判委員不用輸入，記錄表上那格留空給委員自己寫（11/7 使用者）
 var REF_SHORT={ref1:'第一裁判',ref2:'第二裁判',scorer:'記錄員',ascorer:'助理記錄',lj1:'司線員 1',lj2:'司線員 2'};
+function refLabel(k){var r=REFS.filter(function(x){return x[0]===k})[0];return r?r[1]:''}
 function firstEmptyRole(s,after){var keys=REFS.map(function(x){return x[0]}),st=after?keys.indexOf(after)+1:0;for(var j=0;j<keys.length;j++){var q=keys[(st+j)%keys.length];if(!String(s.info[q]||'').trim())return q}return null}
 /* 11/9 使用者：裁判依場地建名單，先點角色、再點名字；用過的人變灰並標角色；名單沒有的直接打字 */
 function refsHtml(s,inTab){
@@ -2414,7 +2423,7 @@ function refsHtml(s,inTab){
   var role=ui.refRole,used={};
   REFS.forEach(function(x){var v=String(i[x[0]]||'').trim();if(v)used[v]=x[0]});
   var roles='<div class="refroles">'+REFS.map(function(x){var v=String(i[x[0]]||'').trim();return '<button class="refrole'+(v?' fill':'')+'" data-act="refrole" data-v="'+x[0]+'" aria-pressed="'+(role===x[0])+'"><small>'+x[1]+'</small><b>'+(v?esc(v):'未填')+'</b></button>'}).join('')+'</div>';
-  function chip(n){var u=used[n];return '<button class="refname'+(u?' used':'')+'" data-act="refname" data-v="'+esc(n)+'"'+(u?' disabled aria-label="'+esc(n)+' 已排'+REF_SHORT[u]+'"':'')+'>'+esc(n)+(u?'<i class="at">'+REF_SHORT[u]+'</i>':'')+'</button>'}
+  function chip(n){var u=used[n],mine=!!u&&u===role;return '<button class="refname'+(u?' used':'')+(mine?' mine':'')+'" data-act="refname" data-v="'+esc(n)+'"'+(u?' aria-label="'+esc(n)+'，已排'+REF_SHORT[u]+(role&&!mine?'，點了改排'+REF_SHORT[role]:'')+'"':'')+'>'+esc(n)+(u?'<i class="at">'+REF_SHORT[u]+'</i>':'')+'</button>'}
   var names=[],note='',title='',others=[];
   if(c){
     if(key){names=refOrder(c,key,refNames(c,key));title=(courtList(c).filter(function(q){return q.key===key})[0]||{label:courtLabel(i.court)}).label+'的裁判';others=refOrder(c,null,refNames(c,null).filter(function(n){return names.indexOf(n)<0}));if(!names.length)note=courtLabel(i.court)+'還沒有名單：直接打名字，比賽結束後會自動加進名單。'}
@@ -2422,9 +2431,10 @@ function refsHtml(s,inTab){
   }else note='這場沒有放進資料夾，請直接打名字。放進資料夾後，就能從場地的裁判名單點選。';
   var list=names.length?'<div class="subhint">'+esc(title)+'</div><div class="refnames">'+names.map(chip).join('')+'</div>':'';
   var oth=others.length?(ui.refOther?'<div class="subhint">其他場地</div><div class="refnames">'+others.map(chip).join('')+'</div><button class="linkbtn" data-act="refother">收起其他場地</button>':'<button class="linkbtn" data-act="refother">其他場地的裁判（'+others.length+' 位）</button>'):'';
-  var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>'+(role&&String(i[role]||'').trim()?'<button class="linkbtn" data-act="refclear">清空「'+REF_SHORT[role]+'」</button>':'');
-  var msg=ui.refMsg?'<p class="warning" role="status">'+esc(ui.refMsg)+'</p>':'';
-  var body=roles+msg+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
+  var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>';
+  var selv=role?String(i[role]||'').trim():'',selbar=selv?'<div class="refsel"><span>'+esc(refLabel(role))+'：<b>'+esc(selv)+'</b></span><button data-act="refclear">清空</button></div>':'';
+  var msg=(ui.refMsg?'<p class="warning" role="status">'+esc(ui.refMsg)+'</p>':'')+(ui.refNote?'<p class="good" role="status">'+esc(ui.refNote)+'</p>':'');
+  var body=roles+selbar+msg+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
   if(inTab)return '<div class="narrow refpick"><p class="subhint">裁判名單</p>'+body+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
   return '<div class="refpick"><p class="stephint">先點角色，再點名字。可以空著，比賽中、比賽後也能補。</p>'+body+'</div>'+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');
 }
@@ -4114,14 +4124,20 @@ app.addEventListener('click',function(e){
       ui.msg[k]=''; dispatch('LIBERO_SET',{team:k,no:no,on:on}); ui.slot[k]=null; break;
     case 'import-cancel': ui.pending=null; break;
     case 'impall': ui.impAll=!ui.impAll; ui.pending=null; break;
-    case 'refrole': var rv=b.getAttribute('data-v'); ui.refRole=ui.refRole===rv?null:rv; ui.refMsg=''; break;
+    case 'refrole': var rv=b.getAttribute('data-v'); ui.refRole=ui.refRole===rv?null:rv; ui.refMsg=''; ui.refNote=''; break;
     case 'refname': case 'reftype':
       var rn=act==='reftype'?(document.getElementById('ref-type')||{value:''}).value.trim():b.getAttribute('data-v');
       if(!rn)break;
-      var rr=ui.refRole||firstEmptyRole(s);
-      if(!rr){ui.refMsg='六個角色都填了，先點上面要改的角色';break}
-      ui.refMsg='';dispatch('INFO_SET',{field:rr,value:rn});ui.refRole=firstEmptyRole(reduce(m.events),rr);break;
-    case 'refclear': if(ui.refRole)dispatch('INFO_SET',{field:ui.refRole,value:''}); break;
+      ui.refNote='';
+      var rr=ui.refRole;
+      if(!rr){ui.refMsg=firstEmptyRole(s)?'先點上面要填的角色':'六個角色都填了，先點上面要改的角色';break}
+      ui.refMsg='';
+      if(String(s.info[rr]||'').trim()===rn){ui.refRole=firstEmptyRole(s,rr);break}
+      // 已經排在別的角色：搬過來，原本那格變空（同一個人不會排兩個角色）
+      var rfrom=REFS.filter(function(x){return x[0]!==rr&&String(s.info[x[0]]||'').trim()===rn}).map(function(x){return x[0]})[0];
+      if(rfrom){dispatch('INFO_SET',{field:rfrom,value:''});dispatch('INFO_SET',{field:rr,value:rn});ui.refNote=rn+' 從「'+refLabel(rfrom)+'」改到「'+refLabel(rr)+'」';ui.refRole=null;break}
+      dispatch('INFO_SET',{field:rr,value:rn});ui.refRole=firstEmptyRole(reduce(m.events),rr);break;
+    case 'refclear': if(ui.refRole)dispatch('INFO_SET',{field:ui.refRole,value:''}); ui.refMsg=''; ui.refNote=''; break;
     case 'refother': ui.refOther=!ui.refOther; break;
     case 'setcup':
       var scid=b.getAttribute('data-id')||'';if(scid)m.cup=scid;else delete m.cup;
