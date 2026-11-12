@@ -21,12 +21,12 @@ ok('mode on',await p.locator('.bkpick').count()===1);ok('folders hidden',await p
 ok('rows incl live',await p.locator('.bkone').count()===4,await p.locator('.bkone').count());
 ok('live pill',(await p.locator('.bkone[data-id=mlive1]').innerText()).includes('進行中'));
 ok('not backed pill',(await p.locator('.bkone[data-id=mdone1]').innerText()).includes('還沒備份'));
-ok('go disabled',await p.locator('[data-act=bkgo]').isDisabled());ok('go text 0',(await p.locator('[data-act=bkgo]').innerText()).includes('已選 0 場'));
+ok('go disabled',await p.locator('[data-act=bkgo]').isDisabled());ok('go text 0',(await p.locator('.selcount').innerText()).includes('還沒選'));
 await p.click('.bkone[data-id=mdone1]');await W(40);
-ok('picked',await pressed('.bkone[data-id=mdone1]')==='true');ok('go 1',(await p.locator('[data-act=bkgo]').innerText()).includes('已選 1 場'));ok('go enabled',!(await p.locator('[data-act=bkgo]').isDisabled()));
+ok('picked',await pressed('.bkone[data-id=mdone1]')==='true');ok('go 1',(await p.locator('.selcount').innerText()).includes('已選 1 場'));ok('go enabled',!(await p.locator('[data-act=bkgo]').isDisabled()));
 await p.click('.bkone[data-id=mdone1]');await W(40);ok('unpicked',await pressed('.bkone[data-id=mdone1]')==='false');
-await p.click('[data-act=bkall]');await W(40);ok('all 4',(await p.locator('[data-act=bkgo]').innerText()).includes('已選 4 場'));ok('label none',await p.locator('[data-act=bkall]').innerText()==='全不選');
-await p.click('[data-act=bkall]');await W(40);ok('none',(await p.locator('[data-act=bkgo]').innerText()).includes('已選 0 場'));ok('label all',await p.locator('[data-act=bkall]').innerText()==='全選');
+await p.click('[data-act=bkall]');await W(40);ok('all 4',(await p.locator('.selcount').innerText()).includes('已選 4 場'));ok('label none',await p.locator('[data-act=bkall]').innerText()==='全不選');
+await p.click('[data-act=bkall]');await W(40);ok('none',(await p.locator('.selcount').innerText()).includes('還沒選'));ok('label all',await p.locator('[data-act=bkall]').innerText()==='全選');
 await p.click('[data-act=bkcancel]');await W(40);ok('cancel exits',await p.locator('.bkpick').count()===0&&await p.locator('.cupcard').count()===2);
 await p.click('.histtools [data-act=bksel]');await W(40);ok('section enters',await p.locator('.bkpick').count()===1);
 await p.keyboard.press('Escape');await W(60);ok('esc exits',await p.locator('.bkpick').count()===0);
@@ -38,7 +38,7 @@ const opts=await p.locator('.sheet .imp').allInnerTexts();
 ok('options',XP?(opts.length===2&&opts[0]==='南社盃全部隊伍名單（12 隊）'&&opts[1]==='南社盃裁判名單（8 人）'):(opts.length===1&&opts[0]==='南社盃全部隊伍名單（12 隊）'),opts);
 ok('default on',(await p.locator('.sheet .imp[aria-pressed=true]').count())===opts.length);
 // 取消：視窗關掉，勾的還在
-await p.click('.sheet [data-act=close]');await W(50);ok('sheet closed',await p.locator('.sheet').count()===0);ok('still picked',(await p.locator('[data-act=bkgo]').innerText()).includes('已選 2 場'));
+await p.click('.sheet [data-act=close]');await W(50);ok('sheet closed',await p.locator('.sheet').count()===0);ok('still picked',(await p.locator('.selcount').innerText()).includes('已選 2 場'));
 await p.click('[data-act=bkgo]');await W(50);await p.click('.scrim');await W(50);ok('scrim closes',await p.locator('.sheet').count()===0&&await p.locator('.bkpick').count()===1);
 await p.click('[data-act=bkgo]');await W(50);
 if(XP){await p.click('.sheet .imp[data-v=refs]');await W(30);ok('refs off',await pressed('.sheet .imp[data-v=refs]')==='false')}

@@ -49,6 +49,7 @@ for(const [plat,mode] of [['android','android'],['android','deny'],['ios','ios']
     // CSV 匯出：類型不帶 charset
     await p.evaluate(()=>{window.__shared=[]});
     await p.locator('.hrow[data-id=mdone1]').click();await W(300);
+    if(!(await p.locator('.page [data-act=rpcsv]').count())&&await p.locator('.page [data-act=sheet][data-v=export]').count()){await p.click('.page [data-act=sheet][data-v=export]');await W(250)} // 11/12 完整版的試算表在「存檔／分享」裡
     const csv=p.locator('[data-act=rpcsv]');
     if(await csv.count()){await csv.first().click();await W(400);const s2=await p.evaluate(()=>window.__shared);
       ok(tag+'csv type plain',s2.length===1&&s2[0].type==='text/csv'&&/\.csv$/.test(s2[0].name),s2.map(x=>[x.name,x.type]))}

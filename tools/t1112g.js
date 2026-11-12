@@ -28,10 +28,14 @@ const pdfInfo=f=>{const b=fs.readFileSync(f),t=b.toString('latin1');const m=/\/T
   await p.evaluate(k=>{const d=JSON.parse(localStorage.getItem(k));const m=d.matches.filter(x=>x.id===d.currentId)[0];const c=JSON.parse(JSON.stringify(m));c.id='mcopy2';c.events.forEach(e=>{e.matchId='mcopy2';e.id='c2'+e.id});d.matches.push(c);d.currentId=null;localStorage.setItem(k,JSON.stringify(d));sessionStorage.clear()},KEY);
   await p.reload();await W(300);if(await ab.count()){await ab.first().click();await W(200)}
   await p.click('.herobtns [data-act=history]');await W(300);
-  const sel=p.locator('[data-act=ppsel]');ok('history button',await sel.count()===1);
-  await sel.click();await W(300);
+  // 11/12 晚上：紀錄與名單的「賽前紙本」併進「選擇」→ 勾比賽 →「印紙本」
+  ok('no separate paper section',await p.locator('.page [data-act=ppsel]').count()===0);
+  await p.click('.shead [data-act=bksel]');await W(200);await p.click('.bktools [data-act=bkall]');await W(150);
+  await p.click('.selacts [data-act=selpp]');await W(300);
   const rows=await p.locator('.sheet .bkone').count();
   ok('lists not-started only',rows===2,rows);
+  ok('preselected both',await p.locator('.sheet .bkone[aria-pressed=true]').count()===2&&!(await p.locator('.sheet [data-act=ppgo]').isDisabled()));
+  await p.click('.sheet [data-act=ppall]');await W(200);
   ok('none selected',await p.locator('.sheet .bkone[aria-pressed=true]').count()===0&&await p.locator('.sheet [data-act=ppgo]').isDisabled());
   await p.click('.sheet [data-act=ppall]');await W(200);
   ok('all selected',await p.locator('.sheet .bkone[aria-pressed=true]').count()===2&&(await p.locator('.sheet [data-act=ppall]').innerText()).includes('全不選'));

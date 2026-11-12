@@ -101,6 +101,7 @@ await p.context().close();
  const ctx=await b.newContext({viewport:{width:1180,height:820},acceptDownloads:true});const q=await ctx.newPage();q.on('pageerror',x=>errs.push(x.message));
  await q.goto(URL);await q.evaluate(([k,v])=>{localStorage.clear();localStorage.setItem(k,v)},[KEY,JSON.stringify(d)]);await q.reload();await W(200);
  await q.click('.herobtns [data-act=history]');await W(120);await q.click('.hrow[data-id=mdone1]');await W(250);
+ if(!(await q.locator('.page [data-act=rpcsv]').count())){await q.click('.page [data-act=sheet][data-v=export]');await new Promise(r=>setTimeout(r,250))} // 11/12 完整版的試算表在「存檔／分享」裡
  const [dl]=await Promise.all([q.waitForEvent('download',{timeout:8000}),q.click('[data-act=rpcsv]')]);
  const csv=fs.readFileSync(await dl.path(),'utf8');const sl=csv.split('\n').filter(x=>/警告|出場/.test(x));
  ok('csv codes',sl.some(x=>x.includes('黃牌警告 T'))&&sl.filter(x=>x.includes('黃牌警告 T')).length===2&&sl.some(x=>x.includes('出場 M'))&&sl.some(x=>x.includes('黃牌警告 AC'))&&!/領隊|管理|防護員|隊醫/.test(csv),sl);

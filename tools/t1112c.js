@@ -40,18 +40,17 @@ for(const [w,h] of [[390,844],[1180,820]]){
   await p.click('[data-act=sheet][data-v=more]');await W(200);
   await p.click('.sheet [data-act=sheet][data-v=leave]');await W(200);
   ok(tag+'leave: primary is not red',await p.evaluate(()=>{const b=document.querySelector('.sheet [data-act=home]');return !!b&&!b.classList.contains('danger')}));
-  ok(tag+'leave: delete link',await p.locator('.sheet .dellink[data-act=leavedel]').count()===1);
-  await p.click('.sheet [data-act=leavedel]');await W(200);
-  ok(tag+'delete confirm has back',await p.locator('.sheet [data-act=sheetback],.sheet .sheetback').count()>=1);
-  ok(tag+'delete confirm red',await p.locator('.sheet .danger[data-act=del-yes]').count()===1);
-  // 返回不刪，再進來刪
-  await p.locator('.sheet .sheetback').first().click();await W(200);
-  ok(tag+'back to leave sheet',await p.locator('.sheet .dellink[data-act=leavedel]').count()===1);
+  ok(tag+'leave: no delete in match',await p.locator('.sheet [data-act=leavedel],.sheet .dellink').count()===0);
   await p.click('.sheet [data-act=home]');await W(300);
   ok(tag+'left: live card, no delete',await p.locator('.rmain').count()===1&&await p.locator('.rrow [data-act=del-ask],.rrow .rdel').count()===0);
-  await p.locator('.rmain').first().click();await W(300);
-  await p.click('[data-act=sheet][data-v=more]');await W(200);await p.click('.sheet [data-act=sheet][data-v=leave]');await W(200);
-  await p.click('.sheet [data-act=leavedel]');await W(200);await p.click('.sheet [data-act=del-yes]');await W(300);
+  // 進行中的比賽改到「紀錄與名單」→「選擇」刪除
+  await p.click('.herobtns [data-act=history]');await W(300);
+  await p.click('.shead [data-act=bksel]');await W(200);
+  await p.locator('[data-act=bkpick]').first().click();await W(150);
+  await p.click('.selacts [data-act=seldel]');await W(200);
+  ok(tag+'delete confirm red',await p.locator('.sheet .danger[data-act=seldelyes]').count()===1);
+  await p.click('.sheet [data-act=seldelyes]');await W(300);
+  await p.click('.bar [data-act=home]');await W(300);
   ok(tag+'deleted live match',await p.locator('.rmain').count()===0&&await p.evaluate(k=>JSON.parse(localStorage.getItem(k)).matches.length,KEY)===0);
   // 紀錄與名單：卡片和「打開 ›」，比賽列沒有刪除
   if(!SCHOOL){
