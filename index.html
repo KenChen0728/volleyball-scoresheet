@@ -1736,6 +1736,10 @@ section>h2{border-color:transparent}
 .sehint{text-align:center;margin:0}
 .endview{display:flex;flex-direction:column;gap:10px;margin-block:auto}
 .endview>.ctv-set{max-width:1100px}
+/* 11/13 輪轉錯誤／非法替補：追回到幾分 */
+.rotrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:700;font-size:17px}
+.rotrow input{width:4.5em;min-height:52px;font-size:24px;font-weight:700;text-align:center}
+.rotrow label{font-size:17px;font-weight:700;color:inherit;margin:0}
 .endhint{margin:0 2px}
 .ctparts{display:grid;gap:8px}
 .ctv.hot rect.hot{fill:transparent;cursor:pointer}
@@ -1819,7 +1823,7 @@ function reduce(events,stopId){
   var dead={};
   events.forEach(function(ev){if(ev.type==='UNDO')dead[ev.data.target]=1});
   var patch={},evPos={},swaps=[];
-  s.log=[];s.amends=[];s.flipped={};
+  s.log=[];s.amends=[];s.flipped={};s.scAfter={};
   events.forEach(function(ev,i){evPos[ev.id]=i});
   events.forEach(function(ev,i){
     if(ev.type!=='AMEND'||dead[ev.id])return;
@@ -1837,7 +1841,7 @@ function reduce(events,stopId){
     if(stopped||(stopId&&ev.id===stopId)){stopped=true;return}
     var d=patch[ev.id]?Object.assign({},ev.data,patch[ev.id]):ev.data;
     if(swaps.length&&d.team&&swaps.filter(function(x){return x.set===d.set&&evPos[ev.id]>x.from&&evPos[ev.id]<x.to}).length%2){d=Object.assign({},d,{team:other(d.team)});s.flipped[ev.id]=1}
-    var t=d.team?s.teams[d.team]:null;
+    var t=d.team?s.teams[d.team]:null,cs0=d&&d.set&&s.sets[d.set]?s.sets[d.set].score.t1+':'+s.sets[d.set].score.t2:'';
     switch(ev.type){
       case 'MATCH_CREATED': s.info=Object.assign({},d.info); break;
       case 'INFO_SET': s.info[d.field]=d.value; break;
@@ -1940,7 +1944,7 @@ function reduce(events,stopId){
         break;
       case 'SERVE': s.sets[d.set].live=true; if(!s.sets[d.set].firstServeAt)s.sets[d.set].firstServeAt=ev.at; break;
       case 'REPLAY': s.sets[d.set].live=false; s.sets[d.set].replayLock=true; break;
-      case 'TIMEOUT': var to=s.sets[d.set],tq=d.sc?d.sc[0]:to.score[d.team],tr=d.sc?d.sc[1]:to.score[other(d.team)]; s.log.push({id:ev.id,set:d.set,kind:'T',team:d.team,score:tq+':'+tr,scx:!!d.sc}); to.timeouts[d.team].push(d.team==='t1'?tq+':'+tr:tr+':'+tq); to.toRows[d.team].push(tq+':'+tr); to.timeouts[d.team].sort(scOrder); to.toRows[d.team].sort(scOrder); break;
+      case 'TIMEOUT': var to=s.sets[d.set],tq=d.sc?d.sc[0]:to.score[d.team],tr=d.sc?d.sc[1]:to.score[other(d.team)]; s.log.push({id:ev.id,set:d.set,kind:'T',team:d.team,score:tq+':'+tr,scx:!!d.sc}); to.timeouts[d.team].push(d.team==='t1'?tq+':'+tr:tr+':'+tq); to.toRows[d.team].push(tq+':'+tr); to.timeouts[d.team].sort(function(x,y){return scPos(to,'t1',x)-scPos(to,'t1',y)}); to.toRows[d.team].sort(function(x,y){return scPos(to,d.team,x)-scPos(to,d.team,y)}); break;
       case 'SUB':
         var sb=s.sets[d.set],ps=sb.subPos[d.team][d.idx];
         var so=d.sc?d.sc[0]:sb.score[d.team],sp=d.sc?d.sc[1]:sb.score[other(d.team)]; // 更正過的比分（本隊在前）
@@ -1964,6 +1968,11 @@ function reduce(events,stopId){
       case 'LIBERO_OUT': var lo=s.sets[d.set],b=lo.libOut[d.team]; lo.libRows[d.team].push({lib:lo.cur[d.team][b.idx],rep:b.no,enter:'R',score:lo.score[d.team]+':'+lo.score[other(d.team)]}); lo.cur[d.team][b.idx]=b.no; lo.libOut[d.team]=null; lo.libRally[d.team]=lo.rally; break;
       case 'LIBERO_SWAP': var ls=s.sets[d.set]; ls.libRows[d.team].push({lib:d.lib,rep:null,enter:'L',score:ls.score[d.team]+':'+ls.score[other(d.team)]}); ls.cur[d.team][ls.libOut[d.team].idx]=d.lib; ls.libRally[d.team]=ls.rally; break;
       case 'SIDES_SWAPPED': var sw=s.sets[d.set]; sw.left=other(sw.left); sw.swapped=true; sw.swapScore=sw.score[sw.left]+':'+sw.score[other(sw.left)]; sw.swapSnap=JSON.parse(JSON.stringify({rounds:sw.rounds,subRows:sw.subRows,toRows:sw.toRows,score:sw.score,libN:{t1:sw.libRows.t1.length,t2:sw.libRows.t2.length}})); break;
+      case 'SCORE_CANCEL': // 11/13 輪轉錯誤／非法替補：犯錯隊追回到 d.to 分（對方的 1 分照平常按得分），輪轉不倒回
+        var xc=s.sets[d.set],xo=other(d.team),xf=xc.score[d.team],xp=xc.path||[];
+        if(!(d.to>=0&&d.to<xf))break;
+        (s.cancels=s.cancels||[]).push({id:ev.id,set:d.set,team:d.team,kind:d.kind,from:xf,to:d.to,opp:xc.score[xo],gave:xp[xp.length-1]===xo});
+        xc.score[d.team]=d.to; xc.cxRally=xc.rally; break;
       case 'SET_ENDED': var en=s.sets[d.set]; en.ended=true; en.winner=d.winner; en.endAt=ev.at; break;
       case 'SET_ADVANCED':
         var n=s.setNo+1, prev=s.sets[s.setNo]; s.setNo=n;
@@ -1971,6 +1980,10 @@ function reduce(events,stopId){
         if(!d.blank)['t1','t2'].forEach(function(x){s.sets[n].lineups[x]=prev.lineups[x].map(function(no){return s.matchOut[x].indexOf(no)<0?no:null})});
         break;
     }
+    /* 11/13 每個事件之後的比分（補記找時間點用）；比分有變就記進這局的比分紀錄 hist，每一分得過幾次記在 ptCnt（取消後再得到同一分，記錄表畫叉） */
+    if(cs0){var csx=s.sets[d.set],cs1=csx.score.t1+':'+csx.score.t2;s.scAfter[ev.id]=cs1;
+      if(cs1!==cs0&&(ev.type==='POINT'||ev.type==='SANCTION'||ev.type==='SCORE_CANCEL')){(csx.hist||(csx.hist=['0:0'])).push(cs1);var cp0=cs0.split(':');
+        ['t1','t2'].forEach(function(q,qi){if(csx.score[q]===+cp0[qi]+1){var pc=csx.ptCnt||(csx.ptCnt={t1:{},t2:{}});pc[q][csx.score[q]]=(pc[q][csx.score[q]]||0)+1}})}}
   });
   /* 11/9 朋友回饋：名單頁和記錄表照輸入順序（entry），其他地方照背號由小到大（players） */
   ['t1','t2'].forEach(function(k){var t=s.teams[k];t.entry=t.players.slice();t.players.sort(function(a,b){return a.no-b.no})});
@@ -2208,7 +2221,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1113-0403';
+var BUILD='1113-0430';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2844,7 +2857,7 @@ function cupSheetHtml(){
 /* 對調時紀錄只換隊伍；替補和判罰帶著背號，對調後會對不上，要先復原 */
 function swapBlocked(s){
   var n=s.setNo,c=s.sets[n];
-  return c.subs.t1.length+c.subs.t2.length>0||c.libRows.t1.length+c.libRows.t2.length>0||s.sanctions.some(function(x){return x.set===n&&typeof x.who==='number'})||s.injuries.some(function(x){return x.set===n});
+  return c.subs.t1.length+c.subs.t2.length>0||c.libRows.t1.length+c.libRows.t2.length>0||s.sanctions.some(function(x){return x.set===n&&typeof x.who==='number'})||s.injuries.some(function(x){return x.set===n})||(s.cancels||[]).some(function(x){return x.set===n});
 }
 function splitMatches(){
   var live=[],done=[],bad=[];
@@ -3251,12 +3264,17 @@ function notesList(s,A,B){
   (s.redes||[]).forEach(function(x){notes.push(at(x.set,x.team,x.raw)+'，自由球員 '+x.old+' 號不能繼續比賽'+(x.no!==null?'，重新指定 '+x.no+' 號為自由球員':''))});
   s.injuries.forEach(function(x){notes.push(at(x.set,x.team,x.raw)+'，'+x.no+' 號受傷暫停比賽')});
   (s.acc||[]).forEach(function(x){var ln=new String(at(x.set,x.team,x.raw)+' 請求 '+(x.back?'C 代 AC':'AC 代 C'));ln.accId=x.id;notes.push(ln)});
+  (s.cancels||[]).forEach(function(x){notes.push(cxText(x,L))});
   if(s.incomplete){var ii=s.incomplete,il=ii.team,iw=other(il),isc=s.sets[ii.set].score;
     notes.push(at(ii.set,il,ii.raw)+' 陣容不完整，由 '+L(iw)+(ii.scope==='match'?sets(iw):'以 '+isc[iw]+':'+isc[il]+' 贏得本局'))}
   if(s.preForfeit){var pw=s.preForfeit.winner;notes.push('因 '+L(other(pw))+(s.preForfeit.reason||'逾時未出賽')+'，由 '+L(pw)+sets(pw))}
   if(s.forfeit){notes.push('因 '+L(s.forfeit)+'棄權，由 '+L(other(s.forfeit))+sets(other(s.forfeit)))}
   return notes;
 }
+/* 11/13 輪轉錯誤／非法替補的記事：「第 1 局 A 隊 10:10 輪轉錯誤，B 隊得 1 分，取消 A 隊第 6～10 分，於 5:11 繼續比賽」。
+   發現時的比分是對方得分之前；最後一分不是對方得的（之後更正過）就不寫「得 1 分」 */
+function cxText(x,L){var o=other(x.team),d=x.gave?x.opp-1:x.opp;
+  return '第 '+x.set+' 局 '+L(x.team)+' '+x.from+':'+d+' '+(x.kind==='S'?'非法替補':'輪轉錯誤')+'，'+(x.gave?L(o)+'得 1 分，':'')+'取消 '+L(x.team)+'第 '+(x.to+1===x.from?x.from:(x.to+1)+'～'+x.from)+' 分，於 '+x.to+':'+x.opp+' 繼續比賽'}
 /* 記錄員自己寫的記事，一行算一項 */
 function remarkItems(s){return String(s.info.remarks||'').split(/\n+/).map(function(t){return t.trim().replace(/[；;。]+$/,'')}).filter(Boolean)}
 /* ========== 記錄表（版面對照 AVC eScoresheet）：一律由事件推算，白底藍字，不隨深淺主題改變 ========== */
@@ -3459,6 +3477,11 @@ function ctBlock(s,n,k,b,p,o){
   /* 得分欄：劃掉已得分、判罰得分畫圈、局末最後一分底下畫橫槓，剩下的打 X */
   var cells=p.cells,maxv=Object.keys(cells).length,per=maxv===8?8:12,ncol=maxv===8?1:4,rh=cells[2][1]-cells[1][1],sz=maxv===8?4.6:Math.min(3.6,rh*.38);
   if(o.m)for(var v=o.m[0];v<=o.m[1]&&v<=maxv;v++){var q=cells[v];if(!q)continue;h+=ctL(q[0]-sz,q[1]+sz,q[0]+sz,q[1]-sz,.9);if(c.penPts[k].indexOf(v)>=0)h+=ctC(q[0],q[1],sz*1.45)}
+  /* 11/13 輪轉錯誤取消的分數：原本的斜線留著；取消後再得到同一分，加反方向一條變成叉（學長的畫法） */
+  var pcn=(c.ptCnt||{})[k]||{},own=o.own||[1,maxv];
+  for(var v2=Math.max(1,own[0]);v2<=own[1]&&v2<=maxv;v2++){var q2=cells[v2],nv=pcn[v2]||0;if(!q2||!nv)continue;
+    if(!(o.m&&v2>=o.m[0]&&v2<=o.m[1]))h+=ctL(q2[0]-sz,q2[1]+sz,q2[0]+sz,q2[1]-sz,.9);
+    if(nv>1)h+=ctL(q2[0]-sz,q2[1]-sz,q2[0]+sz,q2[1]+sz,.9)}
   for(var col=0;col<ncol;col++){
     var q0=col*per+1,q1=(col+1)*per,xl=p.cols[col],xr=p.cols[col+1];
     if(o.hg&&c.ended){var from=Math.max(q0,(o.m?o.m[1]:0)+1);if(from<=q1){var tb=ctPBox(p),ya=from===q0?tb[0]:cells[from-1][1]+rh/2-.5,yb=tb[1];h+=ctL(xl,ya,xr,yb,.8)+ctL(xr,ya,xl,yb,.8)}} // 單純打 X，連到角落（11/7 使用者）
@@ -3476,9 +3499,9 @@ function ctSets(s){
     o+=ctBlock(s,n,T.R,G.R,G.PR,{data:c,time:'end',m:[1,c.score[T.R]],hg:true});
   });
   if(set3Open(s)){var c=s.sets[3],T=sheetTeams(s,3),A=T.L,B=T.R,sw=c.swapSnap,G=g[3],cA=sw?sw.score[A]:c.score[A];
-    o+=ctBlock(s,3,A,G.B1,G.P1,{data:sw?{rounds:sw.rounds,subRows:sw.subRows,toRows:sw.toRows}:c,time:'start',m:[1,cA],letter:true});
+    o+=ctBlock(s,3,A,G.B1,G.P1,{data:sw?{rounds:sw.rounds,subRows:sw.subRows,toRows:sw.toRows}:c,time:'start',m:[1,cA],letter:true,own:[1,sw?sw.score[A]:99]});
     o+=ctBlock(s,3,B,G.B2,G.P2,{data:c,time:'end',m:[1,c.score[B]],hg:true,letter:true});
-    o+=ctBlock(s,3,A,G.B3,G.P3,{data:sw?c:svBlank(),chg:sw?sw.score[A]:null,m:sw?[sw.score[A]+1,c.score[A]]:null,pre:sw?sw.score[A]:0,hg:!!sw,letter:true});
+    o+=ctBlock(s,3,A,G.B3,G.P3,{data:sw?c:svBlank(),chg:sw?sw.score[A]:null,m:sw?[sw.score[A]+1,c.score[A]]:null,pre:sw?sw.score[A]:0,hg:!!sw,letter:true,own:sw?[sw.score[A]+1,99]:[1,0]});
   }
   return o;
 }
@@ -3768,7 +3791,7 @@ function endView(s){
 /* 11/13 按完最後一分先跳視窗：比分、開始和結束時間（點了就能改）、經過幾分鐘。
    時間按「確定」才存，按「復原上一步」就不算。確定過的那一分記在 ui.endOk，復原後再得分會重新跳 */
 function winPointId(m,n){var dead={},id='';m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
-  m.events.forEach(function(e){if(dead[e.id]||!e.data||e.data.set!==n)return;if(e.type==='POINT'||(e.type==='SANCTION'&&(e.data.kind==='P'||e.data.kind==='DP')))id=e.id});return id}
+  m.events.forEach(function(e){if(dead[e.id]||!e.data||e.data.set!==n)return;if(e.type==='POINT'||e.type==='SCORE_CANCEL'||(e.type==='SANCTION'&&(e.data.kind==='P'||e.data.kind==='DP')))id=e.id});return id}
 function durText(a,b){if(!a||!b)return '填好開始和結束時間，就會算出經過幾分鐘';var d=hmDiff(a,b);return d==null||d>720?'時間看起來不對，請檢查':'經過 <b>'+d+'</b> 分鐘'+(d>180?'（超過 3 小時，請檢查時間）':'')}
 function endOkSaved(){try{return sessionStorage.getItem(KEY+'-endok')||null}catch(e){return null}}
 function seCopy(s){var v=JSON.parse(JSON.stringify(s)),c=v.sets[v.setNo];c.ended=true;c.winner=setWinner(s);if(!c.endAt)c.endAt=new Date().toISOString();return v}
@@ -3790,14 +3813,18 @@ function pendingHtml(s,win){
 }
 /* 11/11 替補、暫停晚按了：直接改當時的比分。只能改成這局打過的；同一個位置換回來不能比換下去早 */
 function scOrder(a,b){var x=String(a).split(':'),y=String(b).split(':');return (+x[0]+ +x[1])-(+y[0]+ +y[1])} // 比分先後（打了幾球）
+/* 11/13 這局的比分紀錄裡第幾個（沒取消過分數時就是打了幾球）；k 隊在前的比分。找不到就用打了幾球 */
+function hIdx(c,a,b){return (c.hist||['0:0']).lastIndexOf(a+':'+b)}
+function scPos(c,k,sc){var p=String(sc).split(':').map(Number),a=k==='t1'?p[0]:p[1],b=k==='t1'?p[1]:p[0],i=hIdx(c,a,b);return i<0?p[0]+p[1]:i}
+function hLast(c){return (c.hist||['0:0']).length-1}
 function scCheck(s,e,own,opp){
   if(!(own>=0&&opp>=0))return '比分要填數字。';
-  var c=s.sets[e.set],t1=e.team==='t1'?own:opp,n=own+opp,path=c.path||[];
-  if(n>path.length||path.slice(0,n).filter(function(q){return q==='t1'}).length!==t1)return '這局沒有出現過 '+own+':'+opp+' 這個比分，只能改成這局已經打過的比分。';
-  if(e.kind==='T'&&n===0)return '這局還沒開始，0:0 不能暫停。';
-  if(n===path.length&&(c.ended||(s.setNo===e.set&&setWinner(s))))return own+':'+opp+' 是這局最後一分，局已經打完，不能改到這裡。';
+  var c=s.sets[e.set],n=hIdx(c,e.team==='t1'?own:opp,e.team==='t1'?opp:own);
+  if(n<0)return '這局沒有出現過 '+own+':'+opp+' 這個比分，只能改成這局已經打過的比分。';
+  if(e.kind==='T'&&own+opp===0)return '這局還沒開始，0:0 不能暫停。';
+  if(n===hLast(c)&&(c.ended||(s.setNo===e.set&&setWinner(s))))return own+':'+opp+' 是這局最後一分，局已經打完，不能改到這裡。';
   if(e.kind==='S'){var row=s.log.filter(function(q){return q.set===e.set&&q.kind==='S'&&q.team===e.team&&q.idx===e.idx}),i=row.indexOf(e);
-    for(var j=0;j<row.length;j++){if(j===i)continue;var q=String(row[j].score).split(':'),qt=Number(q[0])+Number(q[1]);
+    for(var j=0;j<row.length;j++){if(j===i)continue;var qt=scPos(c,e.team,row[j].score);
       var same=n===qt&&!row[j].exc&&!e.exc;
       if(j<i&&n<qt)return '換回來的比分不能比換下去的（'+row[j].score+'）還早。';
       if(j<i&&same)return '換回來的比分不能和換下去的（'+row[j].score+'）一樣，要在之後。';
@@ -3813,23 +3840,24 @@ function scEditHtml(s,e){
 /* 11/12 補記：第 n 局 own:opp（k 隊在前）那個比分之後、下一次發球之前，最後一筆原本的紀錄；補的放在它後面 */
 function insAnchor(m,s,n,k,own,opp){
   if(!(own>=0&&opp>=0))return {err:'比分要填數字。'};
-  var c=s.sets[n],tot=own+opp,path=c.path||[],t1=k==='t1'?own:opp;
-  if(tot>path.length||path.slice(0,tot).filter(function(q){return q==='t1'}).length!==t1)return {err:'這局沒有出現過 '+own+':'+opp+' 這個比分，只能補在這局打過的比分。'};
-  if(tot===path.length&&(c.ended||(s.setNo===n&&setWinner(s))))return {err:own+':'+opp+' 是這局最後一分，局已經打完，不能補在這裡。'};
+  var c=s.sets[n],ia=k==='t1'?own:opp,ib=k==='t1'?opp:own,key=ia+':'+ib,hi=hIdx(c,ia,ib),sa=s.scAfter||{};
+  if(hi<0)return {err:'這局沒有出現過 '+own+':'+opp+' 這個比分，只能補在這局打過的比分。'};
+  if(hi===hLast(c)&&(c.ended||(s.setNo===n&&setWinner(s))))return {err:own+':'+opp+' 是這局最後一分，局已經打完，不能補在這裡。'};
   var dead={},patch={};
   m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
   m.events.forEach(function(e){if(e.type!=='AMEND'||dead[e.id])return;if(e.data.del)dead[e.data.target]=1;else if(e.data.target)patch[e.data.target]=Object.assign(patch[e.data.target]||{},e.data.patch)});
-  var cnt=0,inSet=false,served=false,cand=null;
+  var inSet=false,served=false,cand=null; // 11/13 用每個事件之後的比分找（取消過分數時，打了幾球對不上比分）
   m.events.forEach(function(e){
     if(dead[e.id]||e.type==='UNDO'||e.type==='AMEND')return;
     var d=patch[e.id]?Object.assign({},e.data,patch[e.id]):(e.data||{});
     if(d.set!==n)return;
-    if(e.type==='SET_STARTED'){inSet=true;if(cnt===tot)cand=e;return}
+    var hit=sa[e.id]===key;
+    if(e.type==='SET_STARTED'){inSet=true;if(hit)cand=e;return}
     if(!inSet||e.type==='SET_ENDED')return;
     if(e.type==='SERVE'){served=true;return}
-    if(e.type==='REPLAY'){served=false;if(cnt===tot)cand=e;return}
-    if(e.type==='POINT'||(e.type==='SANCTION'&&(d.kind==='P'||d.kind==='DP'))){cnt++;served=false;if(cnt===tot)cand=e;return}
-    if(cnt===tot&&!served)cand=e;
+    if(e.type==='REPLAY'){served=false;if(hit)cand=e;return}
+    if(e.type==='POINT'||e.type==='SCORE_CANCEL'||(e.type==='SANCTION'&&(d.kind==='P'||d.kind==='DP'))){served=false;if(hit)cand=e;return}
+    if(hit&&!served)cand=e;
   });
   return cand?{after:cand.id,at:cand.at}:{err:'找不到 '+own+':'+opp+' 這個時間點。'};
 }
@@ -3982,7 +4010,7 @@ function lastUndoable(m){
   m.events.forEach(function(e){if(!dead[e.id]&&e.type!=='UNDO')live.push(e)});
   var skip=['INFO_SET','TEAM_COLOR_SET','LIBERO_COLOR_SET','STAFF_SET','PLAYER_NAME_SET','TEAM_NAME_SET','SETTER_SET']; // 記事、時間、顏色不是比賽動作，不能擋住復原
   var e=null;for(var i=live.length-1;i>=0;i--){if(skip.indexOf(live[i].type)<0){e=live[i];break}}
-  return e&&['AMEND','SET_STARTED','LINEUP_CORRECTED','POINT','SIDES_SWAPPED','SERVE','REPLAY','TIMEOUT','SUB','LIBERO_IN','LIBERO_OUT','LIBERO_SWAP','LIBERO_REDESIGNATED','GAME_CAPTAIN_SET','CAPTAIN_SET','SANCTION','INJURY'].indexOf(e.type)>=0?e:null;
+  return e&&['AMEND','SET_STARTED','LINEUP_CORRECTED','POINT','SIDES_SWAPPED','SERVE','REPLAY','TIMEOUT','SUB','LIBERO_IN','LIBERO_OUT','LIBERO_SWAP','LIBERO_REDESIGNATED','GAME_CAPTAIN_SET','CAPTAIN_SET','SANCTION','INJURY','SCORE_CANCEL'].indexOf(e.type)>=0?e:null;
 }
 /* 得分後畫面會換成確認按鈕，同一個位置的第二下不能算數 */
 function armGuard(){
@@ -4008,6 +4036,7 @@ function undoText(s,e){
     case 'SETTER_SET':return n+(d.on?'標出舉球員':'取消舉球員');
     case 'CAPTAIN_SET':return n+'隊長';
     case 'SET_STARTED':return '開局';
+    case 'SCORE_CANCEL':return n+'取消分數';
   }
   return '上一步';
 }
@@ -4165,7 +4194,7 @@ function csvText(m,s){
   lines.push('局,A得分,B得分,勝隊,分鐘,A暫停,B暫停,A替補,B替補');
   [1,2,3].forEach(function(n){var c=s.sets[n];if(!c.started)return;lines.push([n,c.score[A],c.score[B],c.winner?nm[c.winner]:'',setMins(s,n),c.timeouts[A].length,c.timeouts[B].length,c.subs[A].length,c.subs[B].length].map(q).join(','))});
   lines.push('');lines.push('時間,局,事件,隊伍,內容,A分,B分');
-  var map={POINT:'得分',SERVE:'發球',REPLAY:'公正',TIMEOUT:'暫停',SUB:'替補',LIBERO_IN:'自由球員上場',LIBERO_OUT:'自由球員下場',LIBERO_SWAP:'自由球員互換',LIBERO_REDESIGNATED:'重新指定自由球員',SANCTION:'判罰',INJURY:'傷停',INCOMPLETE:'陣容不完整',FORFEIT:'棄權',SIDES_SWAPPED:'換場',SET_STARTED:'開局',SET_ENDED:'局結束'};
+  var map={POINT:'得分',SERVE:'發球',REPLAY:'公正',TIMEOUT:'暫停',SUB:'替補',LIBERO_IN:'自由球員上場',LIBERO_OUT:'自由球員下場',LIBERO_SWAP:'自由球員互換',LIBERO_REDESIGNATED:'重新指定自由球員',SANCTION:'判罰',INJURY:'傷停',INCOMPLETE:'陣容不完整',FORFEIT:'棄權',SIDES_SWAPPED:'換場',SET_STARTED:'開局',SET_ENDED:'局結束',SCORE_CANCEL:'取消分數'};
   var KIND={IR:'不當請求',DW:'延誤警告',DP:'延誤懲罰',W:'黃牌警告',P:'紅牌懲罰',E:'出局',D:'出場'};
   var seen=[];
   m.events.forEach(function(e0){
@@ -4173,7 +4202,7 @@ function csvText(m,s){
     if(dead[e.id]||e.type==='UNDO')return;seen.push(e);
     if(!map[e.type])return;
     var st=reduce(seen),d=e.data,n=d.set||st.setNo,c=st.sets[n];
-    var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SANCTION'?KIND[d.kind]+' '+whoCode(d.who):(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
+    var txt=e.type==='SUB'?d.out+' 換 '+d.in+(d.exc?'（例外）':''):e.type==='SCORE_CANCEL'?(d.kind==='S'?'非法替補':'輪轉錯誤')+'，追回到 '+d.to+' 分':e.type==='SANCTION'?KIND[d.kind]+' '+whoCode(d.who):(e.type==='LIBERO_IN'||e.type==='LIBERO_SWAP')?'L'+d.lib:d.no||'';
     var fl=s.flipped&&s.flipped[e.id],at=d.team?(fl?other(d.team):d.team):null,ca=fl?c.score[B]:c.score[A],cb=fl?c.score[A]:c.score[B];
     if(d.sc&&at&&(e.type==='SUB'||e.type==='TIMEOUT')){ca=at===A?d.sc[0]:d.sc[1];cb=at===A?d.sc[1]:d.sc[0]} // 更正過的比分
     lines.push([hm(e.at),n,map[e.type],at?nm[at]:'',txt,ca,cb].map(q).join(','));
@@ -4237,7 +4266,7 @@ function wholeBtn(){return XP_ON?'<button class="xpbtn" data-act="whole">看整�
 function wholeHtml(s){if(!ui.whole||!XP_ON)return '';var z=ui.wz||1;
   return '<div class="whv" role="dialog" aria-label="整張記錄表"><div class="whbar"><button data-act="wz" data-v="-1" aria-label="縮小"'+(z<=1?' disabled':'')+'>－</button><span>'+Math.round(z*100)+'%</span><button data-act="wz" data-v="1" aria-label="放大"'+(z>=4?' disabled':'')+'>＋</button><button class="whclose" data-act="wholeclose">✕ 關閉</button></div><div class="whsc"><div class="whin" style="width:'+z*100+'%">'+ctSvg(s).replace(/ width="[\d.]+" height="[\d.]+">/,' role="img" aria-label="整張記錄表">')+'</div></div></div>'}
 function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存檔／分享</button>':''}
-var MTEAM={exc:['例外替補','例外替補','subopen',' data-m="exc"'],red:['重新指定自由球員','重新指定自由球員','redopen',''],fix:['陣容','修正陣容','fixopen',''],color:['球衣顏色','球衣顏色','sheet',' data-v="color"']};
+var MTEAM={rot:['輪轉錯誤／非法替補','哪一隊輪轉錯誤或非法替補','rotopen',''],exc:['例外替補','例外替補','subopen',' data-m="exc"'],red:['重新指定自由球員','重新指定自由球員','redopen',''],fix:['陣容','修正陣容','fixopen',''],color:['球衣顏色','球衣顏色','sheet',' data-v="color"']};
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
   var x=ui.sheet; if(!x)return '';
@@ -4301,14 +4330,31 @@ function sheetHtml(s,m){
     var mp=function(key,dis,sub){return '<button class="mbtn" data-act="mteam" data-v="'+key+'"'+(dis?' disabled':'')+'><strong>'+MTEAM[key][0]+'</strong>'+(sub?'<small>'+sub+'</small>':'')+'</button>'};
     h='<div class="shd"><h2>其他</h2><button data-act="close">關閉</button></div>'+
       '<section class="msec"><h3 class="mhead">換人</h3><div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>'+(mc.live?'<p class="muted mnote">球在進行中，得分後才能換人</p>':'')+'</section>'+
-      '<section class="msec"><h3 class="mhead">比賽狀況</h3><div class="mgrid">'+mb('injopen','INJ','傷停')+mb('injopen','INC','陣容不完整')+mb('injopen','FF','棄權')+'</div></section>'+
+      '<section class="msec"><h3 class="mhead">比賽狀況</h3><div class="mgrid">'+mb('injopen','INJ','傷停')+mb('injopen','INC','陣容不完整')+mb('injopen','FF','棄權')+'</div><div class="mgrid one">'+mp('rot',mc.live,mc.live?'球在進行中，得分後才能用':'對方的 1 分先按得分，這裡取消犯錯隊的分數')+'</div></section>'+
       '<section class="msec"><h3 class="mhead">修正</h3><div class="mgrid">'+mb('scfixpick','','修正比分')+mp('fix',false)+mb('tossfix','','挑邊',mc.live||s.setNo===2)+'</div><div class="mgrid two">'+mp('color',false,'含自由球員')+mb('page','roster','查看名單')+'</div></section>'+
       '<section class="msec"><h3 class="mhead">設定</h3><div class="mrow"><strong>提示字</strong><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(q){return '<button data-act="hints" data-v="'+q[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div></section>'+
       '<button class="linkbtn dangerlink" data-act="sheet" data-v="leave">離開這場比賽</button>';
+  }else if(x.type==='rot'){ // 11/13 輪轉錯誤／非法替補：對方的 1 分照平常按得分，這裡只取消犯錯隊的分數、寫記事欄
+    var rc=s.sets[s.setNo],ro=other(k),rk=x.kind||'R',rp=rc.path||[],rf=rc.score[k],rA=sheetTeams(s,1).A,rL=function(q){return q===rA?'A 隊':'B 隊'};
+    h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> '+(rk==='S'?'非法替補':'輪轉錯誤')+'</h2>';
+    var rwhy=!rc.started||rc.ended||setWinner(s)?'這局沒有在進行，不能用。':rc.live?'球在進行中，得分後才能用。':rc.cxRally===rc.rally?'剛剛已經取消過分數。要改追回的分數，先按「復原」再重做。':rp[rp.length-1]!==ro?'先給 '+tName(s,ro)+' 1 分：按「關閉」，按 '+tName(s,ro)+' 的「得分」，再回來這裡。':rf===0?tName(s,k)+' 現在 0 分，沒有分數可以取消。':'';
+    if(rwhy)h+='<p class="note">'+esc(rwhy)+'</p><button data-act="close">關閉</button>';
+    else if(x.to==null){
+      h+='<div class="seg" style="flex:none">'+[['R','輪轉錯誤'],['S','非法替補']].map(function(q){return '<button data-act="rotkind" data-v="'+q[0]+'" aria-pressed="'+(rk===q[0])+'">'+q[1]+'</button>'}).join('')+'</div>'+
+        '<p class="subhint">發現時 '+esc(tName(s,k))+' '+rf+':'+(rc.score[ro]-1)+'（'+esc(tName(s,ro))+'得分之前）</p>'+
+        '<div class="rotrow"><label for="rot-to">'+esc(tName(s,k))+' 追回到</label><input id="rot-to" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" value="'+esc(x.tv||'')+'"><span>分</span></div>'+
+        '<p class="muted">'+(function(){var ex=Math.floor(rf/2);return '例如從第 '+(ex+1)+' 分開始錯，就填 '+ex+'，取消第 '+(ex+1===rf?rf:(ex+1)+'～'+rf)+' 分。'})()+'</p><button class="primary" data-act="rotgo">下一步</button>'+
+        (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<p class="muted">不知道從哪一分開始錯：分數不取消，按「關閉」就好。輪轉不會倒回。</p><button data-act="close">關閉</button>';
+    }else{
+      stepBack='';
+      var rrec={set:s.setNo,team:k,kind:rk,from:rf,to:x.to,opp:rc.score[ro],gave:true};
+      h+='<p class="subhint">'+esc(tName(s,k))+' '+rf+' 分改成 <b>'+x.to+'</b> 分，取消第 '+(x.to+1===rf?rf:(x.to+1)+'～'+rf)+' 分，比分變成 '+x.to+':'+rc.score[ro]+'。</p><p class="muted">記事欄會寫：</p><p class="note">'+esc(cxText(rrec,rL))+'</p>'+
+        '<div class="row"><button data-act="rotback">返回</button><button class="go" data-act="rotdo">確定取消</button></div>';
+    }
   }else if(x.type==='tossfix'){
     var tc=s.sets[s.setNo],tb=swapBlocked(s),ask=x.ask;
     h='<h2>修正第 '+s.setNo+' 局挑邊</h2>';
-    if(!ask)h+='<button class="mbtn big" data-act="tfask" data-v="swap"'+(tb?' disabled':'')+'><strong>左右寫反，兩隊對調</strong><small>隊名和背號交換，比分留在原本那一邊</small></button>'+(tb?'<p class="cuperr">這局已有替補、自由球員或判罰紀錄。請先按復原退回那些動作。</p>':'')+'<button class="mbtn big" data-act="tfask" data-v="serve"><strong>只有先發球記錯</strong><small>改成 '+esc(tName(s,other(tc.serve)))+' 先發球，比分不變，輪轉重算</small></button><button class="ghost" data-act="close">取消</button>';
+    if(!ask)h+='<button class="mbtn big" data-act="tfask" data-v="swap"'+(tb?' disabled':'')+'><strong>左右寫反，兩隊對調</strong><small>隊名和背號交換，比分留在原本那一邊</small></button>'+(tb?'<p class="cuperr">這局已有替補、自由球員、判罰或取消分數的紀錄。請先按復原退回那些動作。</p>':'')+'<button class="mbtn big" data-act="tfask" data-v="serve"><strong>只有先發球記錯</strong><small>改成 '+esc(tName(s,other(tc.serve)))+' 先發球，比分不變，輪轉重算</small></button><button class="ghost" data-act="close">取消</button>';
     else h+='<p class="muted">'+(ask==='swap'?'左邊會變成 '+esc(tName(s,other(tc.left)))+'，右邊變成 '+esc(tName(s,tc.left))+'。比分 '+tc.score[tc.left]+' : '+tc.score[other(tc.left)]+' 留在原本的位置。':'改成 '+esc(tName(s,other(tc.serve)))+' 先發球。')+'</p><button class="primary" data-act="tfdo">確定修正</button><button class="ghost" data-act="tfask" data-v="">上一步</button>';
   }else if(x.type==='delmatch'){
     if(x.back)stepBack=BACK_BTN;
@@ -5071,6 +5117,17 @@ app.addEventListener('click',function(e){
     case 'undo': ui.rtab=null; var last=lastUndoable(m); if(last){var ug=last.data&&last.data.grp;ui.toast={t:'已復原：'+(ug?'重新指定自由球員':undoText(s,last)),until:Date.now()+3500}; dispatch('UNDO',{target:last.id}); while(ug){var u2=lastUndoable(m);if(u2&&u2.data&&u2.data.grp===ug)dispatch('UNDO',{target:u2.id});else break} if(last.type==='TIMEOUT')ui.timer=null; if(last.type==='SET_STARTED'){ui.page='lineup';ui.sel=null;ui.luTeam=null}
       var uaf=reduce(m.events),uan=uaf.setNo;if(!uaf.sets[uan].ended&&!setWinner(uaf)&&uaf.info['en'+uan])dispatch('INFO_SET',{field:'en'+uan,value:''})} break;
     case 'swap8': dispatch('SIDES_SWAPPED',{set:n}); break;
+    case 'rotopen': ui.sheet={type:'rot',team:k,kind:'R'}; break;
+    case 'rotkind': ui.sheet.kind=b.getAttribute('data-v'); break;
+    case 'rotgo':
+      var rtv=(document.getElementById('rot-to')||{}).value||'',rtn=/^\d{1,2}$/.test(rtv.trim())?Number(rtv.trim()):NaN,rtf=c.score[ui.sheet.team];
+      ui.sheet.tv=rtv.trim(); ui.sheet.err=isNaN(rtn)?'要填數字。':rtn>=rtf?'要填比 '+rtf+' 小的分數（0～'+(rtf-1)+'）。':null;
+      if(!ui.sheet.err)ui.sheet.to=rtn; break;
+    case 'rotback': ui.sheet.to=null; break;
+    case 'rotdo':
+      var rx=ui.sheet,rxf=c.score[rx.team];if(rx.to==null||!(rx.to<rxf)||c.live){ui.sheet.to=null;break}
+      dispatch('SCORE_CANCEL',{set:n,team:rx.team,kind:rx.kind||'R',to:rx.to});
+      ui.toast={t:'已取消 '+tName(s,rx.team)+' 第 '+(rx.to+1===rxf?rxf:(rx.to+1)+'～'+rxf)+' 分，記事欄寫好了',until:Date.now()+4000}; ui.sheet=null; break;
     case 'endok':
       if(Date.now()<(ui.noEnd||0))return;
       var seA=document.getElementById('se-st'),seB=document.getElementById('se-en');

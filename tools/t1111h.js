@@ -17,7 +17,7 @@ await more();
 ok(tag+'four sections',await p.locator('.sheet .msec').count()===4);
 ok(tag+'headings',(await p.locator('.sheet .msec>.mhead').allInnerTexts()).join()==='換人,比賽狀況,修正,設定');
 const labels=(await p.locator('.sheet .mbtn strong').allInnerTexts()).join(),RED=await p.locator('.sheet [data-act=mteam][data-v=red]').count()>0; // 學校版沒有自由球員時不放重新指定
-ok(tag+'buttons',labels==='例外替補,'+(RED?'重新指定自由球員,':'')+'傷停,陣容不完整,棄權,修正比分,陣容,挑邊,球衣顏色,查看名單',labels);
+ok(tag+'buttons',labels==='例外替補,'+(RED?'重新指定自由球員,':'')+'傷停,陣容不完整,棄權,輪轉錯誤／非法替補,修正比分,陣容,挑邊,球衣顏色,查看名單',labels); // 11/13 加輪轉錯誤／非法替補
 if(!RED)ok(tag+'exc alone full row',await p.locator('.sheet .mgrid.one [data-v=exc]').count()===1);else ok(tag+'two in row',await p.locator('.sheet .mgrid.two [data-v=red]').count()===1);
 ok(tag+'red only in school',RED||SCHOOL);
 ok(tag+'no team rows left',await p.locator('.sheet .mteams').count()===0);
