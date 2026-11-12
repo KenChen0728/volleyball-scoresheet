@@ -8,6 +8,7 @@ async function roster(p,k,nums,cap,lib){ // 用數字鍵輸入
 }
 async function rally(p,t){if(await p.locator('.sheet [data-act=libout]').count()){await p.click('.sheet [data-act=libout]');await W(30)}await p.click('[data-act=serve]');await W(370);await p.click(`[data-act=point][data-team=${t}]`);await W(370)}
 const S=async p=>(await p.locator('.ss b').allTextContents()).join(':');
+async function endWin(p){await p.waitForTimeout(1050);if(await p.locator('.sheet.setend').count()){await p.click('.sheet.setend [data-act=endok]');await p.waitForTimeout(80)}} // 11/13 局結束先跳視窗，按「確定」
 (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:390,height:844},acceptDownloads:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
 await p.goto(URL);await W(100);
 ok('home cta',await p.locator('.herocta').isVisible());
@@ -43,16 +44,16 @@ await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').co
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=pendo][data-v=DP]');ok('pending',await S(p)==='2:0');await p.click('[data-act=penyes]');await W(40);ok('penalty point',await S(p)==='3:0',await S(p));
 // 打完第一局
 let g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<30)await rally(p,'t1');await W(60);
-ok('pending result page',await p.locator('.pres,.ctv-res').count()===1);ok('pending foot',await p.locator('.foot [data-act=endset]').isVisible());
-await p.locator('.foot [data-act=undo]').click();await W(60);ok('undo to play',await p.locator('[data-act=point]').count()===2,await S(p));await W(370);await p.click('[data-act=point][data-team=t1]');await W(60);await p.click('[data-act=endset]');await W(80);
+ok('set end window',await p.locator('.sheet.setend').count()===1);await endWin(p);ok('pending result page',await p.locator('.pres,.ctv-res').count()===1);ok('pending foot',await p.locator('.foot [data-act=endset]').isVisible());
+await p.locator('.foot [data-act=undo]').click();await W(60);ok('undo to play',await p.locator('[data-act=point]').count()===2,await S(p));await W(370);await p.click('[data-act=point][data-team=t1]');await W(60);await endWin(p);await p.click('[data-act=endset]');await W(80);
 ok('set2 lineup',await p.locator('[data-act=copy]').count()===1);ok('break timer',(await p.locator('.breakt').innerText()).includes('局間休息'));
 ok('set2 blank',(await p.locator('.cell.fill').count())===0);
 await p.click('[data-act=copy]');await W(30);ok('copied',(await p.locator('.cell.fill').count())===6,await p.locator('.cell.fill').count());
 await p.click('[data-act=lu-lock]');await W(30);await p.click('[data-act=copy]');await W(30);await p.click('[data-act=lu-lock]');await W(30);await p.click('[data-act=start]');await W(60);ok('set2 direct',await p.locator('[data-act=serve]').count()===1);
-g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<30)await rally(p,'t2');await W(60);await p.click('[data-act=endset]');await W(80);
+g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<30)await rally(p,'t2');await W(60);await endWin(p);await p.click('[data-act=endset]');await W(80);
 ok('set3 toss',await p.locator('.side').count()===2);await p.click('.side >> nth=0');await W(30);await p.click('.page [data-act=page][data-v=lineup]');await W(60);await p.click('[data-act=copy]');await W(30);await p.click('[data-act=lu-lock]');await W(30);await p.click('[data-act=copy]');await W(30);await p.click('[data-act=lu-lock]');await W(30);await p.click('[data-act=start]');await W(40);await p.click('[data-act=cs-yes]');await W(60);
 g=0;while(g++<8){await rally(p,'t1');if(await p.locator('[data-act=swap8]').count())break}ok('swap prompt',await p.locator('[data-act=swap8]').count()===1);await p.click('[data-act=swap8]');await W(60);
-g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<20)await rally(p,'t1');await W(60);ok('final btn',(await p.locator('.foot [data-act=endset]').innerText()).includes('比賽'));await p.click('[data-act=endset]');await W(100);
+g=0;while(!(await p.locator('[data-act=endset]').count())&&g++<20)await rally(p,'t1');await W(60);await endWin(p);ok('final btn',(await p.locator('.foot [data-act=endset]').innerText()).includes('比賽'));await p.click('[data-act=endset]');await W(100);
 ok('over: back to home',await p.locator('.bar [data-act=home]').count()===1);ok('over bar time',(await p.locator('.bartime').innerText()).includes('全場'));
 // 11/12：第 1～3 局合成「各局」，打過兩局以上時下面可以選局
 await p.locator('.sheettabs [data-act=rtab][data-v^=s]').first().click();await W(40);

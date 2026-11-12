@@ -432,7 +432,7 @@ c.timeouts[k].length>=2?'這局 2 次暫停已用完':''
  第 '+tn+' 次暫停？</h2><div class="row">
 >>>>
 <<<<
-' 贏下第 '+s.setNo+' 局，請先和紙本核對</div>'
+' 贏下第 '+s.setNo+' 局</div>'
 ====
 ' 贏下第 '+s.setNo+' 局，請先核對比分</div>'
 >>>>
