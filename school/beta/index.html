@@ -1686,6 +1686,25 @@ section>h2{border-color:transparent}
   .kp:not(.bench) .pad button{aspect-ratio:auto;height:46px}
   .stephint.kpon{display:none}
 }
+/* 11/12 選擇比賽：下面一排能做的事，刪除是紅框 */
+.selbar{position:sticky;bottom:0;z-index:4;background:var(--bg);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;box-shadow:0 -1px 0 var(--line);margin-top:8px}
+.selcount{margin:0;font-size:14px;color:var(--muted);font-weight:700;text-align:center}
+.selacts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.selacts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.selacts button{min-height:48px;padding:0 4px;font-size:15px;white-space:nowrap}
+.selacts .seldel:not(:disabled){color:var(--bad);border:2px solid var(--bad);background:transparent}
+.dellist .hrow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:default}
+.selmove .hrow{justify-content:space-between}
+/* 11/12 使用者選 A：暫停、替補加大；判罰、記錄表、其他留在下面那排，字變小 */
+.zone .tt button{min-height:52px;font-size:18px}
+@media (min-height:700px){.zone .tt button{min-height:64px;font-size:19px}}
+.pbtns button{font-size:15px}
+.pagewide .pbtns button{min-height:48px}
+/* 11/12 結果頁：看整張、存檔／分享兩顆；提醒裡的存備份 */
+.savebtns.two>button{flex:1 1 0}
+.savebtns.two>.primary{flex:1.6 1 0}
+.bkinline{display:block;width:100%;margin-top:8px;min-height:44px}
+.xphd{margin:6px 2px 0;font-weight:700;font-size:14px;color:var(--muted)}
 
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
@@ -2287,7 +2306,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1112-1808';
+var BUILD='測試版 1112-1907';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2543,7 +2562,7 @@ function draw(){
   if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
-    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml()+(XP_ON?ppSheetHtml():''):'')+(view==='home'?aboutHtml():'')+helpHtml()+staleHtml();
+    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml()+(XP_ON?ppSheetHtml():'')+selSheetHtml():'')+(view==='home'?aboutHtml():'')+helpHtml()+staleHtml();
     helpPlace();
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     if(ui.toTop){ui.toTop=false;var tp=app.querySelector('.page');if(tp)tp.scrollTop=0}
@@ -2597,7 +2616,7 @@ function staleHtml(){
   if(!staleTab)return '';
   return '<div class="stale" role="alertdialog" aria-modal="true"><div class="stalebox"><h2>這場比賽在別的分頁有新紀錄</h2><p>同一場比賽不能在兩個分頁一起記，這個分頁已經停用，剛才這一下沒有存進去。請重新載入，看到最新的比分後再繼續。</p><button class="primary" data-act="reload">重新載入</button></div></div>';
 }
-var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的「隊伍沒到或人數不足」。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"fixsc","t":"改替補、暫停的比分","d":"按完替補，下方會寫「已記錄 3:2」，比分不對就按「修正比分」，打當時的比分。暫停的比分或之後才發現的，按「其他」→「修正比分」，或到「比賽紀錄」→「更正」點那一筆。只能改成這局打過的比分。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆；漏按的按「補記」，選當時的比分。各局時間也在這裡改。按了「確定比賽結束」就不能再改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除，暫停和替補改人不會動到比分；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」→「陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選要備份的比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消。要全部就按「全選」，選好按「備份」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
+var HELP=[{"id":"start","name":"第一次使用","desc":"大概流程，還有怎麼練習","cards":[{"img":"home","t":"從這裡開始","d":"按「開始新比賽」，先選要放進哪個資料夾，再照步驟往下走。"},{"img":"steps","t":"五個步驟","d":"資料、名單、挑邊、陣容、比賽。完成的步驟會打勾，不確定就按右上角的問號。"},{"img":"sample","t":"先練習","d":"主畫面按「使用教學」，最上面有「用範例比賽試試」。名單已經填好，可以放心亂按；範例標示「練習」，不會混進正式紀錄。"},{"img":"upd","t":"有新版本時","d":"有網路時如果有新版本，上方會出現提示。按「更新」換成新版，比賽紀錄不會不見；按「稍後」先收起來，主畫面最下面也能更新。一局正在打的時候不會出現。"}]},{"id":"info","name":"比賽資料","desc":"賽制、每局幾分","cards":[{"img":"pickcup","t":"選資料夾","d":"按「開始新比賽」會先問要放進哪個資料夾，預設是上一場的。選了資料夾，名單頁按「載入」就能選資料夾的隊伍。"},{"img":"info","t":"填比賽資料","d":"比賽名稱、場次這些都能空著，開賽後就不能改了。有資料夾時，最上面的「資料夾」比賽中、比賽後都能改。"},{"img":"fmt","t":"賽制","d":"預設三局兩勝，第 3 局打 15 分。要打五局三勝就按右邊。開賽後不能改。"},{"img":"points","t":"每局分數","d":"每局都能選 Deuce 無上限或搶分。第 3 局限制 17 分時，按「每局分數設定」，第 3 局選「搶分」，「搶到」填 17。"},{"img":"resume","t":"先離開也可以","d":"還沒開賽可以回主畫面，資料會留著。到「進行中」按「繼續準備」接著填。"}]},{"id":"roster","name":"名單","desc":"輸入背號、隊長、自由球員","cards":[{"img":"roster1","t":"隊名","d":"主隊寫左邊，客隊寫右邊。球衣顏色在下一步「挑邊」設定。"},{"img":"roster2","t":"輸入背號","d":"點空格，用數字鍵輸入，按「下一格」繼續，打完按「完成」。每隊最多 12 人，另外有 2 格自由球員。電腦可以直接打鍵盤。"},{"img":"roster3","t":"隊長和自由球員","d":"點已輸入的背號，再按「隊長」或「自由」。打錯可以按「移除」。每隊一定要有隊長，忘了設的話，按「下一步」或「開始」時會跳出來讓你點；沒有自由球員就空著。"}]},{"id":"toss","name":"挑邊","desc":"選先發球和左右場區","cards":[{"img":"toss1","t":"選發球和左右","d":"點先發球隊伍的排球。左邊是 A 隊，要換邊按中間按鈕。下方可以換球衣顏色。"},{"img":"toss2","t":"隊伍沒到","d":"逾時未出賽或陣容不完整，按最下面的「隊伍沒到或人數不足」。"},{"img":"pf","t":"賽前沒收","d":"選原因和獲勝隊，確定後比賽直接結束。"}]},{"id":"lineup","name":"陣容","desc":"填先發站位、確認開局","cards":[{"img":"lu1","t":"填站位","d":"點位置，再點背號。填過的號碼會變灰，右上角標出站的位置。按錯就再點一次該格重選。"},{"img":"lu2","t":"換另一隊","d":"兩隊各填一張，上方切換隊伍。"},{"img":"lu3","t":"確認陣容","d":"填完按確認。還要改時按「修改」。"},{"img":"start","t":"開局確認","d":"第 1 局填實際開始時間，確認後開始。"}]},{"id":"play","name":"比賽","desc":"得分、看誰發球、復原","cards":[{"img":"serve","t":"看誰發球","d":"排球和箭頭指向發球隊，號碼是發球球員，球場上有黃框的也是他。"},{"img":"point","t":"得分","d":"一球打完，按得分的隊伍。輪轉和發球權自動處理。連按兩下只算一分。"},{"img":"undo","t":"按錯了","d":"按上方「復原」退回上一步，畫面會寫退了什麼。可以連按往回退。"},{"img":"more","t":"少用的功能","d":"例外替補、傷停、陣容不完整、棄權和離開比賽，都在「其他」。"},{"img":"setter","t":"標出舉球員","d":"點場上的人，按「設為舉球員」，格子右上角會標「舉」，看得出他在前排還是後排。一隊最多兩位；換下場不會自動轉給別人，再點一次可以取消。"}]},{"id":"subs","name":"暫停和替補","desc":"暫停、替補綁定","cards":[{"img":"to","t":"暫停","d":"按「暫停」會先確認，確定才開始 30 秒倒數。"},{"img":"sub","t":"替補","d":"點場上要換下的人，按「替補」，再點上場的人；也可以按下方的「替補」，先點下面要上場的人。只有能換的人會亮，配好的一組會列出來，按錯可以刪除，最後按「完成」。"},{"img":"fixsc","t":"改替補、暫停的比分","d":"按完替補，下方會寫「已記錄 3:2」，比分不對就按「修正比分」，打當時的比分。暫停的比分或之後才發現的，按「其他」→「修正比分」，或到「比賽紀錄」→「更正」點那一筆。只能改成這局打過的比分。"},{"img":"bind","t":"綁定","d":"換過的兩個人這局綁在一起，球場上會標示。次數不限，但這局只能互相換，下一局解除。"},{"img":"swapback","t":"換回來","d":"點綁定的球員，按「換 N 號」就換好了，不用再選人。"}]},{"id":"libero","name":"自由球員","desc":"有登錄自由球員才需要看","cards":[{"img":"lib","t":"自由球員","d":"有登錄自由球員才會出現 L 格。點 L 格，再點後排要換下的人。換回來按「換下」格。"},{"img":"libf","t":"自由球員到前排","d":"自由球員輪到前排或發球時，L 會閃，下方也會提醒。點閃的 L 換回原本的球員，才能繼續。"},{"img":"redes","t":"重新指定自由球員","d":"自由球員不能上場時，到「其他」重新指定。場上時可以新自由球員直接上場，或先換回原球員。"}]},{"id":"penalty","name":"判罰","desc":"判罰種類和怎麼記","cards":[{"img":"pen","t":"記判罰","d":"按「判罰」，先選隊伍，再照裁判的判決點選。"},{"img":"pt","t":"球隊判罰","d":"不當請求：不合規定的請求。延誤警告：第一次延誤，只記錄。延誤懲罰：對方得 1 分。"},{"img":"pp","t":"個人判罰","d":"黃牌警告：只記錄。紅牌懲罰：對方得 1 分。出局：一手舉兩張牌，本局不能再上場。出場：兩手各一張牌，本場不能再上場。"},{"img":"pen2","t":"判罰確認","d":"確定才生效，取消不會留下紀錄。之後發現按錯，到「更正」修改。"},{"img":"pencard","t":"牌卡標記","d":"被判罰的球員，球場上的背號旁會顯示牌卡。"}]},{"id":"sets","name":"局結束和下一局","desc":"核對比分、確定、填下一局","cards":[{"img":"end","t":"局結束","d":"一局打完會自動開結果頁，先核對比分，再按上方的「確定本局結束」。"},{"img":"endback","t":"按錯還能退","d":"確定之前都能按「復原上一步」。確定之後就不能改比分，所以要先核對。"},{"img":"copy","t":"下一局陣容","d":"下一局要沿用就按「複製」，再用旋轉鈕調整。"}]},{"id":"set3","name":"決勝局","desc":"重新挑邊、到一半換場","cards":[{"img":"toss3","t":"重新挑邊","d":"打到決勝局要重新挑邊。點先發球隊伍的排球，要換邊按中間按鈕。A、B 隊不變。"},{"img":"swap","t":"到一半換場","d":"15 分的局，一隊先到 8 分時會跳提醒，兩隊換場後按「確定換場」，分數和輪轉不變。"},{"img":"final","t":"比賽結束","d":"打完一樣先核對，再按上方的「確定比賽結束」。"},{"img":"bk","t":"賽後先備份","d":"資料只存在這台裝置。比賽打完按「存備份」，存到檔案或傳給自己。"}]},{"id":"sheet","name":"比賽紀錄","desc":"看結果、修改按錯的紀錄","cards":[{"img":"rec","t":"看比賽紀錄","d":"比賽中按「比賽紀錄」，上方切換結果、判罰、記事和更正。"},{"img":"fix1","t":"更正","d":"暫停、替補或判罰按錯，到「更正」點那一筆；漏按的按「補記」，選當時的比分。各局時間也在這裡改。按了「確定比賽結束」就不能再改。"},{"img":"fix2","t":"修改內容","d":"可改人、改隊或刪除，暫停和替補改人不會動到比分；有給分的判罰改了，分數和輪轉會重算。"},{"img":"fixlu","t":"先發背號打錯","d":"按「其他」→「陣容」，選隊伍、位置和正確背號，比分和輪轉不變。"},{"img":"tossfix","t":"修正挑邊","d":"左右寫反時選「兩隊對調」，隊名和背號交換，比分留在原本那一邊。只有發球記錯就選「只有先發球記錯」。"}]},{"id":"cup","name":"賽事資料夾","desc":"盃賽的名單和比賽放一起","cards":[{"img":"cup1","t":"新增資料夾","d":"主畫面按「紀錄與名單」，再按「新增資料夾」，填賽事名稱。"},{"img":"cup2","t":"放進各隊名單","d":"選男子組或女子組，按「加入隊伍名單」。可以從 Excel 或 LINE 貼上背號。"},{"img":"pickcup","t":"開新比賽","d":"主畫面按「開始新比賽」，選這個資料夾。名單頁按「載入」，就能選資料夾的隊伍。"},{"img":"cup4","t":"傳到另一台","d":"在資料夾按「存成檔案」傳過去，對方在「紀錄與名單」按匯入。匯入前會列出會改什麼，名單以最後修改的為主。"}]},{"id":"history","name":"紀錄與名單","desc":"看打完的比賽、資料夾、備份和匯入","cards":[{"img":"hist1","t":"看以前的比賽","d":"主畫面按「紀錄與名單」，點一場就能看結果和判罰。前面標的是放在哪個資料夾。"},{"img":"cup1","t":"賽事資料夾","d":"按「新增資料夾」建一個盃賽。打開資料夾，可以建隊伍名單，也能存成檔案傳給別人。"},{"img":"bksel","t":"選擇比賽","d":"按「打完的比賽」旁的「選擇」，點比賽打勾，再點一次取消，要全部就按「全選」。選好按下面的「備份」「移到資料夾」或「刪除」。進行中的比賽也列在這裡。"},{"img":"bkopt","t":"要不要帶名單","d":"按「備份」後，可以勾要不要一起帶盃賽的全部隊伍名單。每場比賽自己的兩隊名單一定會帶。"},{"img":"bkimp","t":"匯入","d":"到新裝置按「匯入備份或資料夾」，選備份檔。匯入前會先列出會改什麼，按「匯入」才會改。"}]},{"id":"install","name":"加到手機主畫面","desc":"iPhone、iPad、Android","cards":[{"img":"ins_ios1","t":"iPhone、iPad：第 1 步","d":"用 Safari 開網站，按網址列旁的「⋯」，再按「分享」。舊版 iOS 直接按分享按鈕。"},{"img":"ins_ios2","t":"iPhone、iPad：第 2 步","d":"往下滑，按「加入主畫面」。"},{"img":"ins_ios3","t":"iPhone、iPad：第 3 步","d":"如果有「網頁 App」的開關就保持開啟，再按右上角「加入」。"},{"img":"ins_android","t":"Android 手機、平板","d":"用 Chrome 開網站，按右上角「⋮」，選「加到主畫面」或「安裝應用程式」。"}]},{"id":"install2","name":"電腦和換瀏覽器","desc":"Windows、Mac、Chromebook、LINE","cards":[{"img":"ins_pc","t":"Windows、Chromebook","d":"用 Chrome 或 Edge 開網站，按網址列右邊的安裝圖示，就會變成應用程式。Mac 的 Chrome 也一樣。"},{"img":"ins_mac","t":"Mac 的 Safari","d":"用 Safari 開網站，按上方選單的「檔案」，再按「加入 Dock」。"},{"img":"ins_line","t":"從 LINE 打開時","d":"LINE 裡面可能不能離線和備份。按主畫面提醒的「用 Safari 開啟」或複製網址，改用瀏覽器。"},{"img":"ins_bk","t":"舊資料怎麼帶過去","d":"瀏覽器和主畫面的資料是分開的。先在原本的地方到「紀錄與名單」按「選擇」、「全選」再按「備份」，到新的地方匯入。"}]}];
 function helpCards(){var g=HELP.filter(function(x){return x.id===ui.help.group})[0]||HELP[0];return g.cards.map(function(c){return {img:c.img,t:c.t,d:c.d,g:g.name}})}
 function helpHtml(){
   if(!ui.help)return '';
@@ -2954,7 +2973,7 @@ function historyHtml(){
   var g=splitMatches(),head='<header class="bar"><button class="barback" data-act="home">‹ 主畫面</button><h1>紀錄與名單</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
   if(ui.bkSel)return head+'<main class="page"><div class="narrow">'+bkPickHtml()+'</div></main>';
   var rows=g.done.map(function(x){var c=cupOf(x.m);return historyRow(x.m,x.s,true).replace('<span class="muted">','<span class="muted"><em class="ftag'+(c?'':' none')+'">'+esc(c?c.name:'未分類')+'</em>')}).join(''),can=g.live.length+g.done.length>0;
-  return head+'<main class="page"><div class="narrow">'+cupHomeHtml()+'<section><div class="shead"><h2>打完的比賽</h2>'+(can?'<button class="linkbtn" data-act="bksel">選擇</button>':'')+'</div><div id="rvmsg" class="muted" role="status"></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'</section>'+(XP_ON?'<section><h2>賽前紙本記錄表</h2><button class="ppone" data-act="ppsel">選擇要印的比賽</button></section>':'')+'<section><h2>備份和匯入</h2><div class="histtools"><button data-act="bksel"'+(can?'':' disabled')+'>選擇要備份的比賽</button><label class="ghost-file">匯入備份或資料夾<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div><div id="import-msg" class="muted" role="status">'+esc(ui.importMsg||'')+'</div><p class="muted">換手機或清除瀏覽器資料前，請先備份。</p></section></div></main>';
+  return head+'<main class="page"><div class="narrow">'+cupHomeHtml()+'<section><div class="shead"><h2>打完的比賽</h2>'+(can?'<button class="linkbtn" data-act="bksel">選擇</button>':'')+'</div><div id="rvmsg" class="muted" role="status">'+esc(ui.selMsg||'')+'</div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="note">打完的比賽會放在這裡。換手機時，可以用下面的匯入功能把備份放回來。</p>')+'</section>'+'<section><h2>備份和匯入</h2><div class="histtools"><button data-act="bksel"'+(can?'':' disabled')+'>選擇要備份的比賽</button><label class="ghost-file">匯入備份或資料夾<input id="import-file" type="file" accept=".json,application/json,.txt,text/plain"></label></div><div id="import-msg" class="muted" role="status">'+esc(ui.importMsg||'')+'</div><p class="muted">換手機或清除瀏覽器資料前，請先備份。</p></section></div></main>';
 }
 /* ========== 11/11 勾選比賽再備份（使用者）：按「選擇」後單選、多選、全選，選好按「備份」，跳出視窗確定才存檔。
    每場比賽本身的兩隊名單和裁判在比賽紀錄裡，一定會帶；盃賽的全部隊伍名單、裁判名單寫出盃賽名稱和數量，讓使用者勾要不要帶。
@@ -2975,8 +2994,25 @@ function bkRow(x){
   return '<button class="hrow bkone" data-act="bkpick" data-id="'+esc(m.id)+'" aria-pressed="'+on+'"><span class="bkbox" aria-hidden="true"></span><span class="bktx"><span class="muted">'+meta+'</span><span class="hnames"><span'+(!live&&aw?' class="win"':'')+'>'+esc(T[0])+'</span><b>'+setsText(s)+'</b><span'+(!live&&!aw?' class="win"':'')+'>'+esc(T[1])+'</span></span></span></button>';
 }
 function bkPickHtml(){
-  var l=bkList(),n=l.filter(function(x){return ui.bkSel.ids[x.m.id]}).length,all=n===l.length&&n>0;
-  return '<section class="bkpick"><h2>選要備份的比賽</h2><p class="muted">點比賽打勾，再點一次取消。選好按「備份」。</p><div class="bktools"><button data-act="bkall">'+(all?'全不選':'全選')+'</button><button data-act="bkcancel">取消</button><button class="go" data-act="bkgo"'+(n?'':' disabled')+'>備份（已選 '+n+' 場）</button></div>'+(l.length?'<div class="rlist">'+l.map(bkRow).join('')+'</div>':'<p class="note">還沒有比賽可以備份。</p>')+'</section>';
+  var l=bkList(),n=l.filter(function(x){return ui.bkSel.ids[x.m.id]}).length,all=n===l.length&&n>0,dis=n?'':' disabled';
+  return '<section class="bkpick"><h2>選擇比賽</h2><p class="muted">點比賽打勾，再點一次取消。選好按下面要做的事。</p><div class="bktools"><button data-act="bkall">'+(all?'全不選':'全選')+'</button><button data-act="bkcancel">取消</button></div>'+(l.length?'<div class="rlist">'+l.map(bkRow).join('')+'</div>':'<p class="note">還沒有比賽。</p>')+'</section>'+
+    '<div class="selbar"><p class="selcount" role="status">'+(n?'已選 '+n+' 場':'還沒選比賽')+'</p><div class="selacts'+(XP_ON?'':' three')+'"><button data-act="bkgo"'+dis+'>備份</button><button data-act="selmove"'+dis+'>移到資料夾</button>'+(XP_ON?'<button data-act="selpp"'+dis+'>印紙本</button>':'')+'<button class="seldel" data-act="seldel"'+dis+'>刪除</button></div></div>';
+}
+/* 11/12 選好的比賽：移到資料夾、刪除（刪除會列出是哪幾場、打到哪裡、有沒有備份，再確定一次） */
+function selSheetHtml(){
+  var x=ui.sheet;if(!x||!ui.bkSel||(x.type!=='selmove'&&x.type!=='seldel'))return '';
+  var ms=bkChosen(),h='';
+  if(x.type==='selmove'){
+    var cur=ms.length&&ms.every(function(q){return (q.cup||'')===(ms[0].cup||'')})?(ms[0].cup||''):null;
+    var opt=function(id,name){return '<button class="hrow" data-act="selmoveto" data-id="'+esc(id)+'"'+(cur===id?' aria-current="true"':'')+'><span>'+esc(name)+'</span>'+(cur===id?'<span class="muted">（現在在這裡）</span>':'')+'</button>'};
+    h='<h2>移到資料夾</h2><p class="muted">已選 '+ms.length+' 場，要放進哪個資料夾？</p>'+(db.cups.length?'':'<p class="note">還沒有資料夾。到「紀錄與名單」最上面新增資料夾。</p>')+'<div class="rlist selmove">'+db.cups.map(function(c){return opt(c.id,c.name)}).join('')+opt('','不放資料夾（未分類）')+'</div><button data-act="close">取消</button>';
+  }else{
+    var nb=ms.filter(function(q){return !backedUp(q)}).length;
+    h='<h2>刪除 '+ms.length+' 場比賽？</h2><div class="rlist dellist">'+ms.map(function(q){var s=safeReduce(q),T=matchTitle(s),st=!s.sets[1].started?'還沒開賽':matchOver(s)?'打完了':'還沒打完';
+      return '<div class="hrow"><span class="hnames"><span>'+esc(T[0])+'</span><b>'+setsText(s)+'</b><span>'+esc(T[1])+'</span></span><span class="muted">'+st+(backedUp(q)?'':'・還沒備份')+'</span></div>'}).join('')+'</div>'+
+      '<p class="muted">記錄表會一起消失，無法復原。'+(nb?'其中 '+nb+' 場還沒備份，要保留的話先按「備份」。':'')+'</p><div class="row"><button data-act="close">取消</button><button class="danger" data-act="seldelyes">確定刪除 '+ms.length+' 場</button></div>';
+  }
+  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="'+(x.type==='selmove'?'移到資料夾':'刪除比賽')+'">'+h+'</div>';
 }
 function bkSheetHtml(){
   if(!ui.bkOpt||!ui.bkSel)return '';
@@ -3421,7 +3457,7 @@ function resultHtml(s,pv){
   if(tab==='ref'&&XP_ON)return head+ctView(s,CTG.proof.box,'ctv-ref',1.2)+refsHtml(s,true)+back;
 
   if(!over)return head+ppResult(s)+back;
-  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在按「存備份」。</div>')+(XP_ON?'<button class="primary full" data-act="sheet" data-v="export">存成圖片／PDF（整張記錄表）</button>':'')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「紀錄與名單」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
+  return head+'<div class="good">勝隊：'+esc(tName(s,win))+'　'+w[win]+' : '+w[other(win)]+'</div>'+(s.forfeit?'<div class="note">'+esc(tName(s,s.forfeit))+' 棄權</div>':'')+(backedUp(current())?'':'<div class="warning" id="bkwarn">這場還沒備份。資料只存在這台裝置，手機壞了或清除資料就沒了，建議現在存一份備份。<button class="bkinline" data-act="rpjson">存備份</button></div>')+'<div class="row savebtns"><button data-act="rpjson">存備份</button><button data-act="rpcsv">存成試算表</button></div><div id="rvmsg" class="muted"></div>'+(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動存在這台裝置，之後到主畫面的「紀錄與名單」可以再打開。</div><button class="linkbtn dangerlink" data-act="sheet" data-v="delmatch">刪除這場比賽</button>';
 }
 function playHtml(s){
   if(!matchOver(s)&&setWinner(s))return pendingHtml(s,setWinner(s));
@@ -3695,7 +3731,7 @@ var XP_ON=false;
 function wholeBtn(){return XP_ON?'<button class="xpbtn" data-act="whole">看整張</button>':''}
 function wholeHtml(s){if(!ui.whole||!XP_ON)return '';var z=ui.wz||1;
   return '<div class="whv" role="dialog" aria-label="整張記錄表"><div class="whbar"><button data-act="wz" data-v="-1" aria-label="縮小"'+(z<=1?' disabled':'')+'>－</button><span>'+Math.round(z*100)+'%</span><button data-act="wz" data-v="1" aria-label="放大"'+(z>=4?' disabled':'')+'>＋</button><button class="whclose" data-act="wholeclose">✕ 關閉</button></div><div class="whsc"><div class="whin" style="width:'+z*100+'%">'+ctSvg(s).replace(/ width="[\d.]+" height="[\d.]+">/,' role="img" aria-label="整張記錄表">')+'</div></div></div>'}
-function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存成圖片／PDF</button>':''}
+function xpBtn(){return XP_ON?'<button class="xpbtn" data-act="sheet" data-v="export">存檔／分享</button>':''}
 var MTEAM={exc:['例外替補','例外替補','subopen',' data-m="exc"'],red:['重新指定自由球員','重新指定自由球員','redopen',''],fix:['陣容','修正陣容','fixopen',''],color:['球衣顏色','球衣顏色','sheet',' data-v="color"']};
 var BACK_BTN='<button class="sheetback" data-act="sheetback">‹ 返回</button>';
 function sheetHtml(s,m){
@@ -3762,7 +3798,7 @@ function sheetHtml(s,m){
     if(x.back)stepBack=BACK_BTN;
     h='<h2>刪除這場比賽？</h2><p class="muted">紀錄會一起消失，無法復原。要保留的話先下載備份。</p><div class="row"><button data-act="close">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div>';
   }else if(x.type==='leave'){
-    h='<h2>離開這場比賽？</h2><p class="muted">紀錄會保留，之後在主畫面按「繼續記錄」。</p><div class="row"><button data-act="close">取消</button><button class="primary" data-act="home">確定離開</button></div><button class="dellink" data-act="leavedel">刪除這場比賽</button>';
+    h='<h2>離開這場比賽？</h2><p class="muted">紀錄會保留，之後在主畫面按「繼續記錄」。</p><div class="row"><button data-act="close">取消</button><button class="primary" data-act="home">確定離開</button></div>';
   }else if(x.type==='pf'){
     var pn=s.teams.t1.name.trim()&&s.teams.t2.name.trim();
     if(!pn)h='<h2>賽前沒收</h2><p class="subhint">請先到名單填好兩隊隊名</p><button data-act="close">關閉</button>';
@@ -4119,13 +4155,26 @@ app.addEventListener('click',function(e){
       var cu=b.getAttribute('data-v'),um=document.getElementById('urlmsg');
       try{navigator.clipboard.writeText(cu).then(function(){if(um)um.textContent='網址已複製，貼到 Safari 或 Chrome 開啟'},function(){if(um)um.textContent='無法自動複製，請長按這行網址：'+cu})}catch(er){if(um)um.textContent='無法自動複製，請長按這行網址：'+cu}
       return;
-    case 'bksel': ui.bkSel={ids:{}}; ui.bkOpt=null; ui.delMatch=null; ui.toTop=true; break;
+    case 'bksel': ui.bkSel={ids:{}}; ui.bkOpt=null; ui.delMatch=null; ui.selMsg=''; ui.toTop=true; break;
     case 'bkpick': var bid=b.getAttribute('data-id'); if(ui.bkSel){if(ui.bkSel.ids[bid])delete ui.bkSel.ids[bid];else ui.bkSel.ids[bid]=true} break;
     case 'bkall': if(ui.bkSel){var ball=bkAll();ui.bkSel.ids={};if(!ball)bkList().forEach(function(x){ui.bkSel.ids[x.m.id]=true})} break;
     case 'bkcancel': ui.bkSel=null; ui.bkOpt=null; break;
     case 'bkgo': if(!ui.bkSel||!bkChosen().length)break; ui.bkOpt={}; bkCups(bkChosen()).forEach(function(c){ui.bkOpt[c.id]={teams:true,refs:true}}); break;
     case 'bkopt': var bo=ui.bkOpt&&ui.bkOpt[b.getAttribute('data-id')]; if(bo){var bv=b.getAttribute('data-v');bo[bv]=!bo[bv]} break;
     case 'bksave': bkSave(); return;
+    case 'selmove': if(ui.bkSel&&bkChosen().length)ui.sheet={type:'selmove'}; break;
+    case 'selmoveto':
+      var mto=b.getAttribute('data-id')||'',mms=bkChosen(),mcup=mto?db.cups.filter(function(q){return q.id===mto})[0]:null;
+      mms.forEach(function(q){if(mto)q.cup=mto;else delete q.cup;var qs=safeReduce(q);if(qs)addMatchRefs(q,qs)});
+      ui.sheet=null; ui.bkSel=null; ui.selMsg='已把 '+mms.length+' 場'+(mcup?'移到「'+mcup.name+'」':'改成未分類'); save(); break;
+    case 'selpp':
+      if(!ui.bkSel)break; var spick={},sch=bkChosen(); sch.forEach(function(q){spick[q.id]=1});
+      var spl=ppList(),sok=spl.filter(function(q){return spick[q.m.id]}); ui.sheet={type:'pp',ids:{},skip:sch.length-sok.length}; sok.forEach(function(q){ui.sheet.ids[q.m.id]=1}); break;
+    case 'seldel': if(ui.bkSel&&bkChosen().length)ui.sheet={type:'seldel'}; break;
+    case 'seldelyes':
+      var dms=bkChosen(),dids={}; dms.forEach(function(q){dids[q.id]=1});
+      db.matches=db.matches.filter(function(q){return !dids[q.id]}); if(db.currentId&&dids[db.currentId])db.currentId=null;
+      ui.sheet=null; ui.bkSel=null; ui.selMsg='已刪除 '+dms.length+' 場比賽'; save(); break;
     case 'updnow': updGo(); return;
     case 'rpall': saveFile('ScoreSheet備份_'+today()+'.json',JSON.stringify({app:'volleyball-school',version:1,matches:db.matches,cups:db.cups}),'application/json'); prefs.lastBackup=Date.now(); savePrefs(); return;
     case 'rpbad':
@@ -4391,8 +4440,9 @@ app.addEventListener('click',function(e){
     case 'sheetclose': ui.liveSheet=false; ui.rtab=null; ui.whole=false; break;
 
 
-    case 'rpcsv': saveFile(fname(s,'csv'),csvText(m,s),'text/csv;charset=utf-8'); return;
+    case 'rpcsv': if(ui.sheet&&ui.sheet.type==='export'){ui.sheet=null;render()} saveFile(fname(s,'csv'),csvText(m,s),'text/csv;charset=utf-8'); return;
     case 'rpjson':
+      if(ui.sheet&&ui.sheet.type==='export'){ui.sheet=null;render()}
       saveFile(fname(s,'json'),JSON.stringify({app:'volleyball-school',version:1,match:m}),'application/json');
       prefs.bk=prefs.bk||{}; prefs.bk[m.id]=Date.now(); savePrefs();
       var bw=document.getElementById('bkwarn'); if(bw)bw.remove();
