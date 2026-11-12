@@ -45,6 +45,31 @@ if(M.screen==='sheet'){
     box.appendChild(r1);box.appendChild(r2);
     v.style.display='none';v.parentNode.insertBefore(box,v.nextSibling);
   }
+  if(v&&M.variant==='loupe'&&!$('.mkloupe')){
+    // 甲：上面整局縮小，框起來的那一塊在下面放大（點上面哪裡就放大哪裡）
+    root.classList.add('mk-loupe');
+    var lsvg=$('svg',v),lvb=lsvg.getAttribute('viewBox').split(/\s+/).map(Number),LW=lvb[2],LH=lvb[3],x0=0.17,fr=0.40;
+    v.style.position='relative';
+    var lbox=document.createElement('div');lbox.className='mklbox';lbox.style.left=(x0*100)+'%';lbox.style.width=(fr*100)+'%';v.appendChild(lbox);
+    var lh=document.createElement('div');lh.className='mkhint2';lh.textContent='點上面的記錄表，下面就放大那一塊';
+    var mag=document.createElement('div');mag.className='mkloupe';
+    var lc=lsvg.cloneNode(true);lc.setAttribute('viewBox',(x0*LW)+' 0 '+(fr*LW)+' '+LH);lc.removeAttribute('width');lc.removeAttribute('height');lc.style.cssText='display:block;width:100%;height:auto;max-width:none';
+    mag.appendChild(lc);
+    v.parentNode.insertBefore(lh,v.nextSibling);v.parentNode.insertBefore(mag,lh.nextSibling);
+  }
+  if(v&&M.variant==='stack2'&&!$('.mkstack')){
+    // 乙：兩隊上下分開，每段上面寫隊名和隊色
+    root.classList.add('mk-stack');
+    var ssvg=$('svg',v),svb=ssvg.getAttribute('viewBox').split(/\s+/).map(Number),SW=svb[2],SH=svb[3];
+    var slab=111/607.1*SW,smid=360/607.1*SW;
+    var smk=function(x,w){var c=ssvg.cloneNode(true);c.setAttribute('viewBox',x+' 0 '+w+' '+SH);c.removeAttribute('width');c.removeAttribute('height');c.style.cssText='display:block;width:auto;height:100%;max-width:none';return c};
+    var sbox=document.createElement('div');sbox.className='mkstack';
+    var head=function(letter,name,col){var d=document.createElement('div');d.className='mkteamh';d.innerHTML='<i style="background:'+col+'">'+letter+'</i>'+name;return d};
+    var sr1=document.createElement('div');sr1.className='mkrow';sr1.appendChild(smk(0,smid));
+    var sr2=document.createElement('div');sr2.className='mkrow';sr2.appendChild(smk(0,slab));sr2.appendChild(smk(smid,SW-smid));
+    sbox.appendChild(head('A','白鷺隊','#1E73C9'));sbox.appendChild(sr1);sbox.appendChild(head('B','黑熊隊','#E8731D'));sbox.appendChild(sr2);
+    v.style.display='none';v.parentNode.insertBefore(sbox,v.nextSibling);
+  }
 }
 if(M.screen==='play'&&(M.variant==='nolib-faint'||M.variant==='nolib-hide')){
   root.classList.add(M.variant==='nolib-faint'?'mk-faint':'mk-hide');

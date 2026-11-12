@@ -8,6 +8,8 @@
   比賽清單拿掉刪除），還有三個細節題的兩種做法（空的 L 格、手機直放記錄表的空白、平板替補面板的提示）。
 - `mkfix.py`、`mkfix2.js`：示意用的比賽資料（隊名、裁判名都是虛構的，第 2 局打到 6:8）。產生的 fix*.json 不放進 GitHub。
 - `shoot.js`：截圖。`node tools/style1112/shoot.js <cur|A|B|C> <dark|light> <phone|tablet> <輸出資料夾> [畫面…]`
-- `pick.html`：比較網頁。圖放在旁邊的 img 資料夾（WebP），發布在 claude.ai 的 artifact，不放進 GitHub Pages。
+- `A6.css`、`A9.css`：第二輪，A 霧灰的顏色配小圓角（和 B 一樣）或中圓角，空的 L 格不顯示。
+- `pick.html`：第一輪比較網頁；`pick2.html`：第二輪（圓角、手機記錄表的「整局加放大」和「上下分開加隊名」）。
+- 比較網頁圖放在旁邊的 img 資料夾（WebP），發布在 claude.ai 的 artifact，不放進 GitHub Pages。
 
 使用者選好以後，選中的那一種要改寫進主程式的變數和元件，不是直接套這些覆蓋用的樣式。

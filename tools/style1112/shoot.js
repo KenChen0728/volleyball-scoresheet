@@ -39,11 +39,13 @@ if(want('nolib-hide'))await snap('nolib-hide','play','nolib-hide');
 if(want('pen')){await click('[data-act=penopen]');const tp=p.locator('.sheet .teampick button').first();if(await tp.count()){await tp.click();await W(300)}await snap('pen','pen');await click('.sheet [data-act=penclose],.sheet [data-act=close]')}
 if(want('more')){await click('[data-act=sheet][data-v=more]');await snap('more','more');await click('.sheet [data-act=close]')}
 if(want('bench-now')||want('bench-new')){await click('[data-act=subopen][data-team=t1]');if(want('bench-now'))await snap('bench-now','bench','now');if(want('bench-new'))await snap('bench-new','bench','new');const sc=p.locator('[data-act=subcancel]');if(await sc.count()){await sc.click();await W(800)}}
-if(want('sheet')||want('sheet-zoom')||want('sheet-stack')){await click('[data-act=sheetopen]');await click('[data-act=rtab][data-v=s1]');
+if(want('sheet')||want('sheet-zoom')||want('sheet-stack')||want('sheet-loupe')||want('sheet-stack2')){await click('[data-act=sheetopen]');await click('[data-act=rtab][data-v=s1]');
   const rr=async()=>{await p.click('[data-act=rtab][data-v=res]');await W(250);await p.click('[data-act=rtab][data-v=s1]');await W(300)};
-  if(want('sheet'))await snap('sheet','sheet',DEV==='phone'?'stack':'');
+  if(want('sheet'))await snap('sheet','sheet',DEV==='phone'&&!/^A[69]$/.test(STY)?'stack':'');
   if(want('sheet-zoom')){await rr();await snap('sheet-zoom','sheet','zoom')}
-  if(want('sheet-stack')){await rr();await snap('sheet-stack','sheet','stack')}}
+  if(want('sheet-stack')){await rr();await snap('sheet-stack','sheet','stack')}
+  if(want('sheet-loupe')){await rr();await snap('sheet-loupe','sheet','loupe')}
+  if(want('sheet-stack2')){await rr();await snap('sheet-stack2','sheet','stack2')}}
 if(errs.length)console.log('ERR',errs.join(' | '));
 console.log('ok',STY,MODE,DEV);
 await b.close()})().catch(e=>{console.log('FAIL',e.message.split('\n')[0]);process.exit(1)});

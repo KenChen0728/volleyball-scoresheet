@@ -140,3 +140,11 @@ html.mock .mkpoint b{font-weight:900}
  html.mock .page:has(>.sheettabs)>.ctv{margin-top:auto}
  html.mock .page:has(>.sheettabs)>.fsbtn{margin-bottom:auto}
 }
+
+/* 第二輪細節：手機直放記錄表 */
+html.mock.mk-loupe .ctv-set{overflow:hidden}
+html.mock .mklbox{position:absolute;top:0;bottom:0;border:3px solid #2C2925;border-radius:4px;box-shadow:inset 0 0 0 1px #fff;pointer-events:none}
+html.mock .mkhint2{text-align:center;color:var(--muted);font-size:15px;font-weight:700;margin:2px 0 -2px}
+html.mock .mkloupe{flex:none;background:#fff;border-radius:6px;overflow:hidden;box-shadow:var(--paper-shadow)}
+html.mock .mkteamh{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--ink);margin:2px 0 -4px}
+html.mock .mkteamh i{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-style:normal;font-size:14px;font-weight:900}
