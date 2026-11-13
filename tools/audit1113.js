@@ -2,15 +2,21 @@
 // 用法：node tools/audit1113.js [網址] [資料 key] [輸出資料夾] [尺寸…]
 //   尺寸寫法：寬x高，後面可加 t（觸控手機）、l（淺色，預設深色），例如 375x667t、1180x820l
 //   學校版：node tools/audit1113.js file://.../school/index.html vb-school-v2 /tmp/audit-school 375x667t
-// 結果寫在 輸出資料夾/report.json；有問題的畫面另存截圖。比分用注入事件快速推進（和 t1113f.js 一樣的做法）。
+// 結果寫在 輸出資料夾/report.json；有問題的畫面另存截圖（ALL=1 每個畫面都存）。比分用注入事件快速推進（和 t1113f.js 一樣的做法）。
 const {chromium}=require('playwright');const fs=require('fs');
 const URL=process.argv[2]||'file:///home/claude/volleyball-scoresheet/index.html',KEY=process.argv[3]||'nanshe-scoresheet-v1',SCHOOL=/school/.test(URL);
 const O=(process.argv[4]||'/tmp/audit1113')+'/';fs.mkdirSync(O,{recursive:true});
 const SIZES=(process.argv.slice(5).length?process.argv.slice(5):['375x667t']).map(s=>{const m=s.match(/^(\d+)x(\d+)(t?)(l?)$/);return {w:+m[1],h:+m[2],touch:!!m[3],light:!!m[4],tag:s}});
 const W=ms=>new Promise(r=>setTimeout(r,ms));
+const ALL=!!process.env.ALL; // ALL=1：每個畫面都存截圖（看整體樣子用），不只有問題的
+// INSET=左,右,下（例如 62,62,21 = iPhone 16/17 Pro 橫放）：把 env(safe-area-inset-*) 換成這些數字，量東西有沒有跑到動態島和下方橫條；截圖畫上動態島的位置
+const INSET=process.env.INSET?process.env.INSET.split(',').map(Number):null;
+let RUNURL=URL,TMPF=null;
+if(INSET&&URL.startsWith('file://')){const f=decodeURIComponent(URL.slice(7)),h=fs.readFileSync(f,'utf8').replace(/env\(safe-area-inset-(left|right|bottom|top),0px\)/g,(m,k)=>({left:INSET[0],right:INSET[1],bottom:INSET[2],top:0})[k]+'px');
+  TMPF=f.replace(/[^\/]*$/,'.inset-audit-'+process.pid+'.html');fs.writeFileSync(TMPF,h);RUNURL='file://'+TMPF}
 
 // 在頁面裡量：只看最上層（有視窗開著時只看視窗裡）
-function auditPage(){
+function auditPage(ins){
   const out=[],vw=innerWidth,vh=innerHeight;
   const desc=e=>{const a=e.getAttribute('data-act'),v=e.getAttribute('data-v'),id=e.id,c=(typeof e.className==='string'?e.className:'').trim().split(/\s+/).slice(0,2).join('.');
     return e.tagName.toLowerCase()+(id?'#'+id:'')+(c?'.'+c:'')+(a?'['+a+(v?'='+v:'')+']':'')+' 「'+(e.innerText||e.value||e.getAttribute('aria-label')||'').trim().replace(/\s+/g,' ').slice(0,16)+'」'};
@@ -27,6 +33,13 @@ function auditPage(){
   const inTop=e=>top.contains(e)||(top.classList.contains('kp')&&false);
   const hscroll=e=>{for(let p=e.parentElement;p;p=p.parentElement){const cs=getComputedStyle(p);if((cs.overflowX==='auto'||cs.overflowX==='scroll')&&p.scrollWidth>p.clientWidth+1)return true}return false};
   const se=document.scrollingElement;if(se.scrollWidth>vw+1)out.push(['頁面可以左右捲',se.scrollWidth+' > '+vw]);
+  if(ins){const iy0=vh/2-63,iy1=vh/2+63,iz=Math.max(0,Math.min(ins[0],ins[1])-10); // 動態島或瀏海：橫放時在左邊或右邊（看手機往哪邊轉），到安全區往內約 10（動態島約 11～51）、高約 126 置中；下方橫條在最下面 ins[2]
+    for(const e of [...document.querySelectorAll('button,a[href],input,select,textarea,[data-act],h1,h2,h3,p,b,span,label,td,th,li')].filter(x=>!x.closest('svg')&&shown(x)&&inTop(x)&&(x.matches('button,a,input,select,textarea,[data-act]')||[...x.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())))){
+      const c=clip(e);if(c.width<2||c.height<2)continue;
+      if(c.bottom>iy0&&c.top<iy1&&(c.left<iz||c.right>vw-iz))out.push(['被動態島擋到',desc(e),Math.round(c.left)+'～'+Math.round(c.right)+' / '+Math.round(c.top)+'～'+Math.round(c.bottom)]);
+      else if(e.matches('button,a,input,select,textarea,[data-act]')&&c.bottom>vh-ins[2]+4&&c.top>vh-ins[2]-30){
+        let more=false;for(let q=e.parentElement;q&&q!==document.documentElement;q=q.parentElement){if(stuck(q)&&getComputedStyle(q).position==='sticky')break;const oy=getComputedStyle(q).overflowY;if((oy==='auto'||oy==='scroll')&&q.scrollHeight-q.scrollTop-q.clientHeight>4){more=true;break}}
+        if(!more)out.push(['按鈕貼著下方橫條',desc(e),Math.round(c.top)+'～'+Math.round(c.bottom)])}}}  // 還能往下捲的內容不算（捲上來就離開橫條）
   const act=[...document.querySelectorAll('button,a[href],input,select,textarea,[role=button],[data-act]')].filter(e=>!e.closest('svg')&&shown(e)&&inTop(e));
   for(const e of act){
     const r=e.getBoundingClientRect(),dis=e.disabled||e.getAttribute('aria-disabled')==='true';
@@ -77,8 +90,11 @@ for(const S of SIZES){
   const p=await ctx.newPage();const errs=[];p.on('pageerror',x=>errs.push(x.message));
   const w=(ms=80)=>p.waitForTimeout(ms);let shotN=0;
   const audit=async name=>{await w(250);await p.evaluate(()=>document.querySelectorAll('.ftoast').forEach(x=>x.remove()));
-    let r;try{r=await p.evaluate(auditPage)}catch(e){r=[['檢查失敗',e.message.slice(0,80)]]}
-    if(r.length){const f=S.tag+'-'+(++shotN)+'-'+name+'.png';await p.screenshot({path:O+f}).catch(()=>{});report[S.tag+' '+name]={shot:f,issues:r}}};
+    let r;try{r=await p.evaluate(auditPage,INSET)}catch(e){r=[['檢查失敗',e.message.slice(0,80)]]}
+    if(r.length||ALL){const f=S.tag+'-'+(++shotN)+'-'+name+'.png';
+      if(INSET)await p.evaluate(b=>{const vh=innerHeight,vw=innerWidth,mk=(css)=>{const d=document.createElement('div');d.className='__ins';d.style.cssText='position:fixed;z-index:2147483647;pointer-events:none;'+css;document.body.appendChild(d)};
+        mk('left:'+Math.max(0,b[0]-51)+'px;top:'+(vh/2-63)+'px;width:'+Math.min(37,Math.max(20,b[0]-14))+'px;height:126px;border-radius:19px;background:#000');mk('right:'+0+'px;top:0;width:'+b[1]+'px;height:100%;background:rgba(255,0,0,.12)');mk('left:0;top:0;width:'+b[0]+'px;height:100%;background:rgba(255,0,0,.12)');mk('left:'+(vw/2-70)+'px;bottom:8px;width:140px;height:5px;border-radius:3px;background:#000')},INSET);
+      await p.screenshot({path:O+f}).catch(()=>{});if(INSET)await p.evaluate(()=>document.querySelectorAll('.__ins').forEach(x=>x.remove()));if(r.length)report[S.tag+' '+name]={shot:f,issues:r}}};
   const click=async(sel,opt={})=>{const l=p.locator(sel).first();if(await l.count()){await l.click(opt).catch(async()=>{await l.dispatchEvent('click')});await w(opt.ms||200);return true}return false};
   const close=async()=>{for(let i=0;i<3;i++){if(!(await click('.sheet [data-act=close]')))break}};
   const inject=async(set,team,n)=>{await p.evaluate(([k,set,team,n])=>{const d=JSON.parse(localStorage.getItem(k));const m=d.matches.filter(x=>x.id===d.currentId)[0],e0=m.events[0],T=Date.now()-20*60000;
@@ -87,7 +103,7 @@ for(const S of SIZES){
   const point=async k=>{if(await p.locator('[data-act=serve]').count()){await click('[data-act=serve]',{ms:450})}await click(`[data-act=point][data-team=${k}]`,{ms:600})};
   const lockBoth=async(copy)=>{for(let i=0;i<2;i++){if(copy)await click('[data-act=copy]',{ms:150});else for(const n of (i?[2,4,6,8,10,14]:[1,3,5,7,9,11]))await click(`[data-act=fill][data-no="${n}"]`,{ms:60});await click('[data-act=lu-lock]',{ms:200})}};
   try{
-    await p.goto(URL);await p.evaluate(land=>{localStorage.clear();sessionStorage.clear();if(land)localStorage.setItem('volleyball-prefs','{"landSheet":false}')},S.touch&&S.w>S.h);await p.reload();await w(500);
+    await p.goto(RUNURL);await p.evaluate(land=>{localStorage.clear();sessionStorage.clear();if(land)localStorage.setItem('volleyball-prefs','{"landSheet":false}')},S.touch&&S.w>S.h);await p.reload();await w(500);
     if(await p.locator('.sheet.about').count()){await audit('about-intro');await click('.sheet.about [data-act=aboutclose]')}
     await audit('home');
     await click('.herobtns [data-act=helpopen]');await audit('help-menu');await click('[data-act=helpgroup][data-v=sets]',{ms:400});await audit('help-card');await click('[data-act=helpclose]');
@@ -149,5 +165,6 @@ for(const S of SIZES){
   if(errs.length)report[S.tag+' 頁面錯誤']={issues:errs.map(x=>['頁面錯誤',x.slice(0,160)])};
   await ctx.close();console.log(S.tag,'done');
 }
-const f=O+'report-'+SIZES.map(s=>s.tag).join('_')+'.json';fs.writeFileSync(f,JSON.stringify(report,null,1));console.log('寫好',f,Object.keys(report).length,'個畫面有問題');
+if(TMPF)fs.unlinkSync(TMPF);
+const f=O+'report-'+SIZES.map(s=>s.tag).join('_')+(INSET?'-inset':'')+'.json';fs.writeFileSync(f,JSON.stringify(report,null,1));console.log('寫好',f,Object.keys(report).length,'個畫面有問題');
 await b.close()})().catch(x=>{console.log('ERR',x.message);process.exit(1)});

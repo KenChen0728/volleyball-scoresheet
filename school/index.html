@@ -1781,6 +1781,35 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .cell.fill .pos{color:inherit}
 .bench .chip.used b{position:relative;left:-3px;top:4px} /* 窄手機：用過的號碼不要被右上角的位置字蓋到 */
 @media (min-width:600px) and (max-height:350px){.wplay{min-height:460px}} /* 很矮的畫面（筆電放大 200%）：球場不要擠到號碼疊在一起，畫面往下捲 */
+/* 11/13 iPhone 橫放：左右各有一段安全區（動態島、瀏海、圓角，約 44～62），下面有橫條（約 21）。
+   只在貼著螢幕邊的那一側留，另一側照原本的間距；步驟列加寬安全區的寬度，字不被切掉 */
+@media (orientation:landscape) and (min-width:640px){
+  .nav{width:calc(92px + env(safe-area-inset-left,0px))}
+  .shell:not(.nonav)>.page{padding-left:12px}
+  .kp:not(.bench){width:calc(330px + env(safe-area-inset-right,0px));padding-left:12px}
+  .kp.t2:not(.bench){left:calc(92px + env(safe-area-inset-left,0px));width:330px;padding-left:12px;padding-right:12px}
+  .kp.bench{width:calc(min(340px,38vw) + env(safe-area-inset-right,0px));padding-left:12px}
+  .kp.bench.onleft{width:calc(min(340px,38vw) + env(safe-area-inset-left,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px}
+  .shell.nonav~.kp.bench{width:calc(min(clamp(340px,49vh,400px),40vw) + env(safe-area-inset-right,0px))}
+  .shell.nonav~.kp.bench.onleft{width:calc(min(clamp(340px,49vh,400px),40vw) + env(safe-area-inset-left,0px))}
+}
+/* 跳出的視窗在畫面正中間，離螢幕邊很遠，不用再留安全區 */
+@media (min-width:760px){.sheet{padding-left:14px;padding-right:14px}}
+/* 比賽頁：兩邊隊伍欄讓出一半安全區給球場，格子不會窄到羅馬數字碰到號碼（沒有安全區的裝置不變） */
+@media (orientation:landscape) and (min-width:761px){
+  .wplay{grid-template-columns:minmax(150px,calc(210px - env(safe-area-inset-left,0px)/2)) minmax(0,780px) minmax(150px,calc(210px - env(safe-area-inset-right,0px)/2))}
+}
+/* 下面的按鈕離開下方橫條（手機橫放時橫條在正下方，往上滑會回主畫面）；黏在下面的按鈕下方用底色蓋住捲過去的內容 */
+@media (orientation:landscape) and (max-height:620px){
+  .hero{padding-bottom:max(14px,env(safe-area-inset-bottom,0px))}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .shell:not(.nonav)>.page{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+  .rnext,.page>.foot{box-shadow:0 24px 0 var(--bg)}
+  .page>.primary.full,.page>.fields+.primary.full{box-shadow:0 -6px 8px var(--bg),0 24px 0 var(--bg)}
+  .cell{height:calc((100vh - 196px - max(0px,env(safe-area-inset-bottom,0px) - 8px))/2)}
+  .luside .chip.used b{left:-5px;top:7px} /* 陣容下面用過的號碼：右上角的位置字（VI）不碰到兩位數 */
+}
 
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
@@ -2399,7 +2428,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1113-0733';
+var BUILD='1113-1120';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
