@@ -36,6 +36,13 @@ const touching=p=>p.evaluate(()=>{const bad=[];document.querySelectorAll('.pcour
   ok('roster keypad keys >= 40',kp.length>=10&&Math.min(...kp)>=40,kp);
   const kr=await p.evaluate(()=>{const k=document.querySelector('.kp');return [k.getBoundingClientRect().right,parseFloat(getComputedStyle(k).paddingRight),parseFloat(getComputedStyle(k).paddingLeft)]});
   ok('keypad: inset only on the screen side',kr[0]>=873&&kr[1]>=62&&kr[2]===12,kr);
+  // 11/13 使用者（語音）：白框剛好包住鍵盤、靠下對齊；填左邊那隊在右邊、填右邊那隊在左邊；「下一格」不換行
+  const kpBox=()=>p.evaluate(()=>{const k=document.querySelector('.kp'),r=k.getBoundingClientRect(),a=k.querySelector('.pad .add'),g=document.createRange();g.selectNodeContents(a);
+    const nav=document.querySelector('.nav');return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,h:r.height,lines:new Set([...g.getClientRects()].map(x=>Math.round(x.top))).size,navR:nav?nav.getBoundingClientRect().right:0}});
+  const k1=await kpBox();ok('keypad hugs the keys, at the bottom (t1 on the right)',k1.h<=230&&k1.bottom>=401&&k1.right>=873,k1);ok('next-slot key one line (t1)',k1.lines===1,k1);
+  await p.click('[data-act=kpclose]');await W(200);
+  await p.locator('[data-act=slot][data-team=t2]:not(.fill)').first().click();await W(300);
+  const k2=await kpBox();ok('keypad hugs the keys, at the bottom (t2 on the left, next to steps)',k2.h<=230&&k2.bottom>=401&&Math.abs(k2.left-k2.navR)<=2,k2);ok('next-slot key one line (t2)',k2.lines===1,k2);
   await p.click('[data-act=kpclose]');await W(200);
   await p.locator('.nav [data-v=toss]').click();await p.click('.side.t1');await W(200);
   await p.locator('.nav [data-v=lineup]').click();await W(300);
@@ -89,6 +96,13 @@ const touching=p=>p.evaluate(()=>{const bad=[];document.querySelectorAll('.pcour
   await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(300);
   const sp=await p.evaluate(()=>[document.querySelector('.nav').getBoundingClientRect().width,parseFloat(getComputedStyle(document.querySelector('.page')).paddingLeft)]);
   ok('tablet portrait nav/page unchanged',sp[1]===12,sp);
+  await ctx.close()}
+{const [ctx,p]=await open(false,{viewport:{width:1180,height:820},hasTouch:true,isMobile:false});
+  await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(300);
+  if(!(await p.locator('[data-act=slot]').count()))await p.locator('.nav [data-v=roster]').click();await W(300);
+  await p.locator('[data-act=slot][data-team=t1]:not(.fill)').first().click();await W(300);
+  const kt=await p.evaluate(()=>{const r=document.querySelector('.kp').getBoundingClientRect();return {top:r.top,bottom:r.bottom,right:r.right,h:r.height}});
+  ok('tablet landscape keypad hugs the keys at the bottom right',kt.h<=230&&kt.bottom>=819&&kt.right>=1179,kt);
   await ctx.close()}
 
 if(!SCHOOL){// 5. 手機轉橫看記錄表：在安全區裡面

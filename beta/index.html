@@ -1808,6 +1808,12 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
   .cell{height:calc((100vh - 196px - max(0px,env(safe-area-inset-bottom,0px) - 8px))/2)}
   .luside .chip.used b{left:-5px;top:7px} /* 陣容下面用過的號碼：右上角的位置字（VI）不碰到兩位數 */
 }
+/* 11/13 使用者（語音）：橫放時名單的數字鍵盤，白框剛好包住鍵盤、靠下對齊，上面讓出來給名單看。
+   左右照舊：填左邊那隊時在右邊，填右邊那隊時在左邊 */
+@media (orientation:landscape) and (min-width:640px){
+  .kp:not(.bench){top:auto;max-height:calc(100% - 60px);overflow-y:auto;overscroll-behavior:contain;border-top:2px solid var(--ink);justify-content:flex-start}
+  .kp:not(.bench) .pad .add{font-size:13px;white-space:nowrap} /* 鍵寬 42～48 時「下一格」不換行 */
+}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2285,7 +2291,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1113-1120';
+var BUILD='測試版 1113-1158';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
