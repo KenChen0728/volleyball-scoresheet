@@ -23,8 +23,8 @@
 :root{
   --bg:#ECE8E1; --panel:#F7F5F1; --ink:#2C2925; --muted:#5E584F; --line:#D5CFC5; --soft:#E2DDD5; --line2:#CBC4B8;
   --t1:#0A5AA8; --t1-soft:#DCEAF7; --t1-on:#FFFFFF; --t2:#B8420B; --t2-soft:#FBE6DA; --t2-on:#FFFFFF;
-  --ok:#0E7A4B; --ok-soft:#D9F0E4; --warn:#8A5A00; --warn-soft:#FDF0CC; --bad:#B3261E; --bad-soft:#FBE4E2;
-  --on-accent:#2C2925; --scrim:rgba(44,38,32,.42); --del:#9E4A3F; --del-on:#FFFFFF;
+  --ok:#0B6E43; --ok-soft:#D9F0E4; --warn:#8A5A00; --warn-soft:#FDF0CC; --bad:#B3261E; --bad-soft:#FBE4E2;
+  --on-accent:#2C2925; --scrim:rgba(44,38,32,.42); --del:#9E4A3F;--del-ink:#9E4A3F; --del-on:#FFFFFF;
   --brand:#F4F1EC; --box:#56616B; --accent:#F2C14B; --accent-ink:#2C2925; --sel:#3B3833; --sel-on:#F7F5F1;
   /* 11/12 霧灰：一般按鈕、不能按、版頭、主畫面、面板、卡片 */
   --btn:#E2DDD4; --btn-edge:transparent; --btn-ink:#2C2925; --off:#EFEBE5; --off-edge:#C4BCB0; --off-ink:#8A8378;
@@ -41,7 +41,7 @@
   --bg:#1D1C1A; --panel:#262523; --ink:#ECE8E1; --muted:#ADA69B; --line:#413E39; --soft:#302E2B; --line2:#4C4842;
   --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
   --ok:#5FD39A; --ok-soft:#123A2C; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
-  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D;--del-ink:#E58A7E; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
   --accent:#F0C24E; --accent-ink:#2A2723; --accent-shadow:none;
   --btn:#3A3733; --btn-ink:#ECE8E1; --off:#232220; --off-edge:#4C4842; --off-ink:#7C766C; --field:#232220; --field-edge:#45423C; --track:#2D2B28;
   --hdr-ink:#ECE8E1; --hdr-sub:#ADA69B; --hdr-btn:rgba(255,255,255,.08); --hdr-mute:rgba(255,255,255,.28);
@@ -53,7 +53,7 @@
   --bg:#1D1C1A; --panel:#262523; --ink:#ECE8E1; --muted:#ADA69B; --line:#413E39; --soft:#302E2B; --line2:#4C4842;
   --t1:#6FB3F2; --t1-soft:#17324B; --t2:#F59A63; --t2-soft:#44260F;
   --ok:#5FD39A; --ok-soft:#123A2C; --warn:#EDB95E; --warn-soft:#3C2C0D; --bad:#F2918A; --bad-soft:#47201D;
-  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
+  --on-accent:#2A2723; --scrim:rgba(0,0,0,.55); --del:#B4594D;--del-ink:#E58A7E; --del-on:#FFFFFF; --brand:#272624; --box:#3D444B; --sel:#E8E3DB; --sel-on:#1D1C1A; --sheet-dim:.9; --cs:dark; color-scheme:dark;
   --accent:#F0C24E; --accent-ink:#2A2723; --accent-shadow:none;
   --btn:#3A3733; --btn-ink:#ECE8E1; --off:#232220; --off-edge:#4C4842; --off-ink:#7C766C; --field:#232220; --field-edge:#45423C; --track:#2D2B28;
   --hdr-ink:#ECE8E1; --hdr-sub:#ADA69B; --hdr-btn:rgba(255,255,255,.08); --hdr-mute:rgba(255,255,255,.28);
@@ -1771,6 +1771,15 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .ctv.hot rect.hot{fill:transparent;cursor:pointer}
 .ctv.hot rect.hot:active{fill:rgba(46,108,183,.18)}
 @media (hover:hover){.ctv.hot rect.hot:hover{fill:rgba(46,108,183,.10)}}
+/* 11/13 健檢 */
+.linkbtn.dangerlink,.foot .pfbtn.ghost.full,.sheet .dellink,.sheet .dellink:last-child{color:var(--del-ink);border-color:var(--del-ink)} /* 紅框按鈕的紅字：深色模式用亮一點的紅 */
+.page>.fields+.primary.full{position:sticky;bottom:0;z-index:3;box-shadow:0 -6px 8px var(--bg)} /* 比賽資料的「下一步」和裁判頁一樣黏在下面 */
+.subpair button{min-height:44px}
+.setbox small{color:rgba(255,255,255,.85)}
+.lc .lno{font-size:12px}.lc:not(.empty) .lno{opacity:1}
+.cell.fill .pos{color:inherit}
+.bench .chip.used b{position:relative;left:-3px;top:4px} /* 窄手機：用過的號碼不要被右上角的位置字蓋到 */
+@media (min-width:600px) and (max-height:350px){.wplay{min-height:460px}} /* 很矮的畫面（筆電放大 200%）：球場不要擠到號碼疊在一起，畫面往下捲 */
 
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
@@ -2389,7 +2398,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1113-0659';
+var BUILD='測試版 1113-0733';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2501,10 +2510,10 @@ var TEAM_LABEL={t1:'主隊',t2:'客隊'};
 /* 球衣色：j 是色票，c／s 是畫面用的字色與底色（淺色、深色主題各一組） */
 var JERSEY=[
  {id:'red',n:'紅',j:'#D3122F',l:['#C8102E','#FBDDE1'],d:['#FF8A95','#4A1A20']},
- {id:'orange',n:'橘',j:'#F07A1A',l:['#B8420B','#FBE6DA'],d:['#F59A63','#44260F']},
+ {id:'orange',n:'橘',j:'#F07A1A',l:['#A83D0A','#FBE6DA'],d:['#F59A63','#44260F']},
  {id:'yellow',n:'黃',j:'#F7CE1E',l:['#8A6D00','#FBF0BF'],d:['#F2D04A','#3D330A']},
  {id:'green',n:'綠',j:'#1C9A57',l:['#12713F','#D9F0E2'],d:['#6FD79B','#143524']},
- {id:'blue',n:'藍',j:'#1E7BD6',l:['#0A5AA8','#DCEAF7'],d:['#6FB3F2','#17324B']},
+ {id:'blue',n:'藍',j:'#1D76CD',l:['#0A5AA8','#DCEAF7'],d:['#6FB3F2','#17324B']},
  {id:'navy',n:'深藍',j:'#16245E',l:['#1B2A6B','#DDE1F3'],d:['#9FB0F0','#1E2748']},
  {id:'purple',n:'紫',j:'#6F2DB0',l:['#6A2BA8','#EADFF6'],d:['#C39BF2','#2F1E48']},
  {id:'pink',n:'粉',j:'#EE5FA7',l:['#C2187A','#FADCEC'],d:['#F590C8','#47203A']},
@@ -2650,7 +2659,7 @@ function draw(){
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     if(ui.toTop){ui.toTop=false;var tp=app.querySelector('.page');if(tp)tp.scrollTop=0}
     var ask=app.querySelector('.rrow.ask');if(ask)ask.scrollIntoView({block:'nearest'});
-    syncAwake(false);return;
+    stickyPad();syncAwake(false);return;
   }
   var m=current(),s=reduce(m.events);
   if(addMatchRefs(m,s))save();
@@ -2673,7 +2682,15 @@ function draw(){
   var on=app.querySelector('.num.on'),box=app.querySelector('.kp');
   if(on&&box){var lim=box.getBoundingClientRect().top-8,rb=on.getBoundingClientRect();if(rb.bottom>lim)pg.scrollTop+=rb.bottom-lim;if(on.getBoundingClientRect().top<pg.getBoundingClientRect().top)pg.scrollTop-=pg.getBoundingClientRect().top-on.getBoundingClientRect().top}
   /* 11/13 陣容填滿後「確認這張陣容單」才出現，矮的手機會被下方步驟列蓋住：捲到看得到 */
+  stickyPad();
   if(ui.luShow){ui.luShow=false;var lkb=app.querySelector('[data-act=lu-lock]');if(lkb){var lkr=lkb.getBoundingClientRect(),pgr=pg.getBoundingClientRect();if(lkr.bottom>pgr.bottom-8)pg.scrollTop+=lkr.bottom-pgr.bottom+8}}
+}
+/* 11/13 黏在上下的列（下一步、存檔／分享、視窗最下面的按鈕）會蓋住捲過去或聚焦的輸入框：捲動容器留出它們的高度（scroll-padding） */
+function stickyPad(){
+  [].forEach.call(app.querySelectorAll('.page,.sheet'),function(box){var b=0,tp=0;
+    function add(c){var cs=getComputedStyle(c);if(cs.position!=='sticky')return;var h=c.offsetHeight;if(cs.bottom!=='auto')b=Math.max(b,h);else if(cs.top!=='auto')tp=Math.max(tp,h)}
+    [].forEach.call(box.children,add);[].forEach.call(box.querySelectorAll('.rnext,.sheetfoot,.selbar,.pendfoot,.bktools'),add);
+    box.style.scrollPaddingBottom=b?(b+8)+'px':'';box.style.scrollPaddingTop=tp?(tp+8)+'px':''});
 }
 /* 11/9 朋友回饋：平板格子大、號碼還是手機大小。號碼跟著格子等比例放大（手機的比例約 0.4），最多 84px；比原本小就維持原本 */
 /* 11/11 年紀大的裁判覺得還是小：號碼放大到原本約 1.7 倍，隊長圈仍放得下。發球的小排球、自由球員 L、牌卡跟著號碼等比例放大（--k，最多 1.7 倍） */
@@ -4087,7 +4104,7 @@ function sheetHtml(s,m){
     h=ppInner(x);
   }else if(x.type==='ins'){
     var iz=x.set,ic=s.sets[iz],iL=ic.left||s.sets[1].left||'t1',ik=x.team,SV='一二三四五六';
-    h='<h2>補記第 '+iz+' 局</h2><p class="subhint">哪一隊漏按了</p><div class="teampick picked">'+[iL,other(iL)].map(function(q){return '<button class="'+q+'" data-act="insteam" data-team="'+q+'" aria-pressed="'+(ik===q)+'">'+esc(tName(s,q))+'</button>'}).join('')+'</div>';
+    h='<h2>補記第 '+iz+' 局</h2><p class="subhint">哪一隊漏按了</p><div class="teampick'+(ik?' picked':'')+'">'+[iL,other(iL)].map(function(q){return '<button class="'+q+'" data-act="insteam" data-team="'+q+'" aria-pressed="'+(ik===q)+'">'+esc(tName(s,q))+'</button>'}).join('')+'</div>';
     if(ik)h+='<p class="subhint">漏了什麼</p><div class="seg" style="flex:none">'+[['T','暫停'],['S','替補']].map(function(q){return '<button data-act="inskind" data-v="'+q[0]+'" aria-pressed="'+(x.kind===q[0])+'">'+q[1]+'</button>'}).join('')+'</div>';
     if(ik&&x.kind){
       var iv=x.scv||['',''],ibox=function(i,q){return '<label><span class="tpill '+q+'">'+esc(tName(s,q))+'</span><input id="ins'+i+'" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" value="'+esc(iv[i])+'" aria-label="'+esc(tName(s,q))+' 的分數"></label>'};
@@ -4886,7 +4903,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
-  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=scback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=bkcancel]'];
+  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=scback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=rotback]','.sheet [data-act=bxback]','.sheet [data-act=srback]','.sheet [data-act=srno]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=trashno]','[data-act=bkcancel]','[data-act=tmclose]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }
