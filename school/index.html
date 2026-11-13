@@ -1816,6 +1816,13 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
   .kp:not(.bench){top:auto;max-height:calc(100% - 60px);overflow-y:auto;overscroll-behavior:contain;border-top:2px solid var(--ink);justify-content:flex-start}
   .kp:not(.bench) .pad .add{font-size:13px;white-space:nowrap} /* 鍵寬 42～48 時「下一格」不換行 */
 }
+/* 11/13 往下滑能關掉的都有上面那條小橫槓（數字鍵盤、替補面板、使用說明、看整張、全螢幕；視窗本來就有） */
+.kp.swipe::before,.help.swipe::before,.fsv.swipe .fsin::before,.whv.swipe .whbar::before{content:'';position:absolute;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:var(--line2);pointer-events:none;z-index:1}
+.kp.swipe::before{top:2px}
+.help.swipe::before{top:calc(max(10px,var(--safe-top,0px)) - 7px)}
+.fsv.swipe .fsin::before{top:1px;background:#c9c9c9}
+.whv.swipe .whbar{position:relative}
+.whv.swipe .whbar::before{top:1px;background:#5a5a5a}
 
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
@@ -2434,7 +2441,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1113-1158';
+var BUILD='1113-1655';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2636,13 +2643,28 @@ function restoreFocus(k){
 }
 var SHEET_DISMISS=['[data-act=close]','[data-act=pmback]','[data-act=penclose]','[data-act=penno]','[data-act=penback]','[data-act=tono]','[data-act=incno]','[data-act=ffno]','[data-act=cs-no]','[data-act=nclose]','[data-act=amendback]','[data-act=fixback]','[data-act=import-cancel]','[data-act=del-no]'];
 function sheetDismiss(sh){for(var i=0;i<SHEET_DISMISS.length;i++){var e=sh.querySelector(SHEET_DISMISS[i]);if(e&&!e.disabled)return e}return null}
-function markSwipe(){if(matchMedia('(min-width:760px)').matches)return;app.querySelectorAll('.sheet').forEach(function(sh){if(sheetDismiss(sh))sh.classList.add('swipe')})}
+/* 往下滑關掉（11/13 統一）：跳出來的視窗、數字鍵盤、替補面板、使用說明、看整張、全螢幕，觸控螢幕直放橫放都一樣，
+   和按它的關閉鍵一樣；沒有關閉鍵的（一定要選一個）不能滑掉 */
+var SWIPE_LAYERS=[['.sheet',SHEET_DISMISS],['.kp:not(.bench)',['[data-act=kpclose]']],['.kp.bench',['[data-act=subclose]']],['.help',['[data-act=helpclose]']],['.whv',['[data-act=wholeclose]']],['.fsv',['[data-act=fsclose]']]];
+function layerDismiss(el){for(var i=0;i<SWIPE_LAYERS.length;i++){if(el.matches(SWIPE_LAYERS[i][0])){var L=SWIPE_LAYERS[i][1];for(var j=0;j<L.length;j++){var b=el.querySelector(L[j]);if(b&&!b.disabled)return b}return null}}return null}
+function markSwipe(){var on=matchMedia('(max-width:759px)').matches||matchMedia('(any-pointer:coarse)').matches;
+  app.querySelectorAll(SWIPE_LAYERS.map(function(x){return x[0]}).join(',')).forEach(function(el){el.classList.toggle('swipe',!!(on&&layerDismiss(el)))})}
+function swipeAngle(el){var t=el.matches('.fsv')?el.querySelector('.fsin'):el;if(!t)return 0;var m=/matrix\(([^)]+)\)/.exec(getComputedStyle(t).transform||'');if(!m)return 0;var a=m[1].split(',').map(parseFloat);return Math.atan2(a[1],a[0])}
 var drag=null;
-app.addEventListener('touchstart',function(e){var sh=e.target.closest('.sheet.swipe');if(!sh||e.touches.length!==1)return;if(sh.scrollTop>0&&!e.target.closest('.grab'))return;if(e.target.closest('input,textarea,select'))return;drag={sh:sh,y0:e.touches[0].clientY,t0:Date.now(),dy:0}},{passive:true});
-app.addEventListener('touchmove',function(e){if(!drag)return;var dy=e.touches[0].clientY-drag.y0;if(dy<0){dy=0}drag.dy=dy;if(dy>4){drag.sh.style.transition='none';drag.sh.style.transform='translateY('+dy+'px)'}},{passive:true});
-function dragEnd(){if(!drag)return;var d=drag;drag=null;var fast=d.dy>40&&d.dy/(Date.now()-d.t0)>0.5;
-  if(d.dy>Math.min(120,d.sh.offsetHeight*0.3)||fast){var btn=sheetDismiss(d.sh);d.sh.style.transition='transform .18s ease-out';d.sh.style.transform='translateY(100%)';setTimeout(function(){if(btn)btn.click()},150)}
-  else{d.sh.style.transition='transform .2s ease-out';d.sh.style.transform=''}}
+app.addEventListener('touchstart',function(e){var sh=e.target.closest('.swipe');if(!sh||e.touches.length!==1)return;if(e.target.closest('input,textarea,select'))return;
+  if(!e.target.closest('.grab'))for(var q=e.target;q;q=q.parentElement){if(q.scrollTop>0)return;if(q===sh)break} // 裡面捲到一半：往下是捲動
+  var th=swipeAngle(sh);drag={sh:sh,x0:e.touches[0].clientX,y0:e.touches[0].clientY,t0:Date.now(),dy:0,ux:-Math.sin(th),uy:Math.cos(th),lock:0}},{passive:true});
+app.addEventListener('touchmove',function(e){if(!drag)return;if(e.touches.length!==1){dragReset(drag);drag=null;return}
+  var mx=e.touches[0].clientX-drag.x0,my=e.touches[0].clientY-drag.y0,along=mx*drag.ux+my*drag.uy,across=Math.abs(my*drag.ux-mx*drag.uy);
+  if(!drag.lock){if(Math.abs(along)<8&&across<8)return;drag.lock=along>across?1:-1} // 先往哪邊動就算哪邊；橫的、往上的不算
+  if(drag.lock<0)return;var dy=Math.max(0,along-8);drag.dy=dy;drag.sh.style.transition='none';drag.sh.style.translate=(drag.ux*dy)+'px '+(drag.uy*dy)+'px'},{passive:true});
+function dragReset(d){if(!d||d.lock<=0)return;d.sh.style.transition='translate .2s ease-out';d.sh.style.translate=''}
+function dragEnd(){if(!drag)return;var d=drag;drag=null;if(d.lock<=0)return;var fast=d.dy>40&&d.dy/(Date.now()-d.t0)>0.5,size=Math.abs(d.uy)>0.5?d.sh.offsetHeight:d.sh.offsetWidth;
+  if(d.dy>Math.min(120,size*0.3)||fast){var btn=layerDismiss(d.sh);if(!btn){dragReset(d);return}
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){btn.click();return}
+    var far=Math.max(innerWidth,innerHeight);d.sh.style.transition='translate .18s ease-out';d.sh.style.translate=(d.ux*far)+'px '+(d.uy*far)+'px';
+    setTimeout(function(){btn.click();setTimeout(function(){if(d.sh.isConnected){d.sh.style.transition='';d.sh.style.translate=''}},60)},150)}
+  else dragReset(d)}
 app.addEventListener('touchend',dragEnd);app.addEventListener('touchcancel',dragEnd);
 var backGuard=false,backSkip=false;
 function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch)}
