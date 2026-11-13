@@ -43,6 +43,21 @@ if(!SCHOOL&&fs.existsSync('/tmp/fix1113.json')){const [ctx,p]=await open(874,402
   const sh=await p.evaluate(()=>getComputedStyle(document.querySelector('.page>.primary.full')).boxShadow);ok('refs next: strip under it covered',/0px 24px 0px/.test(sh),sh);
   await ctx.close()}
 
+// 11/13 晚上（v95）：一列四格時，日期欄右邊的日曆圖示整個看得到（Chrome 以前替年份留 6 位數寬，圖示被擠出去切掉）。
+// 量法：日期欄截圖裡的深色一段一段找（中間空 4px 以上算分開），最後一段是圖示：要夠寬、右邊沒貼著框。
+for(const [w,h,ins] of [[812,375,50],[852,393,59],[874,402,62],[780,439,0]]){const tag=w+'x'+h+(ins?'i':'');
+  const [ctx,p]=await open(w,h,ins,!!ins);await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(300);
+  await p.locator('.nav [data-v=info]').click();await W(300);
+  const png=(await p.locator('#i-date').screenshot()).toString('base64');
+  const r=await p.evaluate(async b64=>{const im=new Image();im.src='data:image/png;base64,'+b64;await im.decode();
+    const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height).data;
+    const segs=[];for(let x=0;x<c.width;x++){let dk=false;for(let y=3;y<c.height-3&&!dk;y++){const i=(y*c.width+x)*4;dk=d[i]+d[i+1]+d[i+2]<300}
+      if(!dk)continue;const L=segs[segs.length-1];if(L&&x-L[1]<=4)L[1]=x;else segs.push([x,x])}
+    return {w:c.width,segs}},png);
+  const last=r.segs[r.segs.length-1]||[0,0];
+  ok(tag+' date field: calendar icon fully visible',r.segs.length>=2&&last[1]-last[0]+1>=8&&last[1]<=r.w-6,r);
+  await ctx.close()}
+
 // 直放、平板、電腦：樣子不變
 for(const [w,h,touch] of [[393,760,true],[1180,820,true],[1366,768,false]]){const [ctx,p]=await open(w,h,0,touch);
   await p.click('[data-act=helpopen]');await p.click('[data-act=sample]');await W(300);await p.locator('.nav [data-v=info]').click();await W(300);
