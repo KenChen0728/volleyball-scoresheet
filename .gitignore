@@ -1,3 +1,6 @@
 tools/all.json
 tools/one.json
 tools/style1112/fix*.json
+# 測試腳本暫時產生的副本（模擬安全區等），不要放進版本
+/.*.html
+/school/.*.html
