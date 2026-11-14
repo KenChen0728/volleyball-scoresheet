@@ -14,10 +14,12 @@ await flow.start(p,{serve:'t1'});await W(200);
 const h2=async()=>(await p.locator('.sheet h2').count())?(await p.locator('.sheet h2').first().innerText()):'';
 const more=async()=>{await p.click('[data-act=sheet][data-v=more]');await W(200)};
 await more();
-ok(tag+'four sections',await p.locator('.sheet .msec').count()===4);
-ok(tag+'headings',(await p.locator('.sheet .msec>.mhead').allInnerTexts()).join()==='換人,比賽狀況,修正,設定');
+const SYNC=await p.locator('.sheet [data-act=syncopen]').count()>0; // 11/14 完整版多「連線」一區（學校版還沒有）
+ok(tag+'four sections',await p.locator('.sheet .msec').count()===(SYNC?5:4));
+ok(tag+'full version has sync',SCHOOL||SYNC);
+ok(tag+'headings',(await p.locator('.sheet .msec>.mhead').allInnerTexts()).join()===(SYNC?'換人,比賽狀況,修正,連線,設定':'換人,比賽狀況,修正,設定'));
 const labels=(await p.locator('.sheet .mbtn strong').allInnerTexts()).join(),RED=await p.locator('.sheet [data-act=mteam][data-v=red]').count()>0; // 學校版沒有自由球員時不放重新指定
-ok(tag+'buttons',labels==='例外替補,'+(RED?'重新指定自由球員,':'')+'傷停,陣容不完整,棄權,輪轉錯誤／非法替補,修正比分,陣容,挑邊,球衣顏色,查看名單',labels); // 11/13 加輪轉錯誤／非法替補
+ok(tag+'buttons',labels==='例外替補,'+(RED?'重新指定自由球員,':'')+'傷停,陣容不完整,棄權,輪轉錯誤／非法替補,修正比分,陣容,挑邊,球衣顏色,查看名單'+(SYNC?',連線顯示':''),labels); // 11/13 加輪轉錯誤／非法替補
 if(!RED)ok(tag+'exc alone full row',await p.locator('.sheet .mgrid.one [data-v=exc]').count()===1);else ok(tag+'two in row',await p.locator('.sheet .mgrid.two [data-v=red]').count()===1);
 ok(tag+'red only in school',RED||SCHOOL);
 ok(tag+'no team rows left',await p.locator('.sheet .mteams').count()===0);

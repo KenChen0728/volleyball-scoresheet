@@ -1883,6 +1883,46 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .sheet .mbtn.primary small,.sheet .mbtn.primary .muted{color:var(--accent-ink)}
 .xpfmt .go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:60px;line-height:1.25}
 .xpfmt .go small{font-size:13px;font-weight:600}
+/* 11/14 連線顯示 */
+.herobtns .herowatch{grid-column:1/-1;flex-wrap:wrap;column-gap:8px;row-gap:0}
+.herobtns .herowatch small{flex-basis:100%;text-align:center;font-size:12px;font-weight:500;opacity:.85;margin-top:-2px}
+.synccode{display:flex;flex-direction:column;align-items:center;gap:2px}
+.synccode small{font-size:12px;color:var(--muted)}
+.synccode b{font-size:40px;line-height:1.1;letter-spacing:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:flex;gap:2px}
+.synccode b i{width:6px}
+.syncqr{display:flex;justify-content:center}
+.syncqr .qr{width:min(220px,52vw,38vh);height:auto;border-radius:8px;border:1px solid var(--line)}
+.syncst{margin:0;padding:8px 10px;border-radius:var(--r);font-weight:700;font-size:14px;text-align:center;border:1px solid var(--line);background:var(--panel)}
+.syncst.ok{color:var(--ok-ink,var(--ok));border-color:currentColor}
+.syncst.bad{color:var(--del-ink,#B3261E);border-color:currentColor}
+.synctag{min-height:30px;padding:2px 8px;font-size:12px;font-weight:800;border-radius:999px;flex:none;color:var(--del-ink,#B3261E);border:1.5px solid currentColor;background:var(--panel)}
+.wcodein{font-size:28px;text-align:center;letter-spacing:.2em;text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-height:56px}
+.watch{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.wtbar{flex:none;display:flex;align-items:center;gap:8px;padding:max(6px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 6px max(10px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.wtbar .wleave{min-height:44px;padding:0 12px;flex:none}
+.wtbar .wcode{font-weight:800;font-size:14px;flex:none}
+.wtbar .wst{flex:1;min-width:0;text-align:right;font-size:13px;font-weight:700;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wtbar .wst.ok{color:var(--ok-ink,var(--ok))}
+.wtbar .wst.bad{color:var(--del-ink,#B3261E);white-space:normal}
+.wshell{flex:1;min-height:0;display:flex;flex-direction:column}
+.wpage{justify-content:center;padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+.wview{display:flex;flex-direction:column;gap:10px;width:100%;max-width:640px;align-self:center}
+.wview .board{max-width:none}
+.wview .ss b{font-size:clamp(42px,9vh,96px)}
+.wview .setbox b{font-size:clamp(26px,4vh,40px)}
+.wview .pcourt{flex:none;max-width:none;max-height:none;min-height:0;grid-template-rows:repeat(3,clamp(52px,min(12vh,24vw),150px));gap:4px}
+.wview .strips{max-width:none}
+.wview .lc,.wview .capbox{width:clamp(44px,min(7vh,12vw),72px);height:clamp(44px,min(7vh,12vw),72px)}
+.wview .lc b,.wview .capbox b{font-size:clamp(18px,3vh,28px)}
+.wcounts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wcnt{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;padding:6px 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);font-size:15px;font-weight:700}
+.wcnt.t1{border-color:var(--t1)}.wcnt.t2{border-color:var(--t2)}
+.wcnt b{font-size:22px;line-height:1}
+.wcnt small{flex-basis:100%;text-align:center;font-size:12px;color:var(--muted)}
+.wban{margin:0;text-align:center;font-size:20px;font-weight:800;padding:6px;border-radius:var(--r);background:var(--panel);border:2px solid var(--line)}
+.wmsg{margin:auto;max-width:420px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.wmsg h2{margin:0}
+.wsets{font-size:24px;font-weight:800;margin:0}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2136,6 +2176,7 @@ function dispatch(type,data,match){
   var m=match||current();
   m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:DEVICE,type:type,data:data});
   save();
+  if(syncMap&&syncMap[m.id])syncKick(m);
 }
 /* 開新比賽：選了資料夾就帶入這個資料夾上一場的組別、地點、場地；沒選就照上一場 */
 function newMatchIn(cid){
@@ -2360,7 +2401,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1114-2009';
+var BUILD='測試版 1114-2104';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2587,7 +2628,7 @@ function dragEnd(){if(!drag)return;var d=drag;drag=null;if(d.lock<=0)return;var 
   else dragReset(d)}
 app.addEventListener('touchend',dragEnd);app.addEventListener('touchcancel',dragEnd);
 var backGuard=false,backSkip=false;
-function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch)}
+function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch||ui.watchAsk)}
 function backSync(){
   if(!history.pushState)return;
   var need=backNeed();
@@ -2610,6 +2651,287 @@ addEventListener('popstate',function(){
   if(view==='setup'&&ui.page==='play'){ui.toast={t:'要離開比賽，請按「其他」裡的離開比賽',until:Date.now()+3500}}
   render();
 });
+/* 11/14 連線顯示的 QR code：不用網路、不用外部套件。只做位元組模式、錯誤更正 M 級、版本 1～10（網址 100 字以內綽綽有餘）。
+   照 ISO/IEC 18004 的步驟：資料→分塊加 Reed-Solomon→擺放→八種遮罩挑扣分最少的。回傳 SVG 字串。 */
+function qrSvg(text){
+  var bytes=[],i,j;
+  var u=unescape(encodeURIComponent(text));for(i=0;i<u.length;i++)bytes.push(u.charCodeAt(i));
+  // M 級：每個版本的 [每塊更正字數, 塊數]，總字數
+  var ECM=[0,[10,1],[16,1],[26,1],[18,2],[24,2],[16,4],[18,4],[22,4],[22,5],[26,5]];
+  var TOT=[0,26,44,70,100,134,172,196,242,292,346];
+  var ver=0,cap;
+  for(var v=1;v<=10;v++){cap=TOT[v]-ECM[v][0]*ECM[v][1];if(4+(v<10?8:16)+bytes.length*8<=cap*8){ver=v;break}}
+  if(!ver)return '';
+  var bits=[];function put(val,n){for(var k=n-1;k>=0;k--)bits.push((val>>>k)&1)}
+  put(4,4);put(bytes.length,ver<10?8:16);bytes.forEach(function(b){put(b,8)});
+  var dataCap=TOT[ver]-ECM[ver][0]*ECM[ver][1];
+  put(0,Math.min(4,dataCap*8-bits.length));while(bits.length%8)bits.push(0);
+  for(var pad=0xEC;bits.length<dataCap*8;pad^=0xEC^0x11)put(pad,8);
+  var data=[];for(i=0;i<bits.length;i+=8){var x=0;for(j=0;j<8;j++)x=x<<1|bits[i+j];data.push(x)}
+  // GF(256) 和 Reed-Solomon
+  var EXP=[],LOG=[];for(i=0,x=1;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11D}
+  function mul(a,b){return a&&b?EXP[(LOG[a]+LOG[b])%255]:0}
+  var ecn=ECM[ver][0],nb=ECM[ver][1];
+  var gen=[1];for(i=0;i<ecn;i++){var g=[];for(j=0;j<=gen.length;j++)g[j]=(j<gen.length?gen[j]:0)^(j>0?mul(gen[j-1],EXP[i]):0);gen=g}
+  function rs(d){var r=new Array(ecn).fill(0);d.forEach(function(b){var f=b^r[0];r.shift();r.push(0);for(var k=0;k<ecn;k++)r[k]^=mul(gen[k+1],f)});return r}
+  var shortLen=Math.floor(TOT[ver]/nb)-ecn,longCount=TOT[ver]%nb,blocks=[],ecs=[],p=0;
+  for(i=0;i<nb;i++){var len=shortLen+(i>=nb-longCount?1:0);var blk=data.slice(p,p+len);p+=len;blocks.push(blk);ecs.push(rs(blk))}
+  var out=[];for(i=0;i<=shortLen;i++)blocks.forEach(function(blk){if(i<blk.length)out.push(blk[i])});
+  for(i=0;i<ecn;i++)ecs.forEach(function(e){out.push(e[i])});
+  // 擺放
+  var N=ver*4+17,M=[],F=[];for(i=0;i<N;i++){M.push(new Array(N).fill(0));F.push(new Array(N).fill(false))}
+  function set(r,c,v){M[r][c]=v?1:0;F[r][c]=true}
+  function finder(r,c){for(var a=-1;a<=7;a++)for(var b=-1;b<=7;b++){var y=r+a,x=c+b;if(y<0||x<0||y>=N||x>=N)continue;var on=a>=0&&a<=6&&b>=0&&b<=6&&(a===0||a===6||b===0||b===6||(a>=2&&a<=4&&b>=2&&b<=4));set(y,x,on)}}
+  finder(0,0);finder(0,N-7);finder(N-7,0);
+  for(i=8;i<N-8;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+  var AP=[[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]][ver],AL=AP.length-1;
+  AP.forEach(function(r,ai){AP.forEach(function(c,aj){if((ai===0&&aj===0)||(ai===0&&aj===AL)||(ai===AL&&aj===0))return;for(var a=-2;a<=2;a++)for(var b=-2;b<=2;b++)set(r+a,c+b,Math.max(Math.abs(a),Math.abs(b))!==1)})});
+  // 保留格式和版本資訊的位置
+  for(i=0;i<9;i++){if(!F[8][i])set(8,i,0);if(!F[i][8])set(i,8,0)}
+  for(i=0;i<8;i++){set(8,N-1-i,0);set(N-1-i,8,0)}
+  set(N-8,8,1);
+  if(ver>=7){var vr=ver;for(i=0;i<12;i++)vr=(vr<<1)^((vr>>>11)&1?0x1F25:0);var vb=ver<<12|vr;
+    for(i=0;i<18;i++){var bit=(vb>>>i)&1,a2=Math.floor(i/3),b2=N-11+i%3;set(a2,b2,bit);set(b2,a2,bit)}}
+  var allBits=[];out.forEach(function(b){for(var k=7;k>=0;k--)allBits.push((b>>>k)&1)});
+  var bi=0,cells=[];
+  for(var right=N-1;right>=1;right-=2){if(right===6)right=5;
+    for(var vert=0;vert<N;vert++)for(j=0;j<2;j++){var cc=right-j,up=((right+1)&2)===0,rr=up?N-1-vert:vert;
+      if(!F[rr][cc]){M[rr][cc]=bi<allBits.length?allBits[bi]:0;bi++;cells.push([rr,cc])}}}
+  var MASK=[function(r,c){return (r+c)%2===0},function(r){return r%2===0},function(r,c){return c%3===0},function(r,c){return (r+c)%3===0},
+    function(r,c){return (Math.floor(r/2)+Math.floor(c/3))%2===0},function(r,c){return r*c%2+r*c%3===0},function(r,c){return (r*c%2+r*c%3)%2===0},function(r,c){return ((r+c)%2+r*c%3)%2===0}];
+  function fmt(mask){var d=(0<<3|mask),r=d<<10;for(i=14;i>=10;i--)if((r>>>i)&1)r^=0x537<<(i-10);return ((d<<10|r)^0x5412)}
+  function apply(G,mask){var f=fmt(mask),b=function(n){return (f>>>n)&1};
+    for(i=0;i<=5;i++)G[i][8]=b(i);G[7][8]=b(6);G[8][8]=b(7);G[8][7]=b(8);
+    for(i=9;i<15;i++)G[8][14-i]=b(i);
+    for(i=0;i<8;i++)G[8][N-1-i]=b(i);
+    for(i=8;i<15;i++)G[N-15+i][8]=b(i);
+    G[N-8][8]=1}
+  function score(G){var s=0,r,c,run,k;
+    for(var pass=0;pass<2;pass++)for(r=0;r<N;r++){run=1;for(c=1;c<=N;c++){var a=pass?G[c-1]&&G[c-1][r]:G[r][c-1],b=c<N?(pass?G[c][r]:G[r][c]):-1;if(b===a)run++;else{if(run>=5)s+=run-2;run=1}}}
+    for(r=0;r<N-1;r++)for(c=0;c<N-1;c++){k=G[r][c];if(k===G[r][c+1]&&k===G[r+1][c]&&k===G[r+1][c+1])s+=3}
+    var pat=[1,0,1,1,1,0,1,0,0,0,0],pat2=[0,0,0,0,1,0,1,1,1,0,1];
+    for(r=0;r<N;r++)for(c=0;c+11<=N;c++){var h1=true,h2=true,v1=true,v2=true;for(k=0;k<11;k++){if(G[r][c+k]!==pat[k])h1=false;if(G[r][c+k]!==pat2[k])h2=false;if(G[c+k][r]!==pat[k])v1=false;if(G[c+k][r]!==pat2[k])v2=false}s+=40*(h1+h2+v1+v2)}
+    var dark=0;for(r=0;r<N;r++)for(c=0;c<N;c++)dark+=G[r][c];s+=Math.floor(Math.abs(dark*20-N*N*10)/(N*N))*10;return s}
+  var best=null,bestS=1e9;
+  for(var mk=0;mk<8;mk++){var G=M.map(function(row){return row.slice()});cells.forEach(function(q){if(MASK[mk](q[0],q[1]))G[q[0]][q[1]]^=1});apply(G,mk);var sc=score(G);if(sc<bestS){bestS=sc;best=G}}
+  var path='';for(var r=0;r<N;r++)for(var c=0;c<N;c++)if(best[r][c])path+='M'+(c+4)+' '+(r+4)+'h1v1h-1z';
+  return '<svg class="qr" viewBox="0 0 '+(N+8)+' '+(N+8)+'" shape-rendering="crispEdges" role="img" aria-label="QR code"><rect width="'+(N+8)+'" height="'+(N+8)+'" fill="#fff"/><path d="'+path+'" fill="#000"/></svg>';
+}
+/* ========== 11/14 連線顯示：記錄台把事件傳到雲端（Firebase Realtime Database），柱子上的手機輸入代碼，看同一場的球場畫面 ==========
+   - 雲端只放 m/代碼：o 建立者、n 事件數、u 更新時間、on 記錄台在線、ev/第幾筆＝事件（JSON 字串，球員、職員、裁判姓名拿掉）
+   - 事件只會往後加（復原也是加一筆 UNDO），所以只傳還沒傳的那幾筆；觀看端拿到後用同一個 reduce() 算出畫面
+   - 規則在 tools/firebase-rules.json：只有開這場的那台能寫，知道代碼才能看
+   - 沒網路時記錄照常存在這台；連上後自動補傳。觀看端寫最後更新時間，不會假裝是最新的 */
+var FB_CFG={apiKey:'AIzaSyD8bEaESPE2Ecu4jpyEtGFiim5Vgl1ksf4',authDomain:'volleyball-scoresheet-71eb3.firebaseapp.com',databaseURL:'https://volleyball-scoresheet-71eb3-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'volleyball-scoresheet-71eb3',storageBucket:'volleyball-scoresheet-71eb3.firebasestorage.app',messagingSenderId:'806475506419',appId:'1:806475506419:web:fc57fabb0661a9bf4a0d86'};
+var FB_URL='https://www.gstatic.com/firebasejs/10.12.2/';
+var SYNC_KEY=KEY+'-sync';   // 這台開過連線的比賽：{比賽 id:{code,made}}，另外存，不進比賽資料（備份帶不走代碼）
+var CODE_CH='23456789ABCDEFGHJKMNPQRSTUVWXYZ',CODE_LEN=6;
+var SYNC_HIDE=REFS.map(function(x){return x[0]}).concat(['remarks']); // 不傳的比賽資料：裁判名字、記事
+var syncMap={};try{syncMap=JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){}
+if(!Array.isArray(syncMap._del))syncMap._del=[];
+var fb=null,fbP=null,fbErr='';
+var sy={conn:null,busy:{},pushed:{},dropOn:{}};
+var wt=null;   // 觀看中：{code,state,s,u,on,len,timer,ask}
+function syncSaveMap(){try{localStorage.setItem(SYNC_KEY,JSON.stringify(syncMap))}catch(e){}}
+function syncOf(m){return m&&syncMap[m.id]||null}
+function newCode(){var a=new Uint32Array(CODE_LEN),t='';try{crypto.getRandomValues(a)}catch(e){for(var i=0;i<CODE_LEN;i++)a[i]=Math.floor(Math.random()*1e9)}for(var j=0;j<CODE_LEN;j++)t+=CODE_CH[a[j]%CODE_CH.length];return t}
+function codeNorm(v){return String(v||'').toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/[O]/g,'0').replace(/[IL]/g,'1')}
+function codeOk(c){return new RegExp('^['+CODE_CH+']{'+CODE_LEN+'}$').test(c)}
+/* 載入 Firebase：用到時才從網路抓（gstatic），平常的記錄完全不需要它。自動測試會先放一個假的後端在 window.__VB_FB */
+function fbLoad(){
+  if(fbP)return fbP;
+  fbErr='';
+  var imp=function(u){return (new Function('u','return import(u)'))(u)};
+  fbP=window.__VB_FB?Promise.resolve(window.__VB_FB):Promise.all(['app','auth','database'].map(function(n){return imp(FB_URL+'firebase-'+n+'.js')})).then(function(x){
+    var A=x[0],U=x[1],D=x[2],app=A.initializeApp(FB_CFG),auth=U.getAuth(app),d=D.getDatabase(app),r=function(p){return D.ref(d,p)};
+    return U.signInAnonymously(auth).then(function(cr){return {uid:cr.user.uid,
+      set:function(p,v){return D.set(r(p),v)},update:function(p,v){return D.update(r(p),v)},remove:function(p){return D.remove(r(p))},
+      get:function(p){return D.get(r(p)).then(function(sn){return sn.val()})},
+      on:function(p,cb,bad){return D.onValue(r(p),function(sn){cb(sn.val())},bad)},
+      onConn:function(cb){return D.onValue(r('.info/connected'),function(sn){cb(!!sn.val())})},
+      onDrop:function(p,v){return D.onDisconnect(r(p)).update(v)},
+      ts:function(){return D.serverTimestamp()}}});
+  });
+  fbP.then(function(b){fb=b;b.onConn(function(on){
+      /* 剛連的頭一下 Firebase 會先報「沒連上」：等 4 秒還沒連上才算斷線 */
+      if(!on&&sy.conn===null){setTimeout(function(){if(sy.conn===null){sy.conn=false;syncPaint()}},4000);return}
+      sy.conn=on;if(on){sy.dropOn={};syncResume()}syncPaint()});syncPaint()},
+    function(e){fbP=null;fbErr=navigator.onLine===false?'offline':'load';syncPaint()});
+  return fbP;
+}
+/* 連線狀態變了：只有看得到狀態的畫面才重畫（觀看畫面、連線顯示視窗、「其他」；比賽上方的小標只在出現或消失時），記錄中不會每傳一次就重畫 */
+function syncPaint(){var m=view==='setup'?current():null,bad=!!(m&&syncOf(m)&&syncState(m)[0]==='bad');
+  if(view==='watch'||(ui.sheet&&(ui.sheet.type==='sync'||ui.sheet.type==='more'))||bad!==!!sy.bad){sy.bad=bad;render()}}
+function syncClean(e){
+  var x=JSON.parse(JSON.stringify(e)),d=x.data||{};
+  if(e.type==='PLAYER_NAME_SET')d.name='';
+  else if(e.type==='STAFF_SET')d.value='';
+  else if(e.type==='INFO_SET'&&SYNC_HIDE.indexOf(d.field)>=0)d.value='';
+  else if(e.type==='MATCH_CREATED'&&d.info)SYNC_HIDE.forEach(function(f){delete d.info[f]});
+  else if(e.type==='TEAM_IMPORTED'&&d.snapshot){(d.snapshot.players||[]).forEach(function(p){if(p)p.name=''});var sf=d.snapshot.staff;if(sf)Object.keys(sf).forEach(function(f){sf[f]=''})}
+  delete x.device;
+  return JSON.stringify(x);
+}
+/* 開始連線：先建立 m/代碼（代碼被別台用掉就換一個），建好才開始傳事件 */
+function syncStart(m,tries,note){
+  var was=syncMap[m.id];tries=tries||0;
+  var code=!tries&&was&&!was.made&&!note?was.code:newCode();
+  syncMap[m.id]={code:code,made:false,note:note||(was&&was.note)||''};syncSaveMap();delete sy.pushed[m.id];
+  fbLoad().then(function(){
+    return fb.set('m/'+code,{o:fb.uid,n:0,u:fb.ts(),on:true}).then(function(){
+      var me=syncMap[m.id];if(!me||me.code!==code)return;
+      me.made=true;me.err='';syncSaveMap();sy.pushed[m.id]=0;syncDrop(code);syncPush(m);syncPaint();
+    },function(){
+      var me=syncMap[m.id];if(!me||me.code!==code)return;
+      if(tries<3)syncStart(m,tries+1,me.note);else{me.err='建立連線失敗，請稍後再試';syncPaint()}
+    });
+  },function(){});
+  syncPaint();
+}
+function syncDrop(code){if(fb&&sy.conn&&!sy.dropOn[code]){sy.dropOn[code]=1;fb.onDrop('m/'+code,{on:false}).catch(function(){})}}
+/* 傳還沒傳的事件。一次最多 200 筆；雲端已有幾筆不知道時先問 */
+function syncPush(m){
+  var me=syncOf(m);if(!me||!me.made||!fb||!sy.conn||sy.busy[m.id])return;
+  var from=sy.pushed[m.id],path='m/'+me.code;
+  if(from==null){sy.busy[m.id]=1;fb.get(path+'/n').then(function(n){delete sy.busy[m.id];sy.pushed[m.id]=typeof n==='number'&&n<=m.events.length?n:0;syncPush(m)},function(e){delete sy.busy[m.id];syncFail(m,e)});return}
+  var to=Math.min(m.events.length,from+200);
+  var up={n:to,u:fb.ts(),on:true};for(var i=from;i<to;i++)up['ev/'+i]=syncClean(m.events[i]);
+  sy.busy[m.id]=1;syncDrop(me.code);
+  fb.update(path,up).then(function(){delete sy.busy[m.id];sy.pushed[m.id]=to;me.err='';me.at=Date.now();
+    if(to<m.events.length)syncPush(m);else syncPaint()},function(e){delete sy.busy[m.id];syncFail(m,e)});
+}
+function syncFail(m,e){var me=syncOf(m);if(!me)return;
+  /* 寫不進去：多半是這台的匿名身分換了（清過瀏覽器資料），舊代碼不再屬於這台。換新代碼重開 */
+  if(e&&/permission/i.test(String(e.code||e.message||e))){syncStart(m,1,'代碼換新了（這台的連線身分變過），觀看的裝置要重新輸入');return}
+  else{me.err='傳送失敗，稍後自動再試';clearTimeout(sy.retry);sy.retry=setTimeout(function(){syncPush(m)},5000)}
+  syncPaint()}
+function syncKick(m){if(syncOf(m)){if(!fb)fbLoad();else syncPush(m)}}
+/* 連上網路（或重新開啟）：補傳每一場、刪掉該刪的；比賽結束超過一天的雲端紀錄自動刪掉 */
+function syncResume(){
+  if(view==='watch')return; // 觀看中不傳（同一台開兩個分頁、一個記一個看時，交給記錄的那個分頁）
+  syncMap._del=syncMap._del.filter(function(code){fb.remove('m/'+code).then(function(){syncMap._del=syncMap._del.filter(function(x){return x!==code});syncSaveMap()},function(){});return true});
+  Object.keys(syncMap).forEach(function(id){if(id==='_del')return;var me=syncMap[id],m=db.matches.filter(function(x){return x.id===id})[0],q=m&&safeReduce(m),last=m&&m.events.length?new Date(m.events[m.events.length-1].at).getTime():0;
+    if(!m||(q&&matchOver(q)&&Date.now()-last>864e5)){syncStop(id);return}
+    if(!me.made){syncStart(m);return}
+    syncPush(m)});
+}
+function syncStop(id){var me=syncMap[id];delete syncMap[id];delete sy.pushed[id];if(me&&me.made){syncMap._del.push(me.code);if(fb)fb.remove('m/'+me.code).then(function(){syncMap._del=syncMap._del.filter(function(x){return x!==me.code});syncSaveMap()},function(){})}syncSaveMap()}
+function syncUrl(code){var base=/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://kenchen0728.github.io/volleyball-scoresheet/';return base+'?watch='+code}
+function syncState(m){var me=syncOf(m);if(!me)return ['off',''];
+  if(fbErr&&!fb)return ['bad',fbErr==='offline'?'沒有網路，連上後自動開始。紀錄照常存在這台':'連線元件載入失敗，確認網路後重新整理'];
+  if(me.err)return ['bad',me.err];
+  if(!fb||sy.conn===null||!me.made&&sy.conn!==false)return ['wait','連線中…'];
+  if(!sy.conn)return ['bad','沒有網路：紀錄照常存在這台，連上後自動補傳'];
+  var p=sy.pushed[m.id];if(p==null||p<m.events.length)return ['wait','傳送中…'];
+  return ['ok','已連線，觀看的裝置是最新的'];
+}
+function syncSheetHtml(s,m,x){
+  var me=syncOf(m),st=syncState(m),h='<div class="shd"><h2>連線顯示</h2><button data-act="close">關閉</button></div>';
+  if(!me)return h+'<p class="subhint">讓柱子上的手機或其他裝置看到這場的比分、發球和站位，只能看、不能改。</p><p class="muted">需要網路。球員、職員、裁判的名字不會傳出去。</p><button class="primary" data-act="syncstart">開始連線</button>';
+  if(x.stop)return '<h2>停止連線？</h2><p class="muted">觀看的裝置會看不到這場，雲端的這份會刪掉。這台的紀錄不受影響，之後可以再開（代碼會換新的）。</p><button class="primary" data-act="syncstop2">停止連線</button><button class="ghost" data-act="syncstay">取消</button>';
+  return h+'<div class="synccode"><small>代碼</small><b>'+me.code.split('').join('<i></i>')+'</b></div>'+
+    '<div class="syncqr">'+qrSvg(syncUrl(me.code))+'</div>'+
+    '<p class="subhint">另一台用相機掃 QR code；或打開這個網址，在主畫面按「觀看比賽」輸入代碼。</p>'+
+    '<p class="syncst '+st[0]+'" role="status">'+esc(st[1])+'</p>'+(me.note?'<p class="note">'+esc(me.note)+'</p>':'')+
+    '<button data-act="syncstop">停止連線</button>';
+}
+/* 比賽上方的小標：開著連線時讓記錄員知道有沒有傳出去 */
+function syncTag(m){var me=syncOf(m);if(!me)return '';var st=syncState(m);return '<button class="synctag '+st[0]+'" data-act="syncopen" aria-label="連線顯示：'+esc(st[1])+'">'+(st[0]==='ok'?'連線中':st[0]==='wait'?'傳送中':'未連線')+'</button>'}
+
+/* ---------- 觀看端 ---------- */
+function watchStart(code){
+  if(wt&&wt.off)try{wt.off()}catch(e){}
+  view='watch';db.currentId=null;resetUi();wt={code:code,state:'load'};
+  try{sessionStorage.setItem(KEY+'-watch',code)}catch(e){}
+  fbLoad().then(function(){if(!wt||wt.code!==code)return;
+    wt.off=fb.on('m/'+code,function(v){watchData(code,v)},function(){if(wt&&wt.code===code){wt.state='deny';render()}})},
+    function(){if(wt&&wt.code===code){wt.state=navigator.onLine===false?'offline':'loadfail';render()}});
+}
+function watchData(code,v){
+  if(!wt||wt.code!==code)return;
+  if(!v||typeof v!=='object'){wt.state=wt.s?'gone':'none';wt.s=null;render();return}
+  var n=Number(v.n)||0,ev=v.ev||{},list=[];
+  for(var i=0;i<n;i++){var raw=ev[i];if(typeof raw!=='string')break;try{list.push(JSON.parse(raw))}catch(e){break}}
+  wt.u=Number(v.u)||0;wt.on=v.on!==false;
+  if(!list.length){wt.state='empty';wt.s=null;render();return}
+  var mm={id:'watch',events:list};
+  if(!validMatch(mm)){wt.state='bad';render();return}
+  var s=reduce(list),old=wt.s;
+  /* 暫停倒數：看著的時候對方按了暫停，從收到那一刻開始倒數 30 秒；復原了就收掉 */
+  if(old&&old.setNo===s.setNo){var c0=old.sets[s.setNo],c1=s.sets[s.setNo];
+    if(c1.rally!==c0.rally||c1.live)wt.timer=null; // 下一球開始或有人得分：暫停結束
+    ['t1','t2'].forEach(function(k){if(c1.timeouts[k].length>c0.timeouts[k].length)wt.timer={team:k,end:Date.now()+30000};else if(c1.timeouts[k].length<c0.timeouts[k].length&&wt.timer&&wt.timer.team===k)wt.timer=null})}
+  else wt.timer=null;
+  wt.s=s;wt.len=list.length;wt.state='ok';render();
+}
+function watchLeave(){if(wt&&wt.off)try{wt.off()}catch(e){}wt=null;try{sessionStorage.removeItem(KEY+'-watch')}catch(e){}view='home';resetUi()}
+function watchStatus(){
+  if(!wt||wt.state==='load'||sy.conn===null&&!wt.u)return ['wait','連線中…'];
+  var t=wt.u?'最後更新 '+new Date(wt.u).toTimeString().slice(0,8):'';
+  if(sy.conn===false)return ['bad','這台沒有網路，畫面停在'+(t?t.slice(4):'剛才')];
+  if(wt.state==='ok'&&!wt.on)return ['bad','記錄台離線，'+t];
+  if(wt.state==='ok')return ['ok','同步中 '+(t?t.slice(5):'')];
+  return ['bad',''];
+}
+function watchMsg(){
+  var st=wt?wt.state:'load',c=esc(wt?wt.code:'');
+  var m={load:['連線中…','第一次要幾秒鐘。'],none:['找不到代碼 '+c+' 的比賽','請確認代碼，或請記錄台在「其他」→「連線顯示」開啟連線。'],gone:['記錄台停止連線了','這場的雲端紀錄已經刪掉。'],empty:['這場還沒有資料','記錄台開始記錄後就會出現。'],
+    bad:['這場的資料讀不懂','請記錄台更新到最新版。'],deny:['沒有權限看這場','請重新輸入代碼。'],offline:['這台沒有網路','連上網路後重新整理。'],loadfail:['連線元件載入失敗','確認網路後重新整理。']}[st]||['連線中…',''];
+  return '<div class="wmsg"><h2>'+m[0]+'</h2><p class="muted">'+m[1]+'</p>'+(st!=='load'?'<button data-act="wretry">重新輸入代碼</button>':'')+'</div>';
+}
+function watchBoard(s){
+  var n=s.setNo,c=s.sets[n],over=matchOver(s),win=!over&&setWinner(s);
+  if(!s.sets[1].started||!c.started){var T=matchTitle(s),sw=setsWon(s);
+    return '<div class="wmsg"><h2>'+esc(T[0])+' 對 '+esc(T[1])+'</h2>'+(n>1?'<p class="wsets">局數 '+sw[T[2]]+' : '+sw[T[3]]+'</p>':'')+'<p class="muted">等第 '+n+' 局開始</p></div>'}
+  var L=c.left,R=other(L),cells='';
+  for(var i=0;i<3;i++){cells+=playCell(s,L,LEFT_CELLS[i][0])+playCell(s,L,LEFT_CELLS[i][1]);if(i===0)cells+='<div class="net" aria-hidden="true"></div>';cells+=playCell(s,R,RIGHT_CELLS[i][0])+playCell(s,R,RIGHT_CELLS[i][1])}
+  var srv=courtPlayer(c,c.serving,0);
+  var srvm=c.serving?'<div class="srvmark '+(c.serving===L?'lf':'rt')+' '+c.serving+'" aria-label="'+esc(tName(s,c.serving))+' 發球 '+srv+' 號"><i>'+(c.serving===L?'◀':'')+'</i><span>'+BALL+'</span><b>'+srv+'</b><i>'+(c.serving===L?'':'▶')+'</i></div>':'';
+  var cnt=function(k){var ex=c.subs[k].length-c.subCount[k];return '<div class="wcnt '+k+'"><span>暫停 <b>'+c.timeouts[k].length+'</b></span><span>替補 <b>'+c.subCount[k]+'</b></span>'+(ex?'<small>例外替補 '+ex+'</small>':'')+'</div>'};
+  var tm=wt&&wt.timer&&Date.now()<wt.timer.end?'<div class="tbar '+wt.timer.team+'"><span>'+esc(tName(s,wt.timer.team))+' 暫停</span><b data-wtm>'+Math.ceil((wt.timer.end-Date.now())/1000)+'</b></div>':'';
+  var ban=over?'<p class="wban">比賽結束 '+setsWon(s)[L]+' : '+setsWon(s)[R]+'</p>':win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'</p>':'';
+  return '<div class="wview" inert><div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+ban+tm+
+    '<div class="pcourt" role="group" aria-label="球場，記錄台在下方">'+cells+'</div><div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div><div class="wcounts">'+cnt(L)+cnt(R)+'</div></div>';
+}
+function watchHtml(){
+  var st=watchStatus(),s=wt&&wt.state==='ok'?wt.s:null;
+  var head='<header class="wtbar"><button class="wleave" data-act="wleave">‹ 離開</button><span class="wcode">代碼 '+esc(wt?wt.code:'')+'</span><span class="wst '+st[0]+'" role="status">'+esc(st[1])+'</span></header>';
+  var ask=wt&&wt.ask?'<div class="scrim" data-act="wstay"></div><div class="sheet" role="dialog" aria-modal="true"><h2>停止觀看？</h2><p class="muted">要再看時，在主畫面按「觀看比賽」輸入代碼 '+esc(wt.code)+'。</p><button class="primary" data-act="wleave2">停止觀看</button><button class="ghost" data-act="wstay">繼續看</button></div>':'';
+  return '<div class="watch"><div class="wshell">'+head+'<main class="page wpage">'+(s?watchBoard(s):watchMsg())+'</main></div></div>'+ask;
+}
+function watchAskHtml(){
+  if(!ui.watchAsk)return '';var x=ui.watchAsk;
+  return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="shd"><h2>觀看比賽</h2><button data-act="close">關閉</button></div>'+
+    '<p class="subhint">輸入記錄台「其他」→「連線顯示」上的 6 碼代碼。只能看、不能改。</p>'+
+    '<input id="watch-code" class="wcodein" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="代碼" value="'+esc(x.v||'')+'">'+
+    (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="watchgo">觀看</button><p class="muted">需要網路。比賽中這台的螢幕會保持常亮。</p></div>';
+}
+/* 觀看畫面和連線相關的按鈕；回傳 true 表示處理過了 */
+function syncAct(act,b){
+  var m=current();
+  switch(act){
+    case 'watchopen': ui.watchAsk={v:''}; setTimeout(function(){var wi=document.getElementById('watch-code');if(wi)wi.focus()},60); return true;
+    case 'watchgo': var wi=document.getElementById('watch-code'),wc=codeNorm(wi?wi.value:'');
+      if(!codeOk(wc)){ui.watchAsk={v:wi?wi.value:'',err:'代碼是 '+CODE_LEN+' 個英文字母或數字'};return true}
+      ui.watchAsk=null;watchStart(wc); return true;
+    case 'wleave': if(wt)wt.ask=true; return true;
+    case 'wstay': if(wt)wt.ask=false; return true;
+    case 'wleave2': watchLeave(); return true;
+    case 'wretry': var oc=wt?wt.code:'';watchLeave();ui.watchAsk={v:oc}; return true;
+    case 'syncopen': ui.sheet={type:'sync',back:ui.sheet&&ui.sheet.type==='more'?ui.sheet:null}; if(syncOf(m))fbLoad(); return true;
+    case 'syncstart': if(m)syncStart(m); return true;
+    case 'syncstop': if(ui.sheet)ui.sheet.stop=true; return true;
+    case 'syncstay': if(ui.sheet)ui.sheet.stop=false; return true;
+    case 'syncstop2': if(m)syncStop(m.id); if(ui.sheet)ui.sheet.stop=false; return true;
+  }
+  return false;
+}
+/* 觀看端的暫停倒數，每秒更新數字；時間到就收掉 */
+setInterval(function(){if(view!=='watch'||!wt||!wt.timer)return;var left=Math.ceil((wt.timer.end-Date.now())/1000);if(left<=0){wt.timer=null;render();return}var el=document.querySelector('[data-wtm]');if(el)el.textContent=left},250);
+/* 網路回來了：之前載入失敗的話再載一次（記錄台補傳、觀看端重新連） */
+addEventListener('online',function(){if(fb)return;var any=Object.keys(syncMap).some(function(k){return k!=='_del'})||syncMap._del.length;
+  if(view==='watch'&&wt)watchStart(wt.code);else if(any)fbLoad()});
+
 function render(){
   var had=kbd&&document.activeElement&&document.activeElement!==document.body,fk=had?focusKey():null;
   paint();markSwipe();backSync();fitPaper();
@@ -2629,10 +2951,11 @@ function paint(){
 function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   upd.live=false;
+  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);app.innerHTML=watchHtml();fitNums();syncAwake(!!wsv&&!matchOver(wsv));return}
   if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
-    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml()+(XP_ON?ppSheetHtml():'')+selSheetHtml():'')+(view==='home'?aboutHtml():'')+helpHtml()+staleHtml();
+    app.innerHTML=(view==='home'?homeHtml():view==='cup'?cupHtml():historyHtml())+cupSheetHtml()+importPlanHtml()+(view==='history'?bkSheetHtml()+(XP_ON?ppSheetHtml():'')+selSheetHtml():'')+(view==='home'?aboutHtml()+watchAskHtml():'')+helpHtml()+staleHtml();
     helpPlace();
     roll.forEach(function(q,i){var e=app.querySelector(q);if(e)e.scrollTop=keep[i]});
     if(ui.toTop){ui.toTop=false;var tp=app.querySelector('.page');if(tp)tp.scrollTop=0}
@@ -2836,7 +3159,7 @@ function barHtml(s){
   var live=ui.page==='play'&&c.started&&!over&&!setWinner(s);
   var undo=live&&!ui.liveSheet?'<button data-act="undo"'+(lastUndoable(current())?'':' disabled')+'>↶ 復原</button>':'';
   var cen=live&&isWide();
-  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':live?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
+  return '<header class="bar">'+back+(cen?'<h1 class="barmid"><b class="bsets" aria-label="'+esc(tName(s,c.left))+' 贏 '+setsWon(s)[c.left]+' 局">'+setsWon(s)[c.left]+'</b>'+esc(title)+'<small>'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small><b class="bsets" aria-label="'+esc(tName(s,other(c.left)))+' 贏 '+setsWon(s)[other(c.left)]+' 局">'+setsWon(s)[other(c.left)]+'</b></h1>':live?'<h1>'+esc(title)+'<small class="btgt">'+target(s,s.setNo)+' 分'+(capOf(s,s.setNo)?'，搶 '+capOf(s,s.setNo):'')+'</small></h1>':'<h1>'+esc(title)+'</h1>')+(syncOf(current())&&syncState(current())[0]==='bad'?syncTag(current()):'')+barTime(s)+undo+'<button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header>';
 }
 function rosterStat(s){
   var ok=['t1','t2'].every(function(k){return validate(s.teams[k]).every(function(v){return v.ok})});
@@ -3065,7 +3388,7 @@ function homeHtml(){
   real.forEach(function(x){var t=prefs.bk&&prefs.bk[x.m.id];if(t>lastBk)lastBk=t});
   if(real.length)body+='<div class="bkrow"><span class="muted">'+(nb?'有 '+nb+' 場還沒備份，備份在「紀錄與名單」。':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':'')+'。')+'</span></div>';
   body+=inst+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<div class="homefoot"><button data-act="settings">'+GEAR+'設定</button><button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
-  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button></div></section><div class="homebody">'+body+'</div></div>';
+  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button><button class="herowatch" data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small>看記錄台連線的比分和站位</small></button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
   var a=ui.importAsk;if(!a||!a.length)return '';
@@ -4559,6 +4882,7 @@ function sheetHtml(s,m){
     }).join('')+'</div>'+([1,2,3].some(function(n){return s.sets[n].started})?'<p class="muted">已經開始的局不能改。</p>':'')+(ui.ptErr?'<p class="fielderr" role="alert">'+esc(ui.ptErr)+'</p>':'')+'<button class="primary" data-act="close">完成</button>';
   }else if(x.type==='export'||x.type==='export2'){
     h=xpSheet(s,x);
+  }else if(x.type==='sync'){h=syncSheetHtml(s,m,x);if(x.stop)stepBack='';
   }else if(x.type==='more'){
     var mc=s.sets[s.setNo],mL=mc.left,mR=other(mL);
     var mb=function(act,v,ti,dis){return '<button class="mbtn" data-act="'+act+'" data-v="'+v+'"'+(dis?' disabled':'')+'><strong>'+ti+'</strong></button>'};
@@ -4567,6 +4891,7 @@ function sheetHtml(s,m){
       '<section class="msec"><h3 class="mhead">換人</h3><div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>'+(mc.live?'<p class="muted mnote">球在進行中，得分後才能換人</p>':'')+'</section>'+
       '<section class="msec"><h3 class="mhead">比賽狀況</h3><div class="mgrid">'+mb('injopen','INJ','傷停')+mb('injopen','INC','陣容不完整')+mb('injopen','FF','棄權')+'</div><div class="mgrid one">'+mp('rot',mc.live,mc.live?'球在進行中，得分後才能用':'對方的 1 分先按得分，這裡取消犯錯隊的分數')+'</div></section>'+
       '<section class="msec"><h3 class="mhead">修正</h3><div class="mgrid">'+mb('scfixpick','','修正比分')+mp('fix',false)+mb('tossfix','','挑邊',mc.live||s.setNo===2)+'</div><div class="mgrid two">'+mp('color',false,'含自由球員')+mb('page','roster','查看名單')+'</div></section>'+
+      '<section class="msec"><h3 class="mhead">連線</h3><div class="mgrid one"><button class="mbtn" data-act="syncopen"><strong>連線顯示</strong><small>'+(syncOf(m)?'代碼 '+esc(syncOf(m).code)+'・'+esc(syncState(m)[1]):'給二裁或其他裝置看比分和站位')+'</small></button></div></section>'+
       '<section class="msec"><h3 class="mhead">設定</h3><div class="mrow"><strong>提示字</strong><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(q){return '<button data-act="hints" data-v="'+q[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>'+
       (XP_ON?'<div class="mrow"><strong>手機轉橫</strong><div class="seg">'+[['on','顯示記錄表'],['off','照常記錄']].map(function(q){return '<button data-act="landpref" data-v="'+q[0]+'" aria-pressed="'+((prefs.landSheet===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>':'')+'</section>'+
       '<button class="linkbtn dangerlink" data-act="sheet" data-v="leave">離開這場比賽</button>';
@@ -4842,6 +5167,7 @@ app.addEventListener('click',function(e){
   var b=e.target.closest('[data-act]'); if(!b)return;
   var act=b.getAttribute('data-act'),k=b.getAttribute('data-team'),noAttr=b.getAttribute('data-no'),no=(noAttr===null||noAttr==='')?null:Number(noAttr);
   if(act==='reload'){location.reload();return}
+  if(syncAct(act,b)){render();return}
   if(staleTab)return;
   ui.fixDone=null;
   /* 11/12 使用者：裁判名字打了沒按「填入」就點別的角色或離開，字會不見：先替他按「填入」 */
@@ -5134,7 +5460,7 @@ app.addEventListener('click',function(e){
       var psd={set:n,team:k,idx:psx.idx,out:pout,in:no,exc:pex,injury:pex&&!!psx.inj};if(psx.same&&!pex)psd.same=true;dispatch('SUB',psd);scNoteSet(psd.same?reqIds(k):null);break;
     case 'pmexc': var pme=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pme.idx,exc:true,ids:[]};break;
     case 'pmsub': var pms=ui.sheet;ui.sheet=null;ui.lib=null;ui.sub={team:k,idx:pms.idx,exc:false,ids:[]};break;
-    case 'close': if(document.activeElement)document.activeElement.blur(); ui.sheet=null; ui.pending=null; ui.impAll=false; ui.ptErr=''; ui.cupSheet=null; ui.bkOpt=null; break;
+    case 'close': if(document.activeElement)document.activeElement.blur(); ui.watchAsk=null; ui.sheet=null; ui.pending=null; ui.impAll=false; ui.ptErr=''; ui.cupSheet=null; ui.bkOpt=null; break;
     case 'rm': dispatch('PLAYER_REMOVED',{team:k,no:no}); ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]=''; break;
     case 'color': dispatch('TEAM_COLOR_SET',{team:k,color:b.getAttribute('data-v')}); break;
     case 'lcolor': dispatch('LIBERO_COLOR_SET',{team:k,color:b.getAttribute('data-v')||null}); break;
@@ -5434,6 +5760,7 @@ function makeSample(){
 
 /* 鍵盤：Esc 關閉最上層，Tab 留在面板內，名單可以直接打數字 */
 function escClose(){
+  if(view==='watch'&&wt){wt.ask=!wt.ask;render();return true}
   var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=scback]','.sheet [data-act=sheetback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=rotback]','.sheet [data-act=bxback]','.sheet [data-act=srback]','.sheet [data-act=srno]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=trashno]','[data-act=bkcancel]','[data-act=tmclose]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
@@ -5451,6 +5778,7 @@ document.addEventListener('keydown',function(e){
   var tg=e.target;
   if(e.key==='Enter'&&(tg.id==='ins0'||tg.id==='ins1')){e.preventDefault();var isb=app.querySelector('[data-act=insgo]');if(isb)isb.click();return}
   if(e.key==='Enter'&&(tg.id==='amsc0'||tg.id==='amsc1')){e.preventDefault();var asb=app.querySelector('[data-act=amendscore]');if(asb)asb.click();return}
+  if(e.key==='Enter'&&tg.id==='watch-code'){e.preventDefault();var wgb=app.querySelector('[data-act=watchgo]');if(wgb)wgb.click();return}
   if(e.key==='Enter'&&tg.id==='ref-type'){e.preventDefault();var rtb=app.querySelector('[data-act=reftype]');if(rtb)rtb.click();return}
   if(/^(INPUT|TEXTAREA)$/.test(tg.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
   if(!app.querySelector('.kp [data-act=key]'))return;
@@ -5487,6 +5815,13 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
   if(b.view==='cup'&&db.cups.some(function(c){return c.id===b.cup})){cupView={id:b.cup,div:CUP_DIVS.indexOf(b.div)>=0?b.div:CUP_DIVS[0],grp:''};view='cup';return}
   if(b.view==='setup'){var m=current(),st=m?safeReduce(m):null;if(!st)return;view='setup';ui.from=b.from||null;
     ui.page=(st.sets[1].started&&!matchOver(st))||['info','refs','roster','toss','lineup','play'].indexOf(b.page)<0?firstPage(st):b.page}
+})();
+(function(){
+  var q=location.search.match(/[?&]watch=([^&#]*)/),code='';
+  if(q){code=codeNorm(decodeURIComponent(q[1]));try{history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])watch=[^&#]*&?/,'$1').replace(/[?&]$/,'')+location.hash)}catch(e){}}
+  else try{code=sessionStorage.getItem(KEY+'-watch')||''}catch(e){}
+  if(code&&codeOk(code)){watchStart(code);return}
+  if((Object.keys(syncMap).length>1||syncMap._del.length)&&navigator.onLine!==false)fbLoad();
 })();
 updStart();
 render();
