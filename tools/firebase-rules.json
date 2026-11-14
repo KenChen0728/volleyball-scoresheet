@@ -5,7 +5,7 @@
     "m": {
       "$code": {
         ".read": "auth != null && $code.matches(/^[2-9A-Z]{6}$/)",
-        ".write": "auth != null && $code.matches(/^[2-9A-Z]{6}$/) && (data.exists() ? data.child('o').val() === auth.uid : newData.child('o').val() === auth.uid)",
+        ".write": "auth != null && $code.matches(/^[2-9A-Z]{6}$/) && (newData.exists() ? newData.child('o').val() === auth.uid : data.child('o').val() === auth.uid)",
         ".validate": "newData.hasChildren(['o', 'n', 'u', 'on'])",
         "o": { ".validate": "newData.isString() && newData.val() === auth.uid" },
         "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000" },

@@ -19,9 +19,9 @@ one("  upd.live=false;\n","  upd.live=false;\n  if(view==='watch'){var wsv=wt&&w
 one("+(view==='home'?aboutHtml():'')+helpHtml()","+(view==='home'?aboutHtml()+watchAskHtml()+shareAskHtml():'')+helpHtml()")
 EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>'
 SHR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>'
-LANDSHARE='<div class="landshare"><button data-act="shareopen">'+SHR+'分享比賽<small>\'+(share?\'分享中・代碼 \'+share.code:\'這台記錄，其他裝置輸入代碼就能看\')+\'</small></button><button data-act="watchopen">'+EYE+'觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div>'
+LANDSHARE='<div class="landshare"><button data-act="shareopen">'+SHR+'分享比賽<small>\'+(share?shareSmall():\'這台記錄，其他裝置輸入代碼就能看\')+\'</small></button><button data-act="watchopen">'+EYE+'觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div>'
 one("+updLink()+'<div class=\"homefoot\">","+updLink()+'"+LANDSHARE+"<div class=\"homefoot\">")
-one('使用教學</button></div></section><div class="homebody">','使用教學</button><button class="herosub" data-act="shareopen">'+SHR+'分享比賽<small>\'+(share?\'分享中・代碼 \'+share.code:\'這台記錄，其他裝置輸入代碼就能看\')+\'</small></button><button class="herosub" data-act="watchopen">'+EYE+'觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div></section><div class="homebody">')
+one('使用教學</button></div></section><div class="homebody">','使用教學</button><button class="herosub" data-act="shareopen">'+SHR+'分享比賽<small>\'+(share?shareSmall():\'這台記錄，其他裝置輸入代碼就能看\')+\'</small></button><button class="herosub" data-act="watchopen">'+EYE+'觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div></section><div class="homebody">')
 
 # 其他：連線一區
 one("      '<section class=\"msec\"><h3 class=\"mhead\">設定</h3><div class=\"mrow\"><strong>提示字</strong>",
@@ -38,7 +38,7 @@ one("    case 'close': if(document.activeElement)document.activeElement.blur(); 
 one("  m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:DEVICE,type:type,data:data});\n  save();\n",
     "  m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:DEVICE,type:type,data:data});\n  save();\n  if(share)syncKick(m);\n")
 # Esc、Android 返回鍵：觀看中先問要不要停止，不會一按就離開
-one("function escClose(){\n","function escClose(){\n  if(view==='watch'&&wt){wt.ask=!wt.ask;render();return true}\n")
+one("function escClose(){\n","function escClose(){\n  if(view==='watch'&&wt){if(wt.take){if(!wt.take.busy)wt.take=null}else wt.ask=!wt.ask;render();return true}\n")
 one("function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch)}","function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch||ui.watchAsk||ui.shareAsk)}")
 one("  if(e.key==='Enter'&&tg.id==='ref-type')","  if(e.key==='Enter'&&tg.id==='watch-code'){e.preventDefault();var wgb=app.querySelector('[data-act=watchgo]');if(wgb)wgb.click();return}\n  if(e.key==='Enter'&&tg.id==='ref-type')")
 # 開啟時：網址帶 ?watch=代碼（掃 QR code）或這個分頁原本在看，就直接進觀看；有開連線的比賽就接著傳
