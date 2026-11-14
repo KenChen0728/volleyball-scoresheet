@@ -1879,6 +1879,13 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
   .page>.refpick+.primary.full{box-shadow:0 -6px 8px var(--bg),0 24px 0 var(--bg)}
 }
 
+/* 11/14 裁判頁：名字清單上面寫現在會填進哪個角色；存檔／分享：最常用的整張記錄表用黃色，PDF 和圖片寫什麼時候選 */
+.refnow{margin:0;font-size:15px;font-weight:700;line-height:1.4;color:var(--ink)}
+.sheet .mbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.sheet .mbtn.primary small,.sheet .mbtn.primary .muted{color:var(--accent-ink)}
+.xpfmt .go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:60px;line-height:1.25}
+.xpfmt .go small{font-size:13px;font-weight:600}
+
 /* 11/12：完整版改成霧灰，學校版保留深藍和金色（校隊球衣風格，使用者 08:17 同意），只套新的清楚度做法：
    選中加勾、一般按鈕實心、紅色和底線字、卡片、設定、空的 L 格。變數要蓋過完整版的霧灰 */
 :root{--bg:#EDF1F5;--panel:#FFFFFF;--soft:#E1E7EE;--line:#CCD5DF;--line2:#BFCAD6;--ink:#0F2438;--muted:#4F6276;--btn:#E1E7EE;--btn-edge:transparent;--btn-ink:#0F2438;--off:#EFF3F7;--off-edge:#B5C1CE;--off-ink:#7A8A9B;--field:#FFFFFF;--field-edge:#CCD5DF;--accent:#FFD21F;--accent-ink:#12324F;--on-accent:#12324F;--accent-shadow:none;--track:#E1E7EE;--sel:#12324F;--sel-on:#FFFFFF;--brand:#12324F;--hero:#12324F;--hdr-ink:#FFFFFF;--hdr-sub:rgba(255,255,255,.72);--hdr-btn:rgba(255,255,255,.14);--hdr-mute:rgba(255,255,255,.38);--hero-ink:#FFFFFF;--hero-sub:rgba(255,255,255,.86);--hero-btn:rgba(255,255,255,.14);--hero-line:rgba(255,255,255,.16);--scrim:rgba(8,24,40,.45);--sheet:#FFFFFF;--sheet-shadow:0 -10px 32px rgba(8,24,40,.2);--card:#FFFFFF;--card-shadow:0 1px 2px rgba(15,36,56,.08);--box:#12324F;--net:#0F2438;--faint:#8E9DAD;--paper-shadow:0 1px 3px rgba(15,36,56,.14);--note:#E3E9F0;--note-ink:#2E465E;--del:#A3211A;--del-on:#FFFFFF;--focus:#0F2438;--r:10px;--rb:10px;--rc:14px;--rs:18px}
@@ -2496,7 +2503,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1113-2320';
+var BUILD='1114-2009';
 var PREF='vb-school-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2668,9 +2675,11 @@ function refsHtml(s,inTab){
   var typ='<div class="reftype"><input id="ref-type" type="text" maxlength="20" autocomplete="off" value="'+esc(rfT)+'" placeholder="'+(role?'名單沒有的人，直接打名字':'先點上面的角色')+'" aria-label="直接打名字"><button data-act="reftype">填入</button></div>';
   var selv=role?String(i[role]||'').trim():'',selbar=selv?'<div class="refsel"><span>'+esc(refLabel(role))+'：<b>'+esc(selv)+'</b></span><button data-act="refclear">清空</button></div>':'';
   var msg=(ui.refMsg?'<p class="warning" role="status">'+esc(ui.refMsg)+'</p>':'')+(ui.refNote?'<p class="good" role="status">'+esc(ui.refNote)+'</p>':'');
-  var body=roles+selbar+msg+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
+  /* 11/14 名字清單上面寫現在點名字會填進哪個角色 */
+  var seen=names.length||(ui.refOther&&others.length),now=ui.refMsg?'':role?(selv?'點別的名字換人，或按「清空」':seen?'點名字，填進「'+refLabel(role)+'」':'打名字，按「填入」，填進「'+refLabel(role)+'」'):(firstEmptyRole(s)?'先點上面要填的角色':'六個角色都填好了。要改，先點上面的角色');
+  var body=roles+selbar+msg+(now?'<p class="refnow">'+esc(now)+'</p>':'')+list+oth+(note?'<p class="muted">'+esc(note)+'</p>':'')+typ;
   if(inTab)return '<div class="narrow refpick"><p class="subhint">裁判名單</p>'+body+'<p class="muted">比賽中、比賽後都能改，可以空著。填了會印在匯出的記錄表上。</p></div>';
-  return '<div class="refpick"><p class="stephint">先點角色，再點名字。可以空著，比賽中、比賽後也能補。</p>'+body+'</div>'+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');
+  return '<div class="refpick"><p class="stephint">點名字會填進框起來的角色。可以空著，比賽中、比賽後也能補。</p>'+body+'</div>'+(s.sets[1].started?'':'<button class="primary full" data-act="page" data-v="roster">下一步：填名單</button>');
 }
 
 function tName(s,k){return s.teams[k].name||TEAM_LABEL[k]}
@@ -4743,7 +4752,7 @@ app.addEventListener('click',function(e){
       ui.msg[k]=''; dispatch('LIBERO_SET',{team:k,no:no,on:on}); ui.slot[k]=null; break;
     case 'import-cancel': ui.pending=null; break;
     case 'impall': ui.impAll=!ui.impAll; ui.pending=null; break;
-    case 'refrole': var rv=b.getAttribute('data-v'); ui.refRole=ui.refRole===rv?null:rv; ui.refMsg=''; ui.refNote=''; break;
+    case 'refrole': var rv=b.getAttribute('data-v'); ui.refRole=rv; ui.refMsg=''; ui.refNote=''; break; // 11/14 點已經框起來的角色不會取消（照提示點了，名字反而填不進去）
     case 'refname': case 'reftype':
       var rn=act==='reftype'?(document.getElementById('ref-type')||{value:''}).value.trim():b.getAttribute('data-v');
       if(!rn)break;

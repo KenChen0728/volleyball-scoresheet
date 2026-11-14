@@ -654,13 +654,6 @@ function fname(s,ext){return ('ScoreSheet_'+tName(s,'t1')+'_vs_'+tName(s,'t2')+'
 <button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button><p class="verline">有問題請截圖傳給 Ken</p>
 >>>>
 
-＝＝＝ 陣容：填的時候不放旋轉鈕，小手機才看得到背號 ＝＝＝
-<<<<
-  var rotb=c.locked[k]||c.started?'':'<div class="rotb">
-====
-  var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb">
->>>>
-
 ＝＝＝ 兩隊都沒有自由球員時，其他選單不放重新指定（例外替補一顆佔整排） ＝＝＝
 <<<<
 <div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>

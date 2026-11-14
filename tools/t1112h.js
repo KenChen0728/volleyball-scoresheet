@@ -54,7 +54,8 @@ for(const [w,h] of [[390,844],[1180,820]]){
     I=await info();ok(tag+'enter fills',I.lj2==='己',I);
     // H. 沒打字時點角色，照原本的樣子切換
     await role('ref2').click();await W(120);ok(tag+'plain switch',await pressed('ref2'));
-    await role('ref2').click();await W(120);ok(tag+'plain toggle off',!(await pressed('ref2')));
+    // 11/14 改：點已經框起來的角色不會取消（以前會取消，照提示點了反而填不進去）
+    await role('ref2').click();await W(120);ok(tag+'plain tap again stays',await pressed('ref2'));
   }
   // I. 名單：數字鍵盤開著時不出現「下一步」，按「完成」才出現
   await p.locator('.nav [data-v=roster]').click();await W(200);
