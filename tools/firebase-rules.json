@@ -11,6 +11,7 @@
         "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000" },
         "u": { ".validate": "newData.isNumber() && newData.val() <= now" },
         "on": { ".validate": "newData.isBoolean()" },
+        "t": { ".validate": "newData.isString() && newData.val().length <= 200" },
         "ev": {
           "$i": { ".validate": "$i.matches(/^[0-9]{1,4}$/) && newData.isString() && newData.val().length <= 6000" }
         },

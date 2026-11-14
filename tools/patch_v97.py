@@ -14,6 +14,7 @@ sy=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'v97-sync.js'),e
 one('\nfunction render(){\n','\n'+qr+sy+'\nfunction render(){\n')
 
 # 畫面：觀看模式整頁；主畫面多「觀看比賽」視窗
+one("  if(kbd&&(had||topLayer()))restoreFocus(fk);\n  updSync();\n","  if(kbd&&(had||topLayer()))restoreFocus(fk);\n  updSync();\n  if(share)syncTimer();\n")
 one("  upd.live=false;\n","  upd.live=false;\n  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);var wfl=wsv?flipPrep(wsv):null;app.innerHTML=watchHtml();fitNums();flipRun(wfl);syncAwake(!!wsv&&!matchOver(wsv));return}\n")
 one("+(view==='home'?aboutHtml():'')+helpHtml()","+(view==='home'?aboutHtml()+watchAskHtml()+shareAskHtml():'')+helpHtml()")
 EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>'
@@ -64,6 +65,7 @@ CSS='''
   .landshare svg{width:22px;height:22px;flex:none}
   .landshare small{flex-basis:100%;text-align:center;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3}
 }
+.watch .wpop{pointer-events:none} /* 觀看端剩 5 秒的大字：不能按，自己消失 */
 .wban small{display:block;font-size:13px;font-weight:600;color:var(--muted)}
 .syncnow{margin:0;text-align:center}
 .synccode{display:flex;flex-direction:column;align-items:center;gap:2px}
