@@ -11,7 +11,7 @@ def one(a,b):
 one("<button data-act=\"sheet\" data-v=\"more\">其他</button></div>';\n  var lfr=libFront(s)",
     "<button data-act=\"sheet\" data-v=\"more\">其他</button></div>';\n  if(takeOn(current()))tools='<div class=\"pbtns take\"><button class=\"takebtn\" data-act=\"syncopen\">接手記錄中<small>代碼 '+esc(share.code)+'</small></button><button data-act=\"sheet\" data-v=\"more\">其他</button></div>';\n  var lfr=libFront(s)")
 one("    h='<div class=\"shd\"><h2>其他</h2><button data-act=\"close\">關閉</button></div>'+\n      '<section class=\"msec\"><h3 class=\"mhead\">換人</h3>",
-    "    var tkm=takeOn(current());\n    h='<div class=\"shd\"><h2>其他</h2><button data-act=\"close\">關閉</button></div>'+\n      (tkm?'<p class=\"note\">這台是接手記錄：換人、修正、判罰這些，等原本的記錄台接回去再補。</p>':'<section class=\"msec\"><h3 class=\"mhead\">換人</h3>")
+    "    var tkm=takeOn(current());\n    h='<div class=\"shd\"><h2>其他</h2><button data-act=\"close\">關閉</button></div>'+\n      (tkm?'<p class=\"note\">本機為接手記錄：例外替補、修正與判罰請待原記錄台收回後補登。</p>':'<section class=\"msec\"><h3 class=\"mhead\">換人</h3>")
 one("mb('page','roster','查看名單')+'</div></section>'+","mb('page','roster','查看名單')+'</div></section>')+")
 CSS='''
 /* 11/15 接手記錄 */
