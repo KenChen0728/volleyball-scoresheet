@@ -12,7 +12,7 @@ s=re.sub(r"<script>if\('serviceWorker'.*?</script>\n?","",s,flags=re.S)
 one('<link rel="manifest" href="manifest.webmanifest">\n','')
 s=s.replace('href="icons/','href="../icons/')
 # 11/14 測試版有自己的圖示（下緣寫「測試」），主畫面上和正式版分得出來
-s=s.replace('href="../icons/icon-180.png"','href="../icons/beta-180.png"').replace('href="../icons/icon-192.png"','href="../icons/beta-192.png"')
+s=s.replace('href="../icons/icon2-180.png"','href="../icons/beta-180.png"').replace('href="../icons/icon2-192.png"','href="../icons/beta-192.png"')
 one('<title>排球電子記錄表</title>','<title>排球電子記錄表（測試版）</title>')
 s=re.sub(r"var BUILD='([^']*)';",lambda m:"var BUILD='測試版 "+m.group(1)+"';",s,count=1)
 os.makedirs(os.path.join(R,'beta'),exist_ok=True)

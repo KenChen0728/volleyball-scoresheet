@@ -138,6 +138,7 @@ git push
 
 每次改版前各留一個分支，新的在上面：
 
+- `backup/before-icon-1114`：11/14 正式版換新圖示（記錄紙・淺底，`icons/icon2-*.png`，產生方式 `node tools/icons1114.js --final`）之前，也就是 1114-2009。舊圖示 `icons/icon-*.png` 留著沒刪
 - `backup/before-v96-1114`：11/14 按鈕健檢上線之前，也就是 1113-2320
 - `backup/before-v95-1113`：11/13 日期欄圖示修正上線之前，也就是 1113-2259
 - `backup/before-v94-1113`：11/13 橫放設定頁一頁放得下上線之前，也就是 1113-1655
