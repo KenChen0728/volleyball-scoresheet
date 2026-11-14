@@ -22,7 +22,8 @@ const HUB=async(src,op,uid,p,v)=>{
   else if(op==='remove'){if(o&&o!==uid)return 'DENY';setAt(T,p,null)}
   else if(op==='drop'){const cur=at(T,p);if(cur)for(const k in v)cur[k]=v[k]}
   setTimeout(fireAll,5);return 'OK'};
-const FAKE=`window.__VB_FB=(function(){
+const FAKE=`window.__anim=0;(function(){var a=Element.prototype.animate;if(a)Element.prototype.animate=function(){if(this.closest&&this.closest('.pcourt'))window.__anim++;return a.apply(this,arguments)}})();
+window.__VB_FB=(function(){
  var uid=sessionStorage.__fakeuid||('u'+Math.random().toString(36).slice(2,9));sessionStorage.__fakeuid=uid;
  var conns=[],subs=[],off=false,queue=[],drops=[];
  function hub(op,p,v){return window.__hub(op,uid,p,v)}
@@ -99,7 +100,8 @@ const sd=R.locator('.kp [data-act=subdone],.kp [data-act=subclose]');if(await sd
 await W(300);await same('after sub');
 ok('viewer sub count 1',/替補 1/.test(await V.locator('.wcnt.t1').innerText()),await V.locator('.wcnt.t1').innerText());
 await R.click('[data-act=undo]');await W(600);await same('after undo');
-await pt('t2');await pt('t2');await W(300);await same('after more points');
+const an0=await V.evaluate(()=>window.__anim);await pt('t2');await pt('t2');await W(300);await same('after more points');
+ok('viewer animates rotation like the scorer',await V.evaluate(()=>window.__anim)>an0,[an0,await V.evaluate(()=>window.__anim)]);
 
 // 4. 觀看端 Esc／返回先問；重新整理還在看同一場
 await V.keyboard.press('Escape');await W(200);ok('viewer esc asks before leaving',await V.locator('[data-act=wleave2]').count()===1);
