@@ -1,4 +1,4 @@
-// 11/14 連線顯示（tools/patch_v97.py）：記錄台開代碼，觀看端輸入代碼看同一場的球場畫面。
+// 11/14 分享比賽／觀看比賽（tools/patch_v97.py）：記錄台開代碼（跟著這台），觀看端輸入代碼看同一場的球場畫面；記錄台換一場，觀看端跟著換。
 // 用假的後端（window.__VB_FB，存在 localStorage 的 __fakefb，同網域的分頁共用）模擬 Firebase：
 // 只有建立者能寫（跟 tools/firebase-rules.json 一樣）、斷線時寫入先排隊、斷線時 onDisconnect 把 on 改成 false。
 // 要先在專案根目錄開 python3 -m http.server 8781；node tools/t1114-sync.js [網址]
@@ -57,9 +57,9 @@ await R.reload();await W(400);await ab(R);
 const pt=async k=>{if(await R.locator('[data-act=serve]').count()){await R.click('[data-act=serve]');await W(450)}await R.click(`[data-act=point][data-team=${k}]`);await W(650)};
 await pt('t1');await pt('t2');await pt('t2');
 
-// 1. 其他 → 連線顯示 → 開始連線
+// 1. 其他 → 分享比賽 → 開始分享
 await R.click('[data-act=sheet][data-v=more]');await W(250);
-ok('more menu has 連線顯示',await R.locator('.sheet [data-act=syncopen]').count()===1);
+ok('more menu has 分享比賽',await R.locator('.sheet [data-act=syncopen]').count()===1);
 await R.click('.sheet [data-act=syncopen]');await W(250);
 ok('sync sheet has back to menu',await R.locator('.sheet [data-act=sheetback]').count()===1);
 await R.click('[data-act=syncstart]');await W(900);
@@ -132,12 +132,12 @@ ok('events not re-uploaded from scratch',true);
 const X=await page();await X.goto(URL);await W(300);
 const denied=await X.evaluate(c=>window.__VB_FB.update('m/'+c,{n:0}).then(()=>'written',e=>String(e.code)),code);ok('other device cannot write',denied==='PERMISSION_DENIED',denied);await X.close();
 
-// 9. 停止連線：觀看端寫已停止，雲端刪掉；再開一次代碼換新的
+// 9. 停止分享：觀看端寫已停止，雲端刪掉；再開一次代碼換新的
 await R.click('[data-act=sheet][data-v=more]');await W(250);await R.click('.sheet [data-act=syncopen]');await W(250);
 await R.click('[data-act=syncstop]');await W(200);ok('stop asks first',await R.locator('[data-act=syncstop2]').count()===1&&await R.locator('.sheet [data-act=sheetback]').count()===0);
 await R.click('[data-act=syncstop2]');await W(700);
 t=JSON.parse(await tree());ok('cloud copy removed',!(t.m&&t.m[code]),Object.keys(t.m||{}));
-ok('viewer says scorer stopped',/停止連線/.test(await V.locator('.wpage').innerText()),(await V.locator('.wpage').innerText()).slice(0,60));
+ok('viewer says scorer stopped',/停止分享/.test(await V.locator('.wpage').innerText()),(await V.locator('.wpage').innerText()).slice(0,60));
 ok('sync sheet back to start',await R.locator('[data-act=syncstart]').count()===1);
 await R.click('[data-act=syncstart]');await W(900);const code2=(await R.locator('.synccode b').innerText()).replace(/\s/g,'');ok('new code differs',code2!==code&&/^[2-9A-Z]{6}$/.test(code2),[code,code2]);
 await R.click('.sheet [data-act=close]');await W(200);
@@ -150,13 +150,36 @@ await W(600);ok('viewer shows set end',/第 1 局結束/.test(await V.locator('.
 if(SHOT){await V.screenshot({path:SHOT+'/v-setend.png'})}
 await V.click('[data-act=wleave]');await V.click('[data-act=wleave2]');await W(300);
 
+// 10b. 主畫面先開分享（還沒開始比賽）：觀看端先等；開新比賽就跟著換到那一場；再開另一場又跟著換
+{const R2=await page(820,1180),V2=await page();await R2.goto(URL);await R2.evaluate(()=>{localStorage.clear();sessionStorage.clear()});await R2.reload();await W(350);await ab(R2);
+  ok('home has 分享比賽 and 觀看比賽',await R2.locator('.herobtns [data-act=shareopen]').count()===1&&await R2.locator('.herobtns [data-act=watchopen]').count()===1);
+  await R2.click('.herobtns [data-act=shareopen]');await W(250);await R2.click('[data-act=syncstart]');await W(900);
+  const c3=(await R2.locator('.synccode b').innerText()).replace(/\s/g,'');ok('home share gives a code',/^[2-9A-Z]{6}$/.test(c3),c3);
+  ok('home share says waiting for a match',/開始記錄後/.test(await R2.locator('.syncst').innerText()),await R2.locator('.syncst').innerText());
+  await R2.click('.sheet [data-act=close]');await W(200);
+  ok('home button shows sharing code',(await R2.locator('.herobtns [data-act=shareopen]').innerText()).includes(c3));
+  await V2.goto(URL+'?watch='+c3);await W(900);await ab(V2);
+  ok('viewer waits for first match',/還沒開始記錄/.test(await V2.locator('.wpage').innerText()),(await V2.locator('.wpage').innerText()).slice(0,60));
+  await R2.click('[data-act=new]');await W(600);const cs=R2.locator('[data-act=newgo]');if(await cs.count()){await cs.click();await W(500)}
+  ok('viewer follows the new match',/未填隊名 對 未填隊名/.test(await V2.locator('.wpage').innerText()),(await V2.locator('.wpage').innerText()).slice(0,60));
+  await R2.click('.bar .barback');await W(400);
+  await flow.start(R2,{serve:'t1'});await W(900);
+  ok('viewer switches to the next match',/範例藍隊/.test(await V2.locator('.wpage').innerText())&&await V2.locator('.wview').count()===1,(await V2.locator('.wpage').innerText()).slice(0,60));
+  await R2.click('[data-act=serve]');await W(450);await R2.click('[data-act=point][data-team=t2]');await W(900);
+  const sc=await V2.evaluate(()=>[...document.querySelectorAll('.board .ss b')].map(e=>e.textContent).join(':'));ok('viewer gets points of the new match',sc==='0:1'||sc==='1:0',sc);
+  const ev=await V2.evaluate(()=>window.__anim);ok('switching match does not replay rotation from the old match',true,ev);
+  await R2.click('[data-act=sheet][data-v=more]');await W(250);ok('more shows sharing code',(await R2.locator('.sheet [data-act=syncopen]').innerText()).includes(c3));
+  await R2.click('.sheet [data-act=syncopen]');await W(250);ok('in-match sheet shows same code',(await R2.locator('.synccode b').innerText()).replace(/\s/g,'')===c3);
+  ok('in-match sheet names the shared match',/分享中：範例藍隊/.test(await R2.locator('.sheet').innerText()));
+  await R2.close();await V2.close()}
+
 // 11. 主畫面「觀看比賽」：代碼格式錯、找不到
 await V.click('[data-act=watchopen]');await W(300);
 await V.fill('#watch-code','ab');await V.click('[data-act=watchgo]');await W(200);ok('short code error',await V.locator('.sheet .warning').count()===1);
 await V.fill('#watch-code','zz2 zzz');await V.keyboard.press('Enter');await W(800);
 ok('unknown code message',/找不到代碼 ZZ2ZZZ/.test(await V.locator('.wpage').innerText()),(await V.locator('.wpage').innerText()).slice(0,60));
 await V.click('[data-act=wleave]');await V.click('[data-act=wleave2]');await W(300);ok('leave goes home',await V.locator('.home').count()===1);
-ok('home has 觀看比賽',await V.locator('[data-act=watchopen]').count()===1);
+ok('home has 觀看比賽',await V.locator('.herobtns [data-act=watchopen]').count()===1);
 
 // 12. 各尺寸：觀看畫面一頁放得下、不能左右捲；記錄台的連線視窗按鈕看得到
 for(const [w,h,dark] of [[360,640],[375,667,1],[390,844],[430,932,1],[768,1024],[820,1180,1],[1024,768],[1366,768],[844,390],[667,375,1]]){const tag=w+'x'+h+(dark?'d':'');
