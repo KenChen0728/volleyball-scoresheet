@@ -14,7 +14,7 @@ sy=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'v97-sync.js'),e
 one('\nfunction render(){\n','\n'+qr+sy+'\nfunction render(){\n')
 
 # 畫面：觀看模式整頁；主畫面多「觀看比賽」視窗
-one("  upd.live=false;\n","  upd.live=false;\n  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);app.innerHTML=watchHtml();fitNums();syncAwake(!!wsv&&!matchOver(wsv));return}\n")
+one("  upd.live=false;\n","  upd.live=false;\n  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);var wfl=wsv?flipPrep(wsv):null;app.innerHTML=watchHtml();fitNums();flipRun(wfl);syncAwake(!!wsv&&!matchOver(wsv));return}\n")
 one("+(view==='home'?aboutHtml():'')+helpHtml()","+(view==='home'?aboutHtml()+watchAskHtml():'')+helpHtml()")
 EYE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>'
 one('使用教學</button></div></section><div class="homebody">','使用教學</button><button class="herowatch" data-act="watchopen">'+EYE+'觀看比賽<small>看記錄台連線的比分和站位</small></button></div></section><div class="homebody">')

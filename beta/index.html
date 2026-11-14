@@ -136,6 +136,7 @@ label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--mute
 /* 所有號碼格都是同尺寸正方形，不隨畫面拉伸 */
 .rosterbox{display:flex;flex-direction:column;gap:4px;min-width:0}
 .chips,.libs,.pad,.benchrow{display:grid;grid-template-columns:repeat(6,minmax(0,60px));gap:6px;justify-content:start}
+@media (min-width:600px){.luside .benchrow{grid-template-columns:repeat(auto-fill,60px)}}
 .libs{align-items:center}
 .sec{font-size:13px;font-weight:600;color:var(--muted)}
 .sec.lib{margin-top:8px;color:var(--c)}
@@ -2401,7 +2402,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1114-2104';
+var BUILD='測試版 1114-2129';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2951,7 +2952,7 @@ function paint(){
 function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   upd.live=false;
-  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);app.innerHTML=watchHtml();fitNums();syncAwake(!!wsv&&!matchOver(wsv));return}
+  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);var wfl=wsv?flipPrep(wsv):null;app.innerHTML=watchHtml();fitNums();flipRun(wfl);syncAwake(!!wsv&&!matchOver(wsv));return}
   if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
