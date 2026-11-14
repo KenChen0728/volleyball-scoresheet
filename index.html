@@ -2427,7 +2427,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1115-0206';
+var BUILD='1115-0717';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2848,7 +2848,7 @@ function syncLost(){
   if(share.take){ // 這台是接手的：原本的記錄台接回去了，改回觀看
     var tm=shareMatch(),left=tm&&sy.pushed!=null?tm.events.length-sy.pushed:0;
     syncOwnerOff();share=null;shareSave();sy.pushed=null;watchStart(code);
-    if(wt){wt.note=left>0?'原本的記錄台接回去了。這台有 '+left+' 筆還沒傳上去，留在這台的紀錄裡':'原本的記錄台接回去了，這台改成觀看';wt.noteUntil=Date.now()+(left>0?15000:8000)}
+    if(wt){wt.note=left>0?'原記錄台已收回記錄。本機有 '+left+' 筆尚未上傳，保留在本機紀錄中':'原記錄台已收回記錄，本機改為觀看';wt.noteUntil=Date.now()+(left>0?15000:8000)}
     render();return}
   share.lost=true;share.err='';shareSave();sy.pushed=null;
   if(view==='setup'&&!ui.sheet)ui.sheet={type:'sync'};else if(view==='home'&&!ui.shareAsk&&!ui.watchAsk&&!ui.sheet)ui.shareAsk={};
@@ -2878,10 +2878,10 @@ function syncPush(m){
 }
 function syncFail(m,e){if(!share)return;
   /* 寫不進去：雲端這個代碼現在是別台在記（被接手，或這台的匿名身分換了）→ 問要不要接回來；雲端的不見了 → 換新代碼重開 */
-  var again=function(){if(!share)return;share.err='傳送失敗，稍後自動再試';clearTimeout(sy.retry);sy.retry=setTimeout(function(){syncPush(m)},5000);syncPaint()};
+  var again=function(){if(!share)return;share.err='傳送失敗，稍後自動重試';clearTimeout(sy.retry);sy.retry=setTimeout(function(){syncPush(m)},5000);syncPaint()};
   if(e&&/permission/i.test(String(e.code||e.message||e))&&fb){var code=share.code;
     fb.get('m/'+code+'/o').then(function(o){if(!share||share.code!==code)return;
-      if(o&&o!==fb.uid)syncLost();else if(!o&&!share.take)syncStart(m,1,'代碼換新了（雲端的分享不見了），觀看的裝置要重新輸入');else again()},again);return}
+      if(o&&o!==fb.uid)syncLost();else if(!o&&!share.take)syncStart(m,1,'雲端分享資料已不存在，已改用新代碼，觀看裝置需重新輸入');else again()},again);return}
   again()}
 function syncKick(m){if(share){if(!fb)fbLoad();else syncPush(m)}}
 /* 計時器跟著比賽傳：記錄台畫面重畫後比對一次，有變（開始、提早結束、發球收掉）才寫，一次只寫 t 和 u */
@@ -2906,38 +2906,38 @@ function syncResume(){
 function syncStop(){var me=share;syncOwnerOff();if(me)syncDropOff(me.code);share=null;sy.pushed=null;shareSave();if(me&&me.made&&!me.lost&&!me.take){syncMap._del.push(me.code);syncSaveMap();if(fb)fb.remove('m/'+me.code).then(function(){syncMap._del=syncMap._del.filter(function(x){return x!==me.code});syncSaveMap()},function(){})}}
 function syncUrl(code){var base=/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://kenchen0728.github.io/volleyball-scoresheet/';return base+'?watch='+code}
 function syncState(){if(!share)return ['off',''];
-  if(share.lost)return ['bad','另一台接手記錄中'];
-  if(fbErr&&!fb)return ['bad',fbErr==='offline'?'沒有網路，連上後自動開始。紀錄照常存在這台':'連線元件載入失敗，確認網路後重新整理'];
+  if(share.lost)return ['bad','其他裝置接手記錄中'];
+  if(fbErr&&!fb)return ['bad',fbErr==='offline'?'目前沒有網路，連線後自動開始；紀錄照常儲存於本機':'連線元件載入失敗，請確認網路後重新整理'];
   if(share.err)return ['bad',share.err];
   if(!fb||sy.conn===null||!share.made&&sy.conn!==false)return ['wait','連線中…'];
-  if(!sy.conn)return ['bad','沒有網路：紀錄照常存在這台，連上後自動補傳'];
-  var sm=shareMatch();if(!sm)return ['ok','已連線。開始記錄後，那一場會自動出現在觀看的裝置'];
+  if(!sy.conn)return ['bad','連線中斷：紀錄照常儲存於本機，恢復後自動補傳'];
+  var sm=shareMatch();if(!sm)return ['ok','已連線。開始記錄後，觀看裝置會自動顯示該場比賽'];
   if(sy.pushed==null||sy.pushed<sm.events.length)return ['wait','傳送中…'];
-  return ['ok',share.take?'接手記錄中，觀看的裝置是最新的':'已連線，觀看的裝置是最新的'];
+  return ['ok',share.take?'接手記錄中・已同步':'已同步，觀看裝置為最新狀態'];
 }
-function shareSmall(){return share.take?'接手記錄中・代碼 '+share.code:share.lost?'另一台接手中・代碼 '+share.code:'分享中・代碼 '+share.code}
+function shareSmall(){return share.take?'接手記錄中・代碼 '+share.code:share.lost?'其他裝置接手中・代碼 '+share.code:'分享中・代碼 '+share.code}
 function shareTitle(){var sm=shareMatch(),q=sm&&safeReduce(sm);if(!q)return '';var T=matchTitle(q);return T[0]+' 對 '+T[1]}
 function syncSheetHtml(x,inMatch){
   var st=syncState(),h='<div class="shd"><h2>分享比賽</h2><button data-act="close">關閉</button></div>',tt=share?shareTitle():'';
-  if(!share)return h+'<p class="subhint">這台記錄，其他裝置輸入代碼就能看比分、發球和站位，只能看、不能改。</p><p class="muted">代碼跟著這台，之後這台記哪一場，觀看的裝置就自動看哪一場。需要網路；球員、職員、裁判的名字不會傳出去。</p><button class="primary" data-act="syncstart">開始分享</button>';
+  if(!share)return h+'<p class="subhint">本機記錄，其他裝置輸入代碼即可觀看比分、發球與站位（僅供觀看，無法修改）。</p><p class="muted">代碼固定屬於本機；本機記錄哪一場，觀看裝置就自動顯示哪一場。需要網路；球員、職員與裁判姓名不會上傳。</p><button class="primary" data-act="syncstart">開始分享</button>';
   if(share.take){
-    if(x.stop)return '<h2>改回觀看？</h2><p class="muted">這台不再記錄，記到的已經傳上去。記錄台還沒回來時，觀看的裝置可以再按「接手記錄」。</p><button class="primary" data-act="takeend">改回觀看</button><button class="ghost" data-act="syncstay">取消</button>';
+    if(x.stop)return '<h2>結束接手？</h2><p class="muted">本機將停止記錄，已記錄的內容皆已上傳。原記錄台尚未恢復時，觀看裝置可再次接手記錄。</p><button class="primary" data-act="takeend">結束接手</button><button class="ghost" data-act="syncstay">取消</button>';
     return '<div class="shd"><h2>接手記錄</h2><button data-act="close">關閉</button></div><div class="synccode"><small>代碼</small><b>'+share.code.split('').join('<i></i>')+'</b></div>'+
       '<p class="syncst '+st[0]+'" role="status">'+esc(st[1])+'</p>'+(tt?'<p class="muted syncnow">記錄中：'+esc(tt)+'</p>':'')+
-      '<p class="subhint">這台只有號碼，記得分、暫停、替補、自由球員和場上隊長。判罰、修正這些，等原本的記錄台接回去再補。</p><p class="muted">原本的記錄台連上網路時，會問要不要接回去；接回去後這台自動改回觀看。</p>'+
-      '<button data-act="syncstop">改回觀看</button>'}
+      '<p class="subhint">本機僅有背號，可記錄得分、發球、暫停、替補、自由球員與場上隊長；判罰與修正請待原記錄台收回後補登。</p><p class="muted">原記錄台恢復連線時可收回記錄，收回後本機自動改為觀看。</p>'+
+      '<button data-act="syncstop">結束接手</button>'}
   if(share.lost){
-    if(x.busy)return '<h2>接回來</h2><p class="syncst wait" role="status">讀取另一台記的紀錄…</p>';
+    if(x.busy)return '<h2>收回記錄</h2><p class="syncst wait" role="status">讀取接手期間的紀錄…</p>';
     if(x.conflict){var cf=x.conflict;
-      return '<h2>兩台都記了，要用哪一份？</h2><p class="muted">記錄台離線這段時間，這台和接手的那台都有記錄，內容不一樣。選一份接著記，另一份不會合進來。</p>'+
-        '<button class="primary tall" data-act="syncpick" data-v="c">用接手那台的<small>'+esc(cf.ct)+'</small></button><button class="tall" data-act="syncpick" data-v="l">用這台的<small>'+esc(cf.lt)+'</small></button><button class="ghost" data-act="syncstay">取消</button>'}
-    return h+'<p class="note">代碼 '+esc(share.code)+' 這場，記錄台離線時由另一台接手記錄了。</p>'+
-      '<p class="muted">接回來：把那台記的部分合進這台，名字照這台的。之後由這台繼續記錄，那台自動改回觀看。</p>'+(tt?'<p class="muted syncnow">分享的比賽：'+esc(tt)+'</p>':'')+
-      (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="syncback">接回來</button><button data-act="syncwatch">先看那台記的</button>'}
-  if(x.stop)return '<h2>停止分享？</h2><p class="muted">觀看的裝置會看不到，雲端的這份會刪掉。這台的紀錄不受影響，之後可以再開（代碼會換新的）。</p><button class="primary" data-act="syncstop2">停止分享</button><button class="ghost" data-act="syncstay">取消</button>';
+      return '<h2>雙方紀錄不一致</h2><p class="muted">記錄台離線期間，本機與接手裝置都有記錄，且內容不同。請選擇要保留的版本，另一份不會併入。</p>'+
+        '<button class="primary tall" data-act="syncpick" data-v="c">保留接手裝置的紀錄<small>'+esc(cf.ct)+'</small></button><button class="tall" data-act="syncpick" data-v="l">保留本機紀錄<small>'+esc(cf.lt)+'</small></button><button class="ghost" data-act="syncstay">取消</button>'}
+    return h+'<p class="note">代碼 '+esc(share.code)+'：本場目前由其他裝置接手記錄。</p>'+
+      '<p class="muted">收回後，接手期間的紀錄併入本機（保留姓名），由本機繼續記錄，接手裝置自動改為觀看。</p>'+(tt?'<p class="muted syncnow">分享的比賽：'+esc(tt)+'</p>':'')+
+      (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="syncback">收回記錄</button><button data-act="syncwatch">觀看接手內容</button>'}
+  if(x.stop)return '<h2>停止分享？</h2><p class="muted">觀看裝置將無法再觀看，雲端資料會刪除。本機紀錄不受影響；之後可重新分享（代碼會更換）。</p><button class="primary" data-act="syncstop2">停止分享</button><button class="ghost" data-act="syncstay">取消</button>';
   return h+'<div class="synccode"><small>代碼</small><b>'+share.code.split('').join('<i></i>')+'</b></div>'+
     '<div class="syncqr">'+qrSvg(syncUrl(share.code))+'</div>'+
-    '<p class="subhint">另一台用相機掃 QR code；或打開這個網址，在主畫面按「觀看比賽」輸入代碼。這台記哪一場，就分享哪一場。</p>'+
+    '<p class="subhint">其他裝置以相機掃描 QR code，或開啟本系統後於主畫面點「觀看比賽」輸入代碼。本機記錄哪一場，就分享哪一場。</p>'+
     '<p class="syncst '+st[0]+'" role="status">'+esc(st[1])+'</p>'+(tt&&st[0]!=='bad'?'<p class="muted syncnow">分享中：'+esc(tt)+'</p>':'')+(share.note?'<p class="note">'+esc(share.note)+'</p>':'')+
     '<button data-act="syncstop">停止分享</button>';
 }
@@ -2954,7 +2954,7 @@ function evCopy(e){return JSON.parse(JSON.stringify(e))}
 /* 接手那台記的事件：名字是空的（雲端不放名字），補名字的事件不要合進來，免得把這台的名字清掉 */
 function adoptEv(list){return list.filter(function(e){var d=e.data||{};return !(e.type==='PLAYER_NAME_SET'&&!d.name||e.type==='STAFF_SET'&&!d.value||e.type==='INFO_SET'&&SYNC_HIDE.indexOf(d.field)>=0||e.type==='MATCH_CREATED'&&false)}).map(evCopy)}
 function planTitle(evs){var q=null;try{q=reduce(evs)}catch(e){}if(!q)return evs.length+' 筆';var n=q.setNo,c=q.sets[n],L=c.left||'t1',R=other(L),w=setsWon(q);
-  return (matchOver(q)?'比賽結束 '+w[L]+':'+w[R]:'第 '+n+' 局 '+c.score[L]+':'+c.score[R])+'（'+tName(q,L)+' 在前），共 '+evs.length+' 筆'}
+  return (matchOver(q)?'比賽結束 '+tName(q,L)+' '+w[L]+':'+w[R]+' '+tName(q,R):'第 '+n+' 局 '+tName(q,L)+' '+c.score[L]+':'+c.score[R]+' '+tName(q,R))+'・共 '+evs.length+' 筆'}
 /* 比對這台（L）和雲端（C）：共同的開頭用事件編號對；後面只有一邊有就接上；兩邊都有、一樣（或一份是另一份的開頭）就合；不一樣就問 */
 function syncPlan(C){
   var mid=C.length?C[0].matchId:share.mid,L=db.matches.filter(function(x){return x.id===mid})[0]||null;
@@ -2972,15 +2972,15 @@ function syncPlan(C){
 }
 function syncReclaim(x){
   if(!share||!share.lost||!x)return;
-  if(!fb||!sy.conn){x.err='沒有網路，連上後再按一次';return}
+  if(!fb||!sy.conn){x.err='目前沒有網路，請連線後再試';return}
   x.busy=true;x.err='';x.conflict=null;var code=share.code;
   fb.get('m/'+code).then(function(v){
     if(!share||share.code!==code||!share.lost)return;
     var pl=syncPlan(cloudList(v));x.busy=false;
-    if(!pl){x.err='雲端沒有這場的紀錄';render();return}
+    if(!pl){x.err='雲端查無本場紀錄';render();return}
     if(pl.conflict){x.conflict=pl.conflict;x.m=pl.m;render();return}
     syncReclaimDo(x,pl.m,pl.events,pl.fresh,pl.add||0);
-  },function(){x.busy=false;x.err='讀不到雲端的紀錄，稍後再試';render()});
+  },function(){x.busy=false;x.err='無法讀取雲端紀錄，請稍後再試';render()});
   render();
 }
 function syncReclaimDo(x,m,events,fresh,add){
@@ -2993,11 +2993,11 @@ function syncReclaimDo(x,m,events,fresh,add){
     m.events=E;if(fresh&&db.matches.indexOf(m)<0)db.matches.unshift(m);save();
     share.lost=false;share.mid=m.id;share.err='';shareSave();sy.pushed=to;sy.tKey=null;sy.tBad=false;sy.busy=false;sy.dropOn={};syncDrop(code);
     if(ui.shareAsk)ui.shareAsk=null;if(ui.sheet&&ui.sheet.type==='sync')ui.sheet=null;
-    var cm=current();if(view==='setup'&&cm&&cm.id===m.id)ui.toast={t:add?'接回來了：合進另一台記的 '+add+' 筆':'接回來了，由這台繼續記錄',until:Date.now()+4000};
-    else if(view==='home'){db.currentId=m.id;save();resetUi();ui.page=firstPage(reduce(m.events));view='setup';ui.toast={t:add?'接回來了：合進另一台記的 '+add+' 筆':'接回來了，由這台繼續記錄',until:Date.now()+4000}}
+    var cm=current();if(view==='setup'&&cm&&cm.id===m.id)ui.toast={t:add?'已收回記錄，併入接手期間 '+add+' 筆紀錄':'已收回記錄，由本機繼續記錄',until:Date.now()+4000};
+    else if(view==='home'){db.currentId=m.id;save();resetUi();ui.page=firstPage(reduce(m.events));view='setup';ui.toast={t:add?'已收回記錄，併入接手期間 '+add+' 筆紀錄':'已收回記錄，由本機繼續記錄',until:Date.now()+4000}}
     if(to<E.length)syncPush(m);
     render();setTimeout(render,4100);
-  },function(e){x.busy=false;x.err='接回失敗：'+(/permission/i.test(String(e&&(e.code||e.message)||e))?'Firebase 規則可能還是舊版':'稍後再試');render()});
+  },function(e){x.busy=false;x.err='收回失敗：'+(/permission/i.test(String(e&&(e.code||e.message)||e))?'Firebase 規則可能尚未更新':'請稍後再試');render()});
 }
 /* ---------- 接手記錄（觀看的裝置） ---------- */
 function takeGo(){
@@ -3014,9 +3014,9 @@ function takeGo(){
     if(wt.off)try{wt.off()}catch(e){}wt=null;try{sessionStorage.removeItem(KEY+'-watch')}catch(e){}
     share={code:code,made:true,mid:mid,take:true};shareSave();sy.pushed=list.length;sy.tKey=null;sy.tBad=false;sy.busy=false;delete sy.dropOn[code];
     db.currentId=mid;save();resetUi();ui.page=firstPage(reduce(m.events));view='setup';
-    ui.toast={t:'這台接手記錄了，代碼不變',until:Date.now()+4000};
+    ui.toast={t:'已由本機接手記錄，代碼不變',until:Date.now()+4000};
     syncDrop(code);syncOwner();syncPush(m);render();setTimeout(render,4100);
-  },function(e){if(wt&&wt.code===code){wt.take={err:/permission/i.test(String(e&&(e.code||e.message)||e))?'接手失敗：Firebase 規則還是舊版，要先更新規則':'接手失敗，確認網路後再試'};render()}});
+  },function(e){if(wt&&wt.code===code){wt.take={err:/permission/i.test(String(e&&(e.code||e.message)||e))?'接手失敗：Firebase 規則尚未更新':'接手失敗，請確認網路後再試'};render()}});
 }
 /* 接手的改回觀看：把在線改成離線，記錄台還沒回來時別台可以再接手 */
 function takeEnd(){if(!share||!share.take)return;var code=share.code;
@@ -3037,7 +3037,7 @@ function watchData(code,v){
   if(!v||typeof v!=='object'){wt.state=wt.s?'gone':'none';wt.s=null;wt.list=null;render();return}
   var list=cloudList(v);
   wt.u=Number(v.u)||0;wt.on=v.on!==false;
-  if(wt.on&&wt.take&&!wt.take.busy){wt.take=null;wt.note='記錄台連回來了';wt.noteUntil=Date.now()+6000}
+  if(wt.on&&wt.take&&!wt.take.busy){wt.take=null;wt.note='記錄台已恢復連線';wt.noteUntil=Date.now()+6000}
   /* 計時器：照記錄台傳來的（記錄台按「結束」或發球，這裡也跟著收掉） */
   var tj=null;try{tj=v.t?JSON.parse(v.t):null}catch(e){}
   if(tj&&(tj.k==='t1'||tj.k==='t2')&&typeof tj.ms==='number'){var end=wt.u+tj.ms-sy.off;var key=tj.k+'|'+end+'|'+(tj.label||'');
@@ -3055,15 +3055,15 @@ function watchLeave(){if(wt&&wt.off)try{wt.off()}catch(e){}wt=null;try{sessionSt
 function watchStatus(){
   if(!wt||wt.state==='load'||sy.conn===null&&!wt.u)return ['wait','連線中…'];
   var t=wt.u?'最後更新 '+new Date(wt.u).toTimeString().slice(0,8):'';
-  if(sy.conn===false)return ['bad','這台沒有網路，畫面停在'+(t?t.slice(4):'剛才')];
+  if(sy.conn===false)return ['bad','本機連線中斷，畫面停留在'+(t?t.slice(4):'剛才')];
   if(wt.state==='ok'&&!wt.on)return ['bad','記錄台離線，'+t];
   if(wt.state==='ok')return ['ok','同步中 '+(t?t.slice(5):'')];
   return ['bad',''];
 }
 function watchMsg(){
   var st=wt?wt.state:'load',c=esc(wt?wt.code:'');
-  var m={load:['連線中…','第一次要幾秒鐘。'],none:['找不到代碼 '+c+' 的比賽','請確認代碼，或請記錄台在主畫面或「其他」按「分享比賽」。'],gone:['記錄台停止分享了','雲端的紀錄已經刪掉。'],empty:['記錄台還沒開始記錄','記錄台開始記錄後，那一場會自動出現。'],
-    bad:['這場的資料讀不懂','請記錄台更新到最新版。'],deny:['沒有權限看這場','請重新輸入代碼。'],offline:['這台沒有網路','連上網路後重新整理。'],loadfail:['連線元件載入失敗','確認網路後重新整理。']}[st]||['連線中…',''];
+  var m={load:['連線中…','首次連線需要數秒。'],none:['找不到代碼 '+c+' 的比賽','請確認代碼，或請記錄台於主畫面或「其他」點選「分享比賽」。'],gone:['記錄台已停止分享','雲端紀錄已刪除。'],empty:['記錄台尚未開始記錄','記錄台開始記錄後，將自動顯示該場比賽。'],
+    bad:['無法讀取本場資料','請記錄台更新至最新版本。'],deny:['沒有觀看權限','請重新輸入代碼。'],offline:['本機沒有網路','請連線後重新整理。'],loadfail:['連線元件載入失敗','請確認網路後重新整理。']}[st]||['連線中…',''];
   return '<div class="wmsg"><h2>'+m[0]+'</h2><p class="muted">'+m[1]+'</p>'+(st!=='load'?'<button data-act="wretry">重新輸入代碼</button>':'')+'</div>';
 }
 function watchBoard(s){
@@ -3077,31 +3077,31 @@ function watchBoard(s){
   var cnt=function(k){var ex=c.subs[k].length-c.subCount[k];return '<div class="wcnt '+k+'"><span>暫停 <b>'+c.timeouts[k].length+'</b></span><span>替補 <b>'+c.subCount[k]+'</b></span>'+(ex?'<small>例外替補 '+ex+'</small>':'')+'</div>'};
   var wtm=wt&&wt.timer&&Date.now()<wt.timer.end?wt.timer:null;
   var tm=wtm?'<div class="tbar '+wtm.team+'"><span>'+esc(tName(s,wtm.team))+' '+esc(wtm.label||'暫停')+'</span><b data-wtm>'+wtText(wtm)+'</b></div>':'';
-  var ban=over?'<p class="wban">比賽結束 '+setsWon(s)[L]+' : '+setsWon(s)[R]+'<small>記錄台開始下一場時會自動切換</small></p>':win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'</p>':'';
+  var ban=over?'<p class="wban">比賽結束 '+setsWon(s)[L]+' : '+setsWon(s)[R]+'<small>記錄台開始下一場時將自動切換</small></p>':win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'</p>':'';
   return '<div class="wview" inert><div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+ban+tm+
     '<div class="pcourt" role="group" aria-label="球場，記錄台在下方">'+cells+'</div><div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div><div class="wcounts">'+cnt(L)+cnt(R)+'</div></div>';
 }
 function watchHtml(){
   var st=watchStatus(),s=wt&&wt.state==='ok'?wt.s:null;
   var head='<header class="wtbar"><button class="wleave" data-act="wleave">‹ 離開</button><span class="wcode">代碼 '+esc(wt?wt.code:'')+'</span><span class="wst '+st[0]+'" role="status">'+esc(st[1])+'</span></header>';
-  var ask=wt&&wt.ask?'<div class="scrim" data-act="wstay"></div><div class="sheet" role="dialog" aria-modal="true"><h2>停止觀看？</h2><p class="muted">要再看時，在主畫面按「觀看比賽」輸入代碼 '+esc(wt.code)+'。</p><button class="primary" data-act="wleave2">停止觀看</button><button class="ghost" data-act="wstay">繼續看</button></div>':'';
+  var ask=wt&&wt.ask?'<div class="scrim" data-act="wstay"></div><div class="sheet" role="dialog" aria-modal="true"><h2>停止觀看？</h2><p class="muted">如需再次觀看，請於主畫面點「觀看比賽」並輸入代碼 '+esc(wt.code)+'。</p><button class="primary" data-act="wleave2">停止觀看</button><button class="ghost" data-act="wstay">繼續觀看</button></div>':'';
   var wp=s&&wt.timer&&!wt.timer.label&&Date.now()<wt.timer.end&&wt.timer.end-Date.now()<=5000?'<div class="tpop wpop" role="alert"><div>'+esc(tName(s,wt.timer.team))+' 暫停剩下</div><b data-wtm>'+wtText(wt.timer)+'</b></div>':'';
   /* 記錄台離線：可以由這台接手（被接手的原本那台看自己的代碼時，按鈕是「接回來」） */
   var mine=share&&share.lost&&share.code===wt.code;
-  var trow=s&&wt.state==='ok'&&!wt.on&&sy.conn&&fb&&!wt.take?'<div class="wtake"><span>'+(mine?'這場是這台原本記的':'記錄台斷了？確認後由這台接著記')+'</span><button data-act="'+(mine?'wback':'wtake')+'">'+(mine?'接回來':'接手記錄')+'</button></div>':'';
+  var trow=s&&wt.state==='ok'&&!wt.on&&sy.conn&&fb&&!wt.take?'<div class="wtake"><span>'+(mine?'本場原由本機記錄':'記錄台離線。確認無法使用後，可由本機接手。')+'</span><button data-act="'+(mine?'wback':'wtake')+'">'+(mine?'收回記錄':'接手記錄')+'</button></div>':'';
   var note=wt&&wt.note&&Date.now()<wt.noteUntil?'<p class="wnote" role="status">'+esc(wt.note)+'</p>':'';
-  var tk=wt&&wt.take?'<div class="scrim" data-act="'+(wt.take.busy?'':'wtakeno')+'"></div><div class="sheet" role="dialog" aria-modal="true"><h2>由這台接手記錄？</h2>'+(wt.take.busy?'<p class="syncst wait" role="status">接手中…</p>':
-    '<p class="subhint">先在死球時和記錄員確認：記錄台真的斷線、不能用了。</p><ul class="takelist"><li>這台接著記得分、發球、暫停、替補、自由球員和場上隊長，只有號碼、沒有名字。</li><li>代碼不變，其他觀看的裝置會跟著看這台記的。</li><li>原本的記錄台連上網路時，會問要不要接回去，這段紀錄會合進去。</li></ul>'+
-    (share&&share.code!==wt.code&&!share.take?'<p class="note">這台原本的分享（代碼 '+esc(share.code)+'）會停止。</p>':'')+(wt.take.err?'<p class="warning" role="alert">'+esc(wt.take.err)+'</p>':'')+
+  var tk=wt&&wt.take?'<div class="scrim" data-act="'+(wt.take.busy?'':'wtakeno')+'"></div><div class="sheet" role="dialog" aria-modal="true"><h2>由本機接手記錄？</h2>'+(wt.take.busy?'<p class="syncst wait" role="status">接手中…</p>':
+    '<p class="subhint">請於死球時與記錄員確認記錄台已無法使用。</p><ul class="takelist"><li>本機僅有背號，可記錄得分、發球、暫停、替補、自由球員與場上隊長。</li><li>代碼不變，其他觀看裝置將顯示本機的紀錄。</li><li>原記錄台恢復連線時，可收回記錄並合併這段紀錄。</li></ul>'+
+    (share&&share.code!==wt.code&&!share.take?'<p class="note">本機原有的分享（代碼 '+esc(share.code)+'）將停止。</p>':'')+(wt.take.err?'<p class="warning" role="alert">'+esc(wt.take.err)+'</p>':'')+
     '<button class="primary" data-act="wtakego">接手記錄</button><button class="ghost" data-act="wtakeno">取消</button>')+'</div>':'';
   return '<div class="watch"><div class="wshell">'+head+trow+note+'<main class="page wpage">'+(s?watchBoard(s):watchMsg())+'</main></div>'+wp+'</div>'+ask+tk;
 }
 function watchAskHtml(){
   if(!ui.watchAsk)return '';var x=ui.watchAsk;
   return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="shd"><h2>觀看比賽</h2><button data-act="close">關閉</button></div>'+
-    '<p class="subhint">輸入記錄台「分享比賽」上的 6 碼代碼，或用相機掃 QR code。只能看、不能改。</p>'+
+    '<p class="subhint">輸入記錄台「分享比賽」顯示的 6 碼代碼，或以相機掃描 QR code。僅供觀看，無法修改。</p>'+
     '<input id="watch-code" class="wcodein" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="代碼" value="'+esc(x.v||'')+'">'+
-    (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="watchgo">觀看</button><p class="muted">需要網路。比賽中這台的螢幕會保持常亮。</p></div>';
+    (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="watchgo">觀看</button><p class="muted">需要網路。觀看期間螢幕保持常亮。</p></div>';
 }
 /* 觀看畫面和連線相關的按鈕；回傳 true 表示處理過了 */
 function syncAct(act,b){
@@ -3109,7 +3109,7 @@ function syncAct(act,b){
   switch(act){
     case 'watchopen': ui.watchAsk={v:''}; setTimeout(function(){var wi=document.getElementById('watch-code');if(wi)wi.focus()},60); return true;
     case 'watchgo': var wi=document.getElementById('watch-code'),wc=codeNorm(wi?wi.value:'');
-      if(!codeOk(wc)){ui.watchAsk={v:wi?wi.value:'',err:'代碼是 '+CODE_LEN+' 個英文字母或數字'};return true}
+      if(!codeOk(wc)){ui.watchAsk={v:wi?wi.value:'',err:'代碼為 '+CODE_LEN+' 個英文字母或數字'};return true}
       ui.watchAsk=null;watchStart(wc); return true;
     case 'wleave': if(wt)wt.ask=true; return true;
     case 'wstay': if(wt)wt.ask=false; return true;
@@ -3599,8 +3599,8 @@ function homeHtml(){
   var real=g.live.concat(g.done).filter(function(x){return !x.s.info.sample}),nb=real.filter(function(x){return !backedUp(x.m)}).length,lastBk=prefs.lastBackup||0;
   real.forEach(function(x){var t=prefs.bk&&prefs.bk[x.m.id];if(t>lastBk)lastBk=t});
   if(real.length)body+='<div class="bkrow"><span class="muted">'+(nb?'有 '+nb+' 場還沒備份，備份在「紀錄與名單」。':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':'')+'。')+'</span></div>';
-  body+=inst+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<div class="landshare"><button data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'這台記錄，其他裝置輸入代碼就能看')+'</small></button><button data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div><div class="homefoot"><button data-act="settings">'+GEAR+'設定</button><button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
-  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button><button class="herosub" data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'這台記錄，其他裝置輸入代碼就能看')+'</small></button><button class="herosub" data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small>輸入代碼或掃 QR code，看別台記錄的比賽</small></button></div></section><div class="homebody">'+body+'</div></div>';
+  body+=inst+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<div class="landshare"><button data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'本機記錄，其他裝置輸入代碼即可觀看')+'</small></button><button data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small>輸入代碼或掃描 QR code，觀看其他記錄台</small></button></div><div class="homefoot"><button data-act="settings">'+GEAR+'設定</button><button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
+  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>紀錄與名單</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button><button class="herosub" data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'本機記錄，其他裝置輸入代碼即可觀看')+'</small></button><button class="herosub" data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small>輸入代碼或掃描 QR code，觀看其他記錄台</small></button></div></section><div class="homebody">'+body+'</div></div>';
 }
 function importAskHtml(){
   var a=ui.importAsk;if(!a||!a.length)return '';
@@ -5102,10 +5102,10 @@ function sheetHtml(s,m){
     var mp=function(key,dis,sub){return '<button class="mbtn" data-act="mteam" data-v="'+key+'"'+(dis?' disabled':'')+'><strong>'+MTEAM[key][0]+'</strong>'+(sub?'<small>'+sub+'</small>':'')+'</button>'};
     var tkm=takeOn(current());
     h='<div class="shd"><h2>其他</h2><button data-act="close">關閉</button></div>'+
-      (tkm?'<p class="note">這台是接手記錄：換人、修正、判罰這些，等原本的記錄台接回去再補。</p>':'<section class="msec"><h3 class="mhead">換人</h3><div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>'+(mc.live?'<p class="muted mnote">球在進行中，得分後才能換人</p>':'')+'</section>'+
+      (tkm?'<p class="note">本機為接手記錄：例外替補、修正與判罰請待原記錄台收回後補登。</p>':'<section class="msec"><h3 class="mhead">換人</h3><div class="mgrid two">'+mp('exc',mc.live)+mp('red',mc.live)+'</div>'+(mc.live?'<p class="muted mnote">球在進行中，得分後才能換人</p>':'')+'</section>'+
       '<section class="msec"><h3 class="mhead">比賽狀況</h3><div class="mgrid">'+mb('injopen','INJ','傷停')+mb('injopen','INC','陣容不完整')+mb('injopen','FF','棄權')+'</div><div class="mgrid one">'+mp('rot',mc.live,mc.live?'球在進行中，得分後才能用':'對方的 1 分先按得分，這裡取消犯錯隊的分數')+'</div></section>'+
       '<section class="msec"><h3 class="mhead">修正</h3><div class="mgrid">'+mb('scfixpick','','修正比分')+mp('fix',false)+mb('tossfix','','挑邊',mc.live||s.setNo===2)+'</div><div class="mgrid two">'+mp('color',false,'含自由球員')+mb('page','roster','查看名單')+'</div></section>')+
-      '<section class="msec"><h3 class="mhead">分享</h3><div class="mgrid one"><button class="mbtn" data-act="syncopen"><strong>分享比賽</strong><small>'+(share?'代碼 '+esc(share.code)+'・'+esc(syncState()[1]):'給二裁或其他裝置看比分和站位')+'</small></button></div></section>'+
+      '<section class="msec"><h3 class="mhead">分享</h3><div class="mgrid one"><button class="mbtn" data-act="syncopen"><strong>分享比賽</strong><small>'+(share?'代碼 '+esc(share.code)+'・'+esc(syncState()[1]):'供第二裁判或其他裝置觀看比分與站位')+'</small></button></div></section>'+
       '<section class="msec"><h3 class="mhead">設定</h3><div class="mrow"><strong>提示字</strong><div class="seg">'+[['on','顯示'],['off','隱藏']].map(function(q){return '<button data-act="hints" data-v="'+q[0]+'" aria-pressed="'+((prefs.hints===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>'+
       (XP_ON?'<div class="mrow"><strong>手機轉橫</strong><div class="seg">'+[['on','顯示記錄表'],['off','照常記錄']].map(function(q){return '<button data-act="landpref" data-v="'+q[0]+'" aria-pressed="'+((prefs.landSheet===false?'off':'on')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div></div>':'')+'</section>'+
       '<button class="linkbtn dangerlink" data-act="sheet" data-v="leave">離開這場比賽</button>';

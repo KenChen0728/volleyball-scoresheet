@@ -119,8 +119,8 @@ ok('scorer keeps player name',rE.some(e=>e.type==='PLAYER_NAME_SET'&&e.data.name
 ok('merged seq renumbered',rE.every((e,i)=>e.seq===i+1));
 await same('scorer court after merge = taker',R,X);
 ok('taker back to watching',await X.locator('.watch').count()===1,(await X.locator('body').innerText()).slice(0,100));
-ok('taker sees note',/接回去/.test(await X.locator('.wnote').innerText().catch(()=>'')));
-ok('reclaim toast on scorer',/接回來了/.test(await R.locator('.lockline').innerText()),await R.locator('.lockline').innerText());
+ok('taker sees note',/收回記錄/.test(await X.locator('.wnote').innerText().catch(()=>'')));
+ok('reclaim toast on scorer',/已收回記錄/.test(await R.locator('.lockline').innerText()),await R.locator('.lockline').innerText());
 await pt(R,'t2');await W(400);await same('post phone follows scorer again',P,R);await same('ex-taker follows scorer',X,R);
 // 3b. 舊的斷線登記把 on 改成離線：記錄台自己改回來
 T.m[code].on=false;await fireAll();await W(600);ok('stale offline flag fixed by scorer',T.m[code].on===true);
@@ -135,7 +135,7 @@ await R.evaluate(()=>__fakeNet(true));await W(1200);
 await R.click('[data-act=syncback]');await W(900);
 ok('conflict asks which to keep',await R.locator('[data-act=syncpick]').count()===2,(await R.locator('.sheet').innerText().catch(()=>'')).slice(0,200));
 if(SHOT)await R.screenshot({path:SHOT+'/t-conflict.png'});
-const cft=await R.locator('.sheet').innerText();ok('conflict shows both scores',/用接手那台的[\s\S]*共 \d+ 筆[\s\S]*用這台的/.test(cft),cft);
+const cft=await R.locator('.sheet').innerText();ok('conflict shows both scores',/保留接手裝置的紀錄[\s\S]*共 \d+ 筆[\s\S]*保留本機紀錄/.test(cft),cft);
 await R.click('[data-act=syncpick][data-v=l]');await W(1200);
 ok('kept this device version',JSON.stringify(await snap(R))===JSON.stringify(rOwn));
 ok('taker back to watching after pick',await X.locator('.watch').count()===1);
@@ -153,7 +153,7 @@ await same('same content result',X,R);
 await R.evaluate(()=>__fakeNet(false));await W(400);
 await X.click('[data-act=wtake]');await W(200);await X.click('[data-act=wtakego]');await W(900);
 await X.click('.pbtns.take .takebtn');await W(250);
-ok('taker sheet no stop-share, has 改回觀看',await X.locator('.sheet [data-act=syncstop]').innerText()==='改回觀看');
+ok('taker sheet no stop-share, has 結束接手',await X.locator('.sheet [data-act=syncstop]').innerText()==='結束接手');
 await X.click('.sheet [data-act=syncstop]');await W(200);await X.click('[data-act=takeend]');await W(900);
 ok('take end goes to watching',await X.locator('.watch').count()===1);
 ok('take end marks recorder offline (button again)',await X.locator('[data-act=wtake]').count()===1&&await P.locator('[data-act=wtake]').count()===1);
@@ -164,7 +164,7 @@ const atHome=await R.locator('.home').count()===1;
 await P.click('[data-act=wtake]');await W(200);await P.click('[data-act=wtakego]');await W(900);await pt(P,'t2');
 await R.evaluate(()=>__fakeNet(true));await W(1200);
 if(atHome){ok('home asks to take back',await R.locator('.sheet [data-act=syncback]').count()===1,(await R.locator('body').innerText()).slice(0,150));
-  ok('home button says taken',/另一台接手中/.test(await R.locator('.herobtns [data-act=shareopen]').innerText()));
+  ok('home button says taken',/其他裝置接手中/.test(await R.locator('.herobtns [data-act=shareopen]').innerText()));
   await R.click('.sheet [data-act=syncback]');await W(1200);ok('take back from home opens the match',await R.locator('.pcourt').count()===1);await same('home take back result',R,P);}
 else ok('left to home for test 7',false,(await R.locator('body').innerText()).slice(0,150));
 ok('post phone returned to watching',await P.locator('.watch').count()===1);
@@ -175,7 +175,7 @@ await X.click('[data-act=wtake]');await W(200);await X.click('[data-act=wtakego]
 await X.evaluate(()=>__fakeNet(false));await W(300);await pt(X,'t1');
 await R.evaluate(()=>__fakeNet(true));await W(1000);await R.click('[data-act=syncback]');await W(1200);
 await X.evaluate(()=>__fakeNet(true));await W(1500);
-ok('offline taker told what stayed local',/還沒傳上去/.test(await X.locator('.wnote').innerText().catch(()=>'')),await X.locator('body').innerText().catch(()=>''));
+ok('offline taker told what stayed local',/尚未上傳/.test(await X.locator('.wnote').innerText().catch(()=>'')),await X.locator('body').innerText().catch(()=>''));
 
 // 9. 寬畫面接手（平板當備援）：沒有判罰按鈕，按鈕都在畫面內
 {const Y=await page(820,1180);await Y.goto(URL+'?watch='+code);await W(800);await ab(Y);

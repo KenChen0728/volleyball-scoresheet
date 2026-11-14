@@ -69,7 +69,7 @@ await R.click('[data-act=syncstart]');await W(900);
 const code=(await R.locator('.synccode b').innerText()).replace(/\s/g,'');
 ok('code is 6 chars',/^[2-9A-Z]{6}$/.test(code),code);
 ok('qr shown',await R.locator('.syncqr svg.qr').count()===1);
-ok('status ok after start',/觀看的裝置是最新的/.test(await R.locator('.syncst').innerText()),await R.locator('.syncst').innerText());
+ok('status ok after start',/觀看裝置為最新狀態/.test(await R.locator('.syncst').innerText()),await R.locator('.syncst').innerText());
 const qrUrl=await R.evaluate(()=>document.querySelector('.syncqr svg').outerHTML.length);ok('qr svg not empty',qrUrl>500,qrUrl);
 const tree=async()=>JSON.stringify(T);
 let t=await tree();
@@ -140,7 +140,7 @@ ok('scorer tag gone when ok',await R.locator('.bar .synctag').count()===0);
 
 // 6. 觀看端自己斷線：寫這台沒有網路
 await V.evaluate(()=>__fakeNet(false));await W(300);
-ok('viewer shows own offline',/這台沒有網路/.test(await V.locator('.wst').innerText()),await V.locator('.wst').innerText());
+ok('viewer shows own offline',/本機連線中斷/.test(await V.locator('.wst').innerText()),await V.locator('.wst').innerText());
 await pt('t2');await V.evaluate(()=>__fakeNet(true));await W(600);await same('after viewer reconnect');
 
 // 7. 記錄台重新整理：接著傳（先問雲端有幾筆）
@@ -158,7 +158,7 @@ await R.click('[data-act=sheet][data-v=more]');await W(250);await R.click('.shee
 await R.click('[data-act=syncstop]');await W(200);ok('stop asks first',await R.locator('[data-act=syncstop2]').count()===1&&await R.locator('.sheet [data-act=sheetback]').count()===0);
 await R.click('[data-act=syncstop2]');await W(700);
 t=JSON.parse(await tree());ok('cloud copy removed',!(t.m&&t.m[code]),Object.keys(t.m||{}));
-ok('viewer says scorer stopped',/停止分享/.test(await V.locator('.wpage').innerText()),(await V.locator('.wpage').innerText()).slice(0,60));
+ok('viewer says scorer stopped',/已停止分享/.test(await V.locator('.wpage').innerText()),(await V.locator('.wpage').innerText()).slice(0,60));
 ok('sync sheet back to start',await R.locator('[data-act=syncstart]').count()===1);
 await R.click('[data-act=syncstart]');await W(900);const code2=(await R.locator('.synccode b').innerText()).replace(/\s/g,'');ok('new code differs',code2!==code&&/^[2-9A-Z]{6}$/.test(code2),[code,code2]);
 await R.click('.sheet [data-act=close]');await W(200);
@@ -180,7 +180,7 @@ await V.click('[data-act=wleave]');await V.click('[data-act=wleave2]');await W(3
   await R2.click('.sheet [data-act=close]');await W(200);
   ok('home button shows sharing code',(await R2.locator('.herobtns [data-act=shareopen]').innerText()).includes(c3));
   await V2.goto(URL+'?watch='+c3);await W(900);await ab(V2);
-  ok('viewer waits for first match',/還沒開始記錄/.test(await V2.locator('.wpage').innerText()),(await V2.locator('.wpage').innerText()).slice(0,60));
+  ok('viewer waits for first match',/尚未開始記錄/.test(await V2.locator('.wpage').innerText()),(await V2.locator('.wpage').innerText()).slice(0,60));
   await R2.click('[data-act=new]');await W(600);const cs=R2.locator('[data-act=newgo]');if(await cs.count()){await cs.click();await W(500)}
   ok('viewer follows the new match',/未填隊名 對 未填隊名/.test(await V2.locator('.wpage').innerText()),(await V2.locator('.wpage').innerText()).slice(0,60));
   await R2.click('.bar .barback');await W(400);
