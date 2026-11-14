@@ -1,6 +1,6 @@
 // 11/14 分享比賽／觀看比賽（tools/patch_v97.py）：記錄台開代碼（跟著這台），觀看端輸入代碼看同一場的球場畫面；記錄台換一場，觀看端跟著換。
 // 用假的後端（window.__VB_FB，存在 localStorage 的 __fakefb，同網域的分頁共用）模擬 Firebase：
-// 只有建立者能寫（跟 tools/firebase-rules.json 一樣）、斷線時寫入先排隊、斷線時 onDisconnect 把 on 改成 false。
+// 寫完後 o 要是自己（跟 tools/firebase-rules.json 一樣，11/15 起知道代碼就能接手）、斷線時寫入先排隊、斷線時 onDisconnect 把 on 改成 false。
 // 要先在專案根目錄開 python3 -m http.server 8781；node tools/t1114-sync.js [網址]
 const {chromium}=require('playwright');const flow=require('./flow.js');const fs=require('fs');
 const URL=process.argv[2]||'http://localhost:8781/beta/index.html',KEY='nanshe-scoresheet-beta';
@@ -18,8 +18,9 @@ const fireAll=async()=>{for(const pg of PAGES)await pg.evaluate(()=>window.__fak
 const HUB=async(src,op,uid,p,v)=>{
   if(op==='get')return JSON.stringify(at(T,p));
   const o=owner(p);
-  if(op==='set'){v=ts(v);if(o?o!==uid:!(v&&v.o===uid))return 'DENY';if(v&&p.split('/').length===2&&!Object.keys(v).every(keyOk))return 'DENY';setAt(T,p,v)}
-  else if(op==='update'){if(!o||o!==uid)return 'DENY';if(!Object.keys(v).every(keyOk))return 'DENY';for(const k in v)setAt(T,p+'/'+k,ts(v[k]))}
+  // 11/15 規則：寫完之後 o 是自己就可以寫（知道代碼就能接手）；刪掉只有 o 本人能刪
+  if(op==='set'){v=ts(v);if(v===null?(o&&o!==uid):!(v&&v.o===uid))return 'DENY';if(v&&p.split('/').length===2&&!Object.keys(v).every(keyOk))return 'DENY';setAt(T,p,v)}
+  else if(op==='update'){const no='o' in v?v.o:o;if(!no||no!==uid)return 'DENY';if(!Object.keys(v).every(keyOk))return 'DENY';for(const k in v)setAt(T,p+'/'+k,ts(v[k]))}
   else if(op==='remove'){if(o&&o!==uid)return 'DENY';setAt(T,p,null)}
   else if(op==='drop'){const cur=at(T,p);if(cur)for(const k in v)cur[k]=v[k]}
   setTimeout(fireAll,5);return 'OK'};
@@ -41,6 +42,7 @@ window.__VB_FB=(function(){
   on:function(p,cb){var s={p:p,cb:cb};subs.push(s);setTimeout(window.__fakeFire,20);return function(){subs=subs.filter(function(x){return x!==s})}},
   onConn:function(cb){conns.push(cb);setTimeout(function(){cb(!off)},10);return function(){}},
   onDrop:function(p,v){drops.push({p:p,v:v});return Promise.resolve()},
+  offDrop:function(p){drops=drops.filter(function(d){return d.p!==p});return Promise.resolve()},
   ts:function(){return {'.sv':'timestamp'}}};
 })();`;
 (async()=>{const b=await chromium.launch();const errs=[];
