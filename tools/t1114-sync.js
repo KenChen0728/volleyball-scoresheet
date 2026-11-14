@@ -8,7 +8,8 @@ const SHOT=process.env.SHOT||'';
 let pass=0,fail=0;const ok=(n,v,x)=>{if(v){pass++;if(process.env.VERBOSE)console.log('ok',n)}else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x))}};
 const W=ms=>new Promise(r=>setTimeout(r,ms));
 // 假後端：雲端資料放在這支測試程式裡（T），每台「裝置」是各自的瀏覽器 context，透過 __hub 讀寫，跟真的兩台手機一樣不共用 localStorage
-let T={};const PAGES=new Set();
+let T={};const PAGES=new Set();let NO_T=false; // NO_T：模擬 Firebase 規則還是舊版（沒有 t）
+const KEYS=['o','n','u','on','t','ev'],keyOk=k=>{const top=k.split('/')[0];return KEYS.includes(top)&&!(NO_T&&top==='t')};
 const at=(t,p)=>p.split('/').reduce((o,k)=>o&&typeof o==='object'&&o[k]!==undefined?o[k]:null,t);
 const setAt=(t,p,v)=>{const ks=p.split('/');let o=t;for(let i=0;i<ks.length-1;i++){if(!o[ks[i]]||typeof o[ks[i]]!=='object')o[ks[i]]={};o=o[ks[i]]}if(v===null)delete o[ks[ks.length-1]];else o[ks[ks.length-1]]=v};
 const ts=v=>{if(v&&typeof v==='object'){if(v['.sv'])return Date.now();const o={};for(const k in v)o[k]=ts(v[k]);return o}return v};
@@ -17,8 +18,8 @@ const fireAll=async()=>{for(const pg of PAGES)await pg.evaluate(()=>window.__fak
 const HUB=async(src,op,uid,p,v)=>{
   if(op==='get')return JSON.stringify(at(T,p));
   const o=owner(p);
-  if(op==='set'){v=ts(v);if(o?o!==uid:!(v&&v.o===uid))return 'DENY';setAt(T,p,v)}
-  else if(op==='update'){if(!o||o!==uid)return 'DENY';for(const k in v)setAt(T,p+'/'+k,ts(v[k]))}
+  if(op==='set'){v=ts(v);if(o?o!==uid:!(v&&v.o===uid))return 'DENY';if(v&&p.split('/').length===2&&!Object.keys(v).every(keyOk))return 'DENY';setAt(T,p,v)}
+  else if(op==='update'){if(!o||o!==uid)return 'DENY';if(!Object.keys(v).every(keyOk))return 'DENY';for(const k in v)setAt(T,p+'/'+k,ts(v[k]))}
   else if(op==='remove'){if(o&&o!==uid)return 'DENY';setAt(T,p,null)}
   else if(op==='drop'){const cur=at(T,p);if(cur)for(const k in v)cur[k]=v[k]}
   setTimeout(fireAll,5);return 'OK'};
@@ -94,7 +95,18 @@ await pt('t1');await W(300);await same('after point');
 await R.click('[data-act=timeout][data-team=t2]');await W(250);const ty=R.locator('[data-act=toyes]');if(await ty.count()){await ty.click();await W(400)}
 await W(300);ok('viewer timeout countdown',await V.locator('.tbar.t2 [data-wtm]').count()===1);
 ok('viewer timeout count 1',/暫停 1/.test(await V.locator('.wcnt.t2').innerText()),await V.locator('.wcnt.t2').innerText());
-await R.click('[data-act=tmend]').catch(()=>{});await W(200);
+// 記錄台按「結束」提早結束暫停：觀看端也收掉
+await R.click('[data-act=tmend]');await W(700);ok('viewer timer ends when scorer ends it early',await V.locator('.tbar').count()===0,await V.locator('.tbar').count());
+// 剩 5 秒：觀看端跳大字（直接改雲端的計時器，不用等 25 秒）
+T.m[code].t=JSON.stringify({k:'t2',ms:4000,label:''});T.m[code].u=Date.now();await fireAll();await W(500);
+if(SHOT)await V.screenshot({path:SHOT+'/v-pop.png'});
+ok('viewer shows 5-second popup',await V.locator('.wpop [data-wtm]').count()===1&&/暫停剩下/.test(await V.locator('.wpop').innerText()));
+ok('viewer countdown follows scorer time',/^[34]$/.test(await V.locator('.tbar [data-wtm]').innerText()),await V.locator('.tbar [data-wtm]').innerText());
+await W(4200);ok('viewer popup and timer gone at zero',await V.locator('.wpop').count()===0&&await V.locator('.tbar').count()===0);
+// 傷停 3 分鐘：寫成分:秒，不跳 5 秒大字
+T.m[code].t=JSON.stringify({k:'t1',ms:170000,label:'傷停 5 號'});T.m[code].u=Date.now();await fireAll();await W(500);
+ok('viewer shows injury timer as m:ss',/傷停 5 號/.test(await V.locator('.tbar').innerText())&&/^2:5\d$/.test(await V.locator('.tbar [data-wtm]').innerText()),await V.locator('.tbar').innerText());
+T.m[code].t='';await fireAll();await W(400);ok('viewer injury timer cleared',await V.locator('.tbar').count()===0);
 await R.click('[data-act=subopen][data-team=t1]');await W(250);await R.locator('.pcourt .pc.t1').nth(2).click();await W(250);await R.locator('.kp [data-act=subin]').first().click();await W(300);
 const sd=R.locator('.kp [data-act=subdone],.kp [data-act=subclose]');if(await sd.count()){await sd.first().click();await W(400)}
 await W(300);await same('after sub');
@@ -107,6 +119,13 @@ ok('viewer animates rotation like the scorer',await V.evaluate(()=>window.__anim
 await V.keyboard.press('Escape');await W(200);ok('viewer esc asks before leaving',await V.locator('[data-act=wleave2]').count()===1);
 await V.keyboard.press('Escape');await W(200);ok('esc again keeps watching',await V.locator('[data-act=wleave2]').count()===0&&await V.locator('.wview').count()===1);
 await V.reload();await W(800);ok('viewer reload keeps watching',await V.locator('.wview').count()===1);await same('after viewer reload');
+
+// 4b. Firebase 規則還是舊版（不能寫 t）：計時器不同步，但比分照常同步、代碼不會換
+NO_T=true;await R.reload();await W(900);await ab(R);
+await R.click('[data-act=timeout][data-team=t1]');await W(250);if(await R.locator('[data-act=toyes]').count()){await R.click('[data-act=toyes]');await W(500)}
+await R.click('[data-act=tmend]').catch(()=>{});await W(300);await pt('t1');await W(300);await same('old rules: scores still sync');
+ok('old rules: code unchanged',!!T.m[code],Object.keys(T.m||{}));
+NO_T=false;await R.reload();await W(900);await ab(R);
 
 // 5. 記錄台斷線：觀看端寫記錄台離線；斷線時記的分數連回後補上；上方出現未連線小標
 await R.evaluate(()=>__fakeNet(false));await W(400);
