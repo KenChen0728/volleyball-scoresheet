@@ -26,6 +26,11 @@ CSS='''
 .sheet button.tall{display:flex;flex-direction:column;align-items:center;line-height:1.25;padding-block:8px}
 .sheet button.tall small{font-size:13px;font-weight:600;opacity:.85}
 @media (max-width:429px){.bar:has(.synctag) h1 .btgt{display:none}} /* 手機上出現「被接手／未連線」小標時，先收掉幾分制，時間才放得下 */
+.wcode b{display:block;font-size:15px;line-height:1.2}.wcode small{display:block;font-size:12px;font-weight:600;color:var(--muted)} /* 11/16 觀看畫面上方：場地＋代碼 */
+.wrecent{display:flex;flex-direction:column;gap:8px}
+.wrc{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.wrc span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.wrc b{font-size:16px}.wrc small{font-size:13px;color:var(--muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrc i{flex:none;font-style:normal;font-weight:800;color:var(--ink)}
 .wpage{justify-content:flex-start}.wpage>.wview{margin-block:auto} /* 內容比畫面高時（手機橫放＋接手那一行），上面不會被切掉、捲得到 */
 '''
 one('\n</style>\n\n<div class="statusband"',CSS+'</style>\n\n<div class="statusband"')
