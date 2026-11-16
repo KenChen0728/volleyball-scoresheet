@@ -86,7 +86,7 @@ const V=await page(360,640);await V.goto(URL);await W(400);await ab(V);
 await V.evaluate(([K])=>localStorage.setItem(K+'-watched',JSON.stringify([{c:'AAAAAA',d:'2000-01-01',t:'舊的 對 舊的',ct:'第 9 場地',at:1}])),[KEY]);
 await V.click('.herobtns [data-act=watchopen]');await W(300);
 ok('yesterday codes hidden',await V.locator('.wrc').count()===0);
-ok('input focused when no recent',await V.evaluate(()=>document.activeElement&&document.activeElement.id==='watch-code'));
+ok('no keyboard popup when scan available',await V.evaluate(()=>!document.activeElement||document.activeElement.id!=='watch-code'));
 await V.fill('#watch-code',c3);await V.click('[data-act=watchgo]');await W(900);
 await flow.start(R,{serve:'t1'});await W(300);
 await R.evaluate(K=>{const d=JSON.parse(localStorage.getItem(K)),m=d.matches.find(x=>x.id===d.currentId);m.events.push({id:'xcourt',matchId:m.id,seq:m.events.length+1,at:new Date().toISOString(),device:'t',type:'INFO_SET',data:{field:'court',value:'3'}});localStorage.setItem(K,JSON.stringify(d))},KEY);
