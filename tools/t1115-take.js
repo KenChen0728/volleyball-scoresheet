@@ -107,11 +107,10 @@ ok('scorer asked to take back',await R.locator('[data-act=syncback]').count()===
 ok('scorer bar tag 被接手',/被接手/.test(await R.locator('.bar').innerText()));
 ok('taker still owner (scorer did not overwrite)',await X.locator('.pbtns.take').count()===1);
 if(SHOT)await R.screenshot({path:SHOT+'/t-askback.png'});
-await R.click('.sheet [data-act=close]');await W(250);
+ok('locked sheet has no close',await R.locator('.sheet [data-act=close]').count()===0&&await R.locator('.sheet [data-act=synchome]').count()===1);
 const bar=await R.evaluate(()=>[...document.querySelectorAll('.bar > *, .bar .bartime *')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.right>innerWidth+1||e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).overflow!=='visible')}).map(e=>e.className+':'+e.textContent.slice(0,12)));
 ok('bar with 被接手 tag fits at 390',!bar.length,bar);
 if(SHOT)await R.screenshot({path:SHOT+'/t-bar.png'});
-await R.click('.bar .synctag');await W(250);
 await R.click('[data-act=syncback]');await W(1200);
 const rE=await evs(R);
 ok('scorer merged taker events',rE.length===nX,[rBefore,rE.length,nX]);
@@ -193,5 +192,40 @@ for(const [w,h] of [[360,640],[375,667],[844,390],[1366,768]]){const Q=await pag
   ok(w+'x'+h+' take row fits',r!=='nobtn'&&r.hx<=0&&r.in,r);
   if(SHOT)await Q.screenshot({path:SHOT+'/t-row-'+w+'x'+h+'.png'});
   await R.evaluate(()=>__fakeNet(true));await W(600);await Q.close()}
+// 11. 使用者 11/16 的步驟：被接手 → 觀看接手內容 → 停止觀看 → 主畫面「繼續記錄」→ 不能再記，要先收回
+{ await R.evaluate(()=>__fakeNet(false));await W(400);
+  await X.click('[data-act=wtake]');await W(200);await X.click('[data-act=wtakego]');await W(900);await pt(X,'t1');
+  await R.evaluate(()=>__fakeNet(true));await W(1200);
+  ok('lock sheet shown on taken-over match',await R.locator('.sheet [data-act=syncback]').count()===1&&await R.locator('.sheet [data-act=close]').count()===0);
+  await R.click('.sheet [data-act=syncwatch]');await W(900);ok('watch taker content',await R.locator('.watch').count()===1);
+  await R.click('[data-act=wleave]');await W(200);await R.click('[data-act=wleave2]');await W(400);
+  const n0=(await evs(R)).length;
+  const cont=R.locator('.home [data-act=resume],.home .primary:has-text("繼續記錄")');
+  if(await cont.count()){await cont.first().click();await W(500)}else{const any=R.locator('text=繼續記錄');await any.first().click();await W(500)}
+  ok('resume shows lock again',await R.locator('.sheet [data-act=syncback]').count()===1,(await R.locator('body').innerText()).slice(0,160));
+  // 直接對底下的按鈕送點擊（模擬繞過視窗），事件也不能寫進去
+  for(const sel of ['[data-act=serve]','[data-act=point]','[data-act=timeout]']){const l=R.locator(sel);if(await l.count()){await l.first().dispatchEvent('click');await W(400)}}
+  ok('locked device records nothing',(await evs(R)).length===n0,[(await evs(R)).length,n0]);
+  if(SHOT)await R.screenshot({path:SHOT+'/t-lock.png'});
+  await R.click('.sheet [data-act=synchome]');await W(400);ok('lock: back to home',await R.locator('.home').count()===1);
+  await R.locator('text=繼續記錄').first().click();await W(500);
+  await R.click('.sheet [data-act=syncback]');await W(1200);
+  ok('after take back can record again',await R.locator('.sheet').count()===0);await same('take back after lock',R,X);
+  const n1=(await evs(R)).length;await pt(R,'t2');ok('records after take back',(await evs(R)).length>n1);
+}
+// 12. 暫停倒數中被接手：接手的那台和柱子上的手機繼續倒數；收回時照雲端的倒數
+{ await R.click('[data-act=timeout][data-team=t1]');await W(250);if(await R.locator('[data-act=toyes]').count()){await R.click('[data-act=toyes]');await W(500)}
+  await W(600);ok('post phone shows scorer timeout',await P.locator('.tbar').count()===1);
+  await R.evaluate(()=>__fakeNet(false));await W(1500);
+  await X.click('[data-act=wtake]');await W(200);await X.click('[data-act=wtakego]');await W(1000);
+  const left=async p=>p.evaluate(()=>{const b=document.querySelector('.tbar b,[data-wtm]');return b?parseInt(b.textContent):-1});
+  const xl=await left(X);ok('taker keeps timeout running',xl>=20&&xl<=29,xl);
+  await W(600);ok('post phone timeout still running after takeover',await P.locator('.tbar').count()===1&&await left(P)>=20,await left(P));
+  ok('cloud timer kept',!!(T.m[code].t&&JSON.parse(T.m[code].t).k==='t1'));
+  if(SHOT)await X.screenshot({path:SHOT+'/t-timer-taker.png'});
+  await R.evaluate(()=>__fakeNet(true));await W(1200);await R.click('.sheet [data-act=syncback]');await W(1200);
+  const rl=await left(R);ok('scorer timeout continues after take back',rl>=15&&rl<=28,rl);
+  await R.locator('[data-act=tmend]').first().click().catch(()=>{});await W(600);
+}
 ok('no page errors',!errs.length,errs);
 console.log('t1115-take',pass,'ok',fail,'fail');await b.close();process.exit(fail?1:0)})();
