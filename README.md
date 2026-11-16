@@ -135,6 +135,7 @@ git push
   - 接手的也可以自己「結束接手」（把 `on` 改成 false，別台可以再接）。測試 `tools/t1115-take.js`
 - 11/16 代碼每天換一次：分享記下開代碼那天（`share.day`）。連上時或換到新的一場時，發現不是今天開的就刪掉舊的、開新代碼，分享視窗寫「今日已更換新代碼」。分享中的那場還在打（沒結束、最後一筆在 3 小時內）時先不換，等換下一場；接手、被接手時不換。觀看舊代碼的畫面寫「記錄台可能已停止分享，或已更換今日代碼」
   - 觀看端把今天看過的代碼記在 `-watched`（最多 6 個，只列今天的），「觀看比賽」裡顯示場地、隊名、代碼，點一下就看；觀看畫面上方寫場地（比賽資料的「場地」，本來就有上傳）。測試 `tools/t1116-code.js`
+- 11/16 觀看比賽可以在 App 裡掃描 QR code（`tools/v100-qrscan.js`、`tools/patch_v100.py`，先跑 v97～v99）：iPhone 內建相機掃到網址會開 Safari，不是主畫面的 App。掃到後把代碼填進輸入欄，按「觀看」才開始。有 BarcodeDetector（Android Chrome）用內建的，沒有（iPhone）用自己寫的 `qrDecode`（不用外部套件、不用網路）。測試 `tools/t1116-scan.js`（假相機）、`tools/qrdec-bench/`（解碼成功率）
 - 這台開過連線的比賽記在 `nanshe-scoresheet-v1-sync`（測試版 `nanshe-scoresheet-beta-sync`），不進比賽資料，備份帶不走代碼。重新整理會接著傳；比賽結束超過一天、或比賽刪掉了，下次打開時自動刪雲端那份
 - 觀看端用 sessionStorage 的 `-watch` 記住在看哪一場，重新整理還在看；Esc、Android 返回鍵先問「停止觀看？」
 - 測試用假的後端（`window.__VB_FB`），雲端資料放在測試程式裡、每台裝置是各自的 context，模擬規則（寫完 `o` 要是自己）、斷線排隊、斷線時 `on` 變 false；要先在專案根目錄開 `python3 -m http.server 8781`。真的 Firebase 只能實機試

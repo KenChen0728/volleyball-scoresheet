@@ -376,17 +376,20 @@ function watchHtml(){
 }
 function watchAskHtml(){
   if(!ui.watchAsk)return '';var x=ui.watchAsk,rc=watchedList();
-  var rl=rc.length?'<section class="wrecent"><h3 class="mhead">今天看過的</h3>'+rc.map(function(r){return '<button class="wrc" data-act="watchrecent" data-v="'+esc(r.c)+'"><span><b>'+esc(r.ct||r.t||('代碼 '+r.c))+'</b>'+(r.ct&&r.t?'<small>'+esc(r.t)+'</small>':'')+'<small>代碼 '+esc(r.c)+'</small></span><i>觀看 ›</i></button>'}).join('')+'</section><h3 class="mhead">輸入代碼</h3>':'';
+  var cs=qsCan(),rl=rc.length?'<section class="wrecent"><h3 class="mhead">今天看過的</h3>'+rc.map(function(r){return '<button class="wrc" data-act="watchrecent" data-v="'+esc(r.c)+'"><span><b>'+esc(r.ct||r.t||('代碼 '+r.c))+'</b>'+(r.ct&&r.t?'<small>'+esc(r.t)+'</small>':'')+'<small>代碼 '+esc(r.c)+'</small></span><i>觀看 ›</i></button>'}).join('')+'</section>':'';
   return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="shd"><h2>觀看比賽</h2><button data-act="close">關閉</button></div>'+
-    '<p class="subhint">輸入記錄台「分享比賽」顯示的 6 碼代碼，或以相機掃描 QR code。僅供觀看，無法修改。</p>'+rl+
-    '<input id="watch-code" class="wcodein" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="代碼" value="'+esc(x.v||'')+'">'+
+    '<p class="subhint">'+(cs?'以相機掃描記錄台「分享比賽」的 QR code，或輸入 6 碼代碼。':'輸入記錄台「分享比賽」顯示的 6 碼代碼。')+'僅供觀看，無法修改。</p>'+rl+
+    (rl?'<h3 class="mhead">新的代碼</h3>':'')+(cs?'<button class="qsbtn" data-act="qsopen">'+QS_ICON+'掃描 QR code</button>':'')+
+    '<input id="watch-code" class="wcodein" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="代碼" placeholder="輸入 6 碼代碼" value="'+esc(x.v||'')+'">'+
+    (x.scanned&&codeNorm(x.v)===x.scanned&&!x.err?'<p class="syncst ok" role="status">已填入掃描到的代碼，按「觀看」開始。</p>':'')+
     (x.err?'<p class="warning" role="alert">'+esc(x.err)+'</p>':'')+'<button class="primary" data-act="watchgo">觀看</button><p class="muted">需要網路。觀看期間螢幕保持常亮。代碼每天更換。</p></div>';
 }
 /* 觀看畫面和連線相關的按鈕；回傳 true 表示處理過了 */
 function syncAct(act,b){
   var m=current();
   switch(act){
-    case 'watchopen': ui.watchAsk={v:''}; if(!watchedList().length)setTimeout(function(){var wi=document.getElementById('watch-code');if(wi)wi.focus()},60); return true;
+    case 'watchopen': ui.watchAsk={v:''}; if(!watchedList().length&&!qsCan())setTimeout(function(){var wi=document.getElementById('watch-code');if(wi)wi.focus()},60); return true;
+    case 'qsopen': qsOpen(); return true;
     case 'watchrecent': var rv=b.getAttribute('data-v');if(codeOk(rv)){ui.watchAsk=null;watchStart(rv)} return true;
     case 'watchgo': var wi=document.getElementById('watch-code'),wc=codeNorm(wi?wi.value:'');
       if(!codeOk(wc)){ui.watchAsk={v:wi?wi.value:'',err:'代碼為 '+CODE_LEN+' 個英文字母或數字'};return true}
