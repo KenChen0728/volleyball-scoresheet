@@ -26,7 +26,7 @@ one('使用教學</button></div></section><div class="homebody">','使用教學<
 # 其他：連線一區
 one("      '<section class=\"msec\"><h3 class=\"mhead\">設定</h3><div class=\"mrow\"><strong>提示字</strong>",
     "      '<section class=\"msec\"><h3 class=\"mhead\">分享</h3><div class=\"mgrid one\"><button class=\"mbtn\" data-act=\"syncopen\"><strong>分享比賽</strong><small>'+(share?'代碼 '+esc(share.code)+'・'+esc(syncState()[1]):'供第二裁判或其他裝置觀看比分與站位')+'</small></button></div></section>'+\n      '<section class=\"msec\"><h3 class=\"mhead\">設定</h3><div class=\"mrow\"><strong>提示字</strong>")
-one("  }else if(x.type==='more'){\n","  }else if(x.type==='sync'){h=syncSheetHtml(x,true);if(x.stop)stepBack='';\n  }else if(x.type==='more'){\n")
+one("  }else if(x.type==='more'){\n","  }else if(x.type==='sync'){h=syncSheetHtml(x,true);if(x.stop||x.vw)stepBack='';\n  }else if(x.type==='more'){\n")
 
 # 比賽上方：連線出問題時才出現小標（正常時不佔位置）
 one("'<h1>'+esc(title)+'</h1>')+barTime(s)+undo+","'<h1>'+esc(title)+'</h1>')+(share&&syncState()[0]==='bad'?syncTag():'')+barTime(s)+undo+")
@@ -41,13 +41,14 @@ one("  m.events.push({id:uid(),matchId:m.id,seq:m.events.length+1,at:new Date().
 one("function escClose(){\n","function escClose(){\n  if(view==='watch'&&wt){if(wt.take){if(!wt.take.busy)wt.take=null}else wt.ask=!wt.ask;render();return true}\n")
 one("function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch)}","function backNeed(){return view!=='home'||!!(ui.help||ui.sheet||ui.cupSheet||ui.delMatch||ui.watchAsk||ui.shareAsk)}")
 one("  if(e.key==='Enter'&&tg.id==='ref-type')","  if(e.key==='Enter'&&tg.id==='watch-code'){e.preventDefault();var wgb=app.querySelector('[data-act=watchgo]');if(wgb)wgb.click();return}\n  if(e.key==='Enter'&&tg.id==='ref-type')")
-# 開啟時：網址帶 ?watch=代碼（掃 QR code）或這個分頁原本在看，就直接進觀看；有開連線的比賽就接著傳
+# 開啟時：網址帶 ?watch=代碼（掃 QR code）加進比賽清單；這個分頁原本在看就直接回到觀看；有開連線的比賽就接著傳
 one("updStart();\nrender();\n})();","""(function(){
-  var q=location.search.match(/[?&]watch=([^&#]*)/),code='';
-  if(q){code=codeNorm(decodeURIComponent(q[1]));try{history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])watch=[^&#]*&?/,'$1').replace(/[?&]$/,'')+location.hash)}catch(e){}}
+  var q=location.search.match(/[?&]watch=([^&#]*)/),code='',fromUrl=false;
+  if(q){code=codeNorm(decodeURIComponent(q[1]));fromUrl=true;try{history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])watch=[^&#]*&?/,'$1').replace(/[?&]$/,'')+location.hash)}catch(e){}}
   else try{code=sessionStorage.getItem(KEY+'-watch')||''}catch(e){}
-  if(code&&codeOk(code)){watchStart(code);return}
-  if((share||syncMap._del.length)&&navigator.onLine!==false)fbLoad();
+  /* 11/16：網址帶代碼（相機掃 QR code）→ 加進比賽清單、打開清單，按「觀看」才進去；這個分頁原本在看 → 直接回到觀看 */
+  if(code&&codeOk(code)){if(fromUrl){watchedSave(code);view='home';ui.watchAsk={v:'',added:code}}else{watchStart(code);return}}
+  if((share||syncMap._del.length||watchedList().length)&&navigator.onLine!==false)fbLoad();
 })();
 updStart();
 render();
