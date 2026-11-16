@@ -34,5 +34,9 @@ CSS='''
 .wpage{justify-content:flex-start}.wpage>.wview{margin-block:auto} /* 內容比畫面高時（手機橫放＋接手那一行），上面不會被切掉、捲得到 */
 '''
 one('\n</style>\n\n<div class="statusband"',CSS+'</style>\n\n<div class="statusband"')
+# 11/16 被接手的那一場鎖住：每次畫面前檢查；萬一還是記了（例如程式其他地方直接記），事件也不寫進去
+one('\nfunction render(){','\nfunction render(){syncLockCheck();')
+one("  if(syncAct(act,b)){render();return}","  if(syncLocked()&&!b.closest('.sheet')){syncLockCheck();render();return} // 被接手的那一場：只有收回記錄的視窗能按\n  if(syncAct(act,b)){render();return}")
+one("function dispatch(type,data,match){\n  var m=match||current();\n","function dispatch(type,data,match){\n  var m=match||current();\n  if(share&&share.lost&&m&&share.mid===m.id){syncLockCheck();return}\n")
 open(SRC,'w',encoding='utf8').write(s)
 print('patched v99')
