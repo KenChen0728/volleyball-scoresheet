@@ -42,7 +42,7 @@ await p.click('[data-act=impall]');await W(40);
 await p.click('.sheet [data-act=import-pick] >> nth=0');await W(40);
 ok('5 載入成功',(await p.inputValue('#n-t1'))==='國中甲');
 const ro=await p.locator('[data-act=slot][data-team=t1][data-kind=reg]:not([data-no=""])').evaluateAll(es=>es.map(e=>e.getAttribute('data-no')));
-ok('3 帶入的名單照原本順序',ro.join()==='5,1,9,3,7,2',ro);
+ok('3 帶入時出賽名單先空著（11/19 名冊：輸入背號再帶出姓名）',ro.length===0,ro);
 // 沒放進資料夾的比賽也能載入資料夾的隊伍
 await p.click('.bar .barback');await W(60);
 await p.click('[data-act=new]');await W(60);await p.click('[data-act=newpick][data-id=""]');await p.click('[data-act=newgo]');await W(80);
