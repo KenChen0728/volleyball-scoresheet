@@ -40,6 +40,16 @@ const Y=new Date().getFullYear();
   ok('sheet closed after save',await p.locator('.sheet').count()===0);
   await p.click('[data-act=scnew]');await W(300);
   ok('new uses last date and court of division',await p.inputValue('#sc-date')===Y+'-12-05'&&await p.inputValue('#sc-court')==='室內場 A');
+  ok('new time follows last match +1h',await p.inputValue('#sc-time')==='11:30',await p.inputValue('#sc-time'));
+  ok('two slots instead of hint',await p.locator('.sheet .scslots .scslot').count()===2&&!/點兩隊：/.test(await p.locator('.sheet').innerText()));
+  await pick('藍隊');ok('tap fills first slot',/藍隊/.test(await p.locator('.scslot').nth(0).innerText())&&await p.locator('.scslot.next').count()===1);
+  await pick('橘隊');await pick('綠隊');ok('both full: replaces second',/綠隊/.test(await p.locator('.scslot').nth(1).innerText())&&/藍隊/.test(await p.locator('.scslot').nth(0).innerText()));
+  ok('no tbd notes when both picked',await p.locator('#sc-n1').count()===0);
+  await p.click('.scslot >> nth=0');await W(150);ok('tap slot clears',!/藍隊/.test(await p.locator('.scslot').nth(0).innerText())&&await p.locator('#sc-n1').count()===1);
+  const lay=await p.evaluate(()=>{const sh=document.querySelector('.sheet.scsheet'),l=sh.querySelector('.scteams'),sv=sh.querySelector('[data-act=scsave1]').getBoundingClientRect();return {sheetScroll:sh.scrollHeight>sh.clientHeight+1&&getComputedStyle(sh).overflowY!=='hidden',listScroll:getComputedStyle(l).overflowY,saveVisible:sv.bottom<=innerHeight&&sv.top>=0}});
+  ok('only team list scrolls, save visible',!lay.sheetScroll&&lay.listScroll==='auto'&&lay.saveVisible,lay);
+  if(SHOT)await p.screenshot({path:SHOT+'/s-slots.png'});
+  await p.click('.scslot >> nth=1');await W(150);
   await addOne({date:Y+'-12-06',time:'09:00',n1:'A1',n2:'B2'},false);
   await p.click('[data-act=cupdiv][data-v=男子組]');await W(300);await p.click('[data-act=scnew]');await W(300);
   ok('men new: no women court',await p.inputValue('#sc-court')==='');
@@ -127,7 +137,7 @@ const Y=new Date().getFullYear();
   // 打完的場次：列上直接看到局數，右邊是「已結束」
   const FM=JSON.parse(fs.readFileSync(__dirname+'/all.json','utf8')).matches[0];
   await q.evaluate(([K,m])=>{const d=JSON.parse(localStorage.getItem(K));m.cup=d.cups[0].id;d.matches.push(m);const it=d.cups[0].sched.filter(x=>!x.del&&x.division==='女子組').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[1];it.mid=m.id;localStorage.setItem(K,JSON.stringify(d))},[DBK,FM]);
-  await q.reload();await W(500);if(!await q.locator('.scrow').count()){await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
+  await q.reload();await W(500);if(!await q.locator('[data-act=cupdiv]').count()){await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
   await q.click('[data-act=cupdiv][data-v=女子組]');await W(300);
   const fr=await q.locator('.scrow').nth(1).innerText();
   ok('finished row shows set score',/已結束/.test(fr)&&/\d : \d/.test(fr),fr);
