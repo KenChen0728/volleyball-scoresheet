@@ -2484,7 +2484,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1119-2153';
+var BUILD='1119-2159';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4108,7 +4108,8 @@ function schedSheetHtml(x,c,err){
     return '<h2>'+esc(it.division)+'第 '+schedNos(c)[it.id]+' 場</h2><p class="muted">'+esc(schedDay(it.date))+' '+esc(it.time||'時間未定')+(it.court?'　場地：'+esc(it.court):'')+'</p>'+
       '<div class="scvs"><strong>'+schedSideHtml(A)+'</strong><b>vs</b><strong>'+schedSideHtml(B)+'</strong></div>'+
       (A.set&&B.set?'<p class="muted">開始後在名單頁輸入背號，名冊有的姓名會自動帶出。</p>':'<p class="warning">還有隊伍待定。可以先按「修改這一場」選隊伍，或開始後在名單頁載入。</p>')+
-      '<button class="primary" data-act="scgo" data-id="'+esc(it.id)+'">開始記錄</button><button data-act="scedit" data-id="'+esc(it.id)+'">修改這一場</button><button class="ghost" data-act="close">關閉</button>'}
+      (x.ask?'<p class="scsaved">刪除這一場賽程？</p><button class="danger" data-act="scdel2">確定刪除</button><button data-act="scdelno">不要刪除</button>': // 打錯直接在這裡刪（使用者 21:59 找不到）
+      '<button class="primary" data-act="scgo" data-id="'+esc(it.id)+'">開始記錄</button><button data-act="scedit" data-id="'+esc(it.id)+'">修改這一場</button><button class="ghost" data-act="scdel">刪除這一場</button><button class="ghost" data-act="close">關閉</button>')}
   if(x.type==='scedit'){var f=x.f,ts=liveTeams(c).filter(function(t){return t.division===f.division}),cs=[];
     liveSched(c).concat(courtList(c).map(function(q){return {court:q.label}})).forEach(function(q){if(q.court&&cs.indexOf(q.court)<0)cs.push(q.court)});
     function lab(k){var nk=k==='t1'?'n1':'n2';return f[k]?'':'<label for="sc-'+nk+'">'+(k==='t1'?'第一隊':'第二隊')+'還沒定：說明（可以不填）<input id="sc-'+nk+'" data-sc="'+nk+'" type="text" maxlength="20" placeholder="例如：A組第一" value="'+esc(f[nk]||'')+'"></label>'}
@@ -6637,7 +6638,7 @@ function escClose(){
   var vq=app.querySelector('.sheet [data-act=vwno],.sheet [data-act=vwback]');if(vq){vq.click();return true} // 觀看裝置清單：先退一層
   if(qs){qsClose();render();return true} // 掃描畫面開著：Esc、Android 返回鍵先關掃描
   if(view==='watch'&&wt){if(wt.take){if(!wt.take.busy)wt.take=null}else wt.ask=!wt.ask;render();return true}
-  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=scback]','.sheet [data-act=sheetback]','.sheet [data-act=scback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=rotback]','.sheet [data-act=bxback]','.sheet [data-act=srback]','.sheet [data-act=srno]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=trashno]','[data-act=bkcancel]','[data-act=tmclose]'];
+  var q=['.sheet [data-act=impcancel]','.help [data-act=helpclose]','.fsv [data-act=fsclose]','.whv [data-act=wholeclose]','[data-act=tono]','[data-act=cs-no]','[data-act=nclose]','[data-act=penno]','[data-act=incno]','[data-act=ffno]','.sheet [data-act=penback]','.sheet [data-act=pmback]','.sheet [data-act=scback]','.sheet [data-act=scdelno]','.sheet [data-act=sheetback]','.sheet [data-act=scback]','.sheet [data-act=penclose]','.sheet [data-act=amendback]','.sheet [data-act=fixback]','.sheet [data-act=import-cancel]','.sheet [data-act=aboutclose]','.sheet [data-act=rotback]','.sheet [data-act=bxback]','.sheet [data-act=srback]','.sheet [data-act=srno]','.sheet [data-act=close]','[data-act=subclose]','.lc.sel','[data-act=kpclose]','[data-act=del-no]','[data-act=trashno]','[data-act=bkcancel]','[data-act=tmclose]'];
   for(var i=0;i<q.length;i++){var e=app.querySelector(q[i]);if(e){e.click();return true}}
   return false;
 }
