@@ -16,7 +16,8 @@ const more=async()=>{await p.click('[data-act=sheet][data-v=more]');await W(200)
 await more();
 const SYNC=await p.locator('.sheet [data-act=syncopen]').count()>0; // 11/14 完整版多「分享」一區（學校版還沒有）
 ok(tag+'four sections',await p.locator('.sheet .msec').count()===(SYNC?5:4));
-ok(tag+'full version has sync',SCHOOL||SYNC);
+const NOSYNC=await p.evaluate(()=>[...document.scripts].some(x=>x.textContent.includes('SYNC_ON=false'))); // 11/20 第一批正式版先不上連線
+ok(tag+'full version has sync',SCHOOL||SYNC||NOSYNC);
 ok(tag+'headings',(await p.locator('.sheet .msec>.mhead').allInnerTexts()).join()===(SYNC?'換人,比賽狀況,修正,分享,設定':'換人,比賽狀況,修正,設定'));
 const labels=(await p.locator('.sheet .mbtn strong').allInnerTexts()).join(),RED=await p.locator('.sheet [data-act=mteam][data-v=red]').count()>0; // 學校版沒有自由球員時不放重新指定
 ok(tag+'buttons',labels==='例外替補,'+(RED?'重新指定自由球員,':'')+'傷停,陣容不完整,棄權,輪轉錯誤／非法替補,修正比分,陣容,挑邊,球衣顏色,查看名單'+(SYNC?',分享比賽':''),labels); // 11/13 加輪轉錯誤／非法替補
