@@ -2537,7 +2537,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1120-0055';
+var BUILD='1120-0107';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4296,7 +4296,7 @@ function cupHtml(){
   var teamSec='<section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">還沒有隊伍。</p>')+'</section>';
   var scs=schedCourts(c),cseg=scs.length>1?'<div class="cupcourts" role="group" aria-label="場地">'+[''].concat(scs).map(function(q){return '<button data-act="cupcourtf" data-v="'+esc(q)+'" aria-pressed="'+((cupView.court||'')===q)+'">'+(q?'場地：'+esc(q):'全部')+'</button>'}).join('')+'</div>':'';
   var body=tab==='refs'?refSec:tab==='teams'?seg+teamSec:cseg+schedSec(c)+(oms?'<section><h2>其他比賽</h2><p class="muted">不在賽程裡的比賽。</p><div class="rlist">'+oms+'</div></section>':'');
-  return '<header class="bar"><button class="barback" data-act="history">‹ 賽事與紀錄</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+tabbar+'<div class="cupgrp">'+body+'</div><div class="cupgrp"><div class="histtools"><button data-act="cupsave">存成檔案</button><button data-act="cupmore">更多</button></div><p class="muted">存成檔案可以傳給裁判夥伴，對方在「賽事與紀錄」按匯入。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></div></main>';
+  return '<header class="bar">'+(cupView.from==='home'?'<button class="barback" data-act="home">‹ 主畫面</button>':'<button class="barback" data-act="history">‹ 賽事與紀錄</button>')+'<h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+tabbar+'<div class="cupgrp">'+body+'</div><div class="cupgrp"><div class="histtools"><button data-act="cupsave">存成檔案</button><button data-act="cupmore">更多</button></div><p class="muted">存成檔案可以傳給裁判夥伴，對方在「賽事與紀錄」按匯入。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></div></main>';
 }
 function cupSheetHtml(){
   var x=ui.cupSheet;if(!x)return '';
@@ -4355,7 +4355,7 @@ function homeExtra(g){
     var cs=[];td.forEach(function(it){if(it.court&&cs.indexOf(it.court)<0)cs.push(it.court)});cs.sort(function(a,b){return a.localeCompare(b,'zh-Hant',{numeric:true})});
     var pick=cs.indexOf(hcm[c.id])>=0?hcm[c.id]:'',all=td;td=pick?td.filter(function(it){return it.court===pick}):td;
     var chips=cs.length>1?'<button class="hcourtbtn" data-act="hcourtpick" data-cup="'+esc(c.id)+'" aria-haspopup="dialog"><span>'+(pick?'場地：'+esc(pick):'全部場地')+'</span><b aria-hidden="true">▾</b></button>':'',lim=innerWidth>=760?6:3;
-    out+='<section><div class="shead"><h2>'+esc(t)+'<small class="cupshare">'+esc(c.name)+'</small></h2><button class="linkbtn" data-act="cupopen" data-id="'+esc(c.id)+'">全部賽程</button></div>'+chips+'<div class="rlist">'+td.slice(0,lim).map(function(it,i){var A=schedSide(c,it,'t1'),B=schedSide(c,it,'t2');
+    out+='<section><div class="shead"><h2>'+esc(t)+'<small class="cupshare">'+esc(c.name)+'</small></h2><button class="linkbtn" data-act="cupopen" data-from="home" data-id="'+esc(c.id)+'">全部賽程</button></div>'+chips+'<div class="rlist">'+td.slice(0,lim).map(function(it,i){var A=schedSide(c,it,'t1'),B=schedSide(c,it,'t2');
       return '<button class="hrow card scrow" data-act="hscopen" data-cup="'+esc(c.id)+'" data-id="'+esc(it.id)+'"><span class="muted">'+esc(it.division)+'第 '+nos[it.id]+' 場・'+esc(it.time||'時間未定')+(it.court?'・場地：'+esc(it.court):'')+'</span><span class="hnames"><span>'+schedSideHtml(A)+'</span><b>vs</b><span>'+schedSideHtml(B)+'</span></span><span class="hgo"><span class="scchip'+(i===0&&!g.live.length?' go':'')+'">開始</span></span></button>'}).join('')+'</div>'+(td.length>lim?'<p class="muted">還有 '+(td.length-lim)+' 場，按「全部賽程」看。</p>':'')+'</section>'});
   if(db.cups.length){if(!out)out+=cupHomeHtml()} // 有賽程就不放資料夾（賽事與紀錄裡有）
   else if(!g.live.length&&!g.done.filter(function(x){return !x.s.info.sample}).length)
@@ -6254,7 +6254,7 @@ app.addEventListener('click',function(e){
       if(ui.cupSheet.edit){theCup().name=cnm;theCup().at=Date.now()}
       else{var nc={id:uid(),name:cnm,createdAt:new Date().toISOString(),teams:[]};db.cups.unshift(nc);cupView={id:nc.id,div:CUP_DIVS[0],grp:''};view='cup'}
       ui.cupSheet=null; save(); break;
-    case 'cupopen': cupView={id:b.getAttribute('data-id'),div:CUP_DIVS[0],grp:''}; ui.cupSheet=null; ui.delMatch=null; view='cup'; break;
+    case 'cupopen': cupView={id:b.getAttribute('data-id'),div:CUP_DIVS[0],grp:'',from:b.getAttribute('data-from')||''};if(cupView.from==='home')cupView.tab='sched'; ui.cupSheet=null; ui.delMatch=null; view='cup'; break;
     case 'cupback': noteLeave(m);
       if(m&&m.events.length===1)db.matches=db.matches.filter(function(x){return x.id!==m.id});
       db.currentId=null; save(); ui.sheet=null; view=theCup()?'cup':'home'; break;

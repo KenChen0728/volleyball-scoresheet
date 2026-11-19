@@ -31,6 +31,9 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   if(SHOT)await p.screenshot({path:SHOT+'/home-full-'+tag+'.png'});
   if(tag==='t'){const r=await p.evaluate(()=>{const h=document.querySelector('.hero').getBoundingClientRect(),s=document.querySelector('[data-act=hscopen]').getBoundingClientRect();return {heroRight:h.right,rowLeft:s.left,rowTop:s.top}});
     ok(T+'schedule sits in right column',r.rowLeft>=r.heroRight-1&&r.rowTop<500,r)}
+  await p.click('.home [data-act=cupopen][data-from=home]');await W(300);
+  ok(T+'all schedule opens folder on schedule tab',await p.locator('[data-act=cuptab][data-v=sched][aria-selected=true]').count()===1&&/主畫面/.test(await p.locator('.barback').innerText()));
+  await p.click('.barback');await W(300);ok(T+'back goes home',await p.locator('.home').count()===1);
   await p.locator('.home [data-act=hscopen]').first().click();await W(300);
   ok(T+'tap opens the match sheet first',/男子組第 1 場/.test(await p.locator('.sheet').innerText())&&await p.locator('.sheet [data-act=scgo][data-from=start]').count()===1);
   await p.keyboard.press('Escape');await W(200);ok(T+'esc closes, still home',await p.locator('.sheet').count()===0&&await p.locator('.home').count()===1);
