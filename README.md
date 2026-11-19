@@ -271,3 +271,10 @@ git push
 11/13 手機轉橫（給維護者）：`landOn(s)` 看 `mqLand`（`(orientation: landscape) and (max-height: 500px) and (pointer: coarse)`）、`prefs.landSheet`、比賽頁、這局開始了、比賽還沒確定結束；`landHtml` 疊在最上面（z-index 90），轉向時 `mqLand` 的 change 事件重畫。測試裡用 hasTouch 的手機橫放尺寸要先把 `volleyball-prefs` 的 `landSheet` 設成 false 才看得到比賽頁。裁切的記錄表（`ctSvg` 有 `cr`）現在一律用 clipPath 裁掉範圍外的東西，每張一個 id（`CT_CLIP`）。
 
 新風格（給維護者，11/12）：改動在 `tools/patch_v71.py`。顏色和圓角都是 CSS 變數，淺色、深色（`@media` 和 `[data-theme=dark]` 兩處）各一組：`--btn`／`--btn-ink` 一般按鈕、`--sel`／`--sel-on` 選中的按鈕（`.seg`、`.rtabs`、`.setpick` 選中時前面加勾）、`--del` 紅色、`--card` 可以點的清單卡片（`.hrow.card`，右邊 `.hgo` 寫「打開 ›」）、`--r`／`--rb`／`--rc`／`--rs` 是小、按鈕、卡片、面板的圓角。學校版在 `tools/school/extra.css` 最上面把顏色換回深藍和金色。紅色只給 `.danger`（刪除、匯入時取代名單、沒收、陣容不完整、棄權）和紅框小按鈕（`.dellink`、`.linkbtn.dangerlink`、挑邊頁的 `.pfbtn`）；退格、清空、移除、刪掉還沒確定的替補都是一般按鈕。設定（提示字、外觀）在主畫面下方的「設定」，`ui.about==='settings'` 和「關於這個程式」共用同一個面板。記錄表的「各局」按鈕帶現在這一局（`setTabNo`），打過兩局以上時下面多一排選局（`setPick`）。
+
+## 賽程（11/19，測試版）
+- 賽事資料夾裡多了「賽程」：大會的賽程表（PDF、Word、LINE）整份貼上，表頭「室內場 A（女子組）」決定場地和男女組，「甲隊 vs 乙隊」左邊是第一隊。貼上後先列出會排出什麼，再按「加入賽程」；同一時間、場地再貼一次是更新，不會重複。
+- 排名賽還不知道是哪兩隊：隊伍「待定」，可以寫說明（例如 A組第一），之後點那一場「修改這一場」選隊伍。
+- 場次：男女組各自照日期、時間、場地編號。
+- 點那一場「開始記錄」：資料（盃賽、男女組、場次、日期、時間、場地）填好，兩隊帶入名冊，直接到名單頁輸入背號。首頁「開始新比賽」也會列出今天（或最近一天）還沒開始的場次。
+- 存在資料夾的 sched，存成檔案、匯入時一筆一筆比，最後改的為主。程式：tools/patch_v103.py；測試：tools/t1119-sched.js。
