@@ -20,6 +20,21 @@ const PDF='女⼦組球員名單\n範例藍隊\n王⼩明1\n陳⼤文2\n林⼩�
   const blue=cup.teams.find(t=>t.team.name==='範例藍隊');
   ok('17 players kept (no 12-player limit)',blue&&blue.team.players.length===17);
   ok('kangxi radicals normalized',blue&&blue.team.players[0].name==='王小明',blue&&blue.team.players[0]);
+  // 1b. 放錯男女組：在修改視窗改，打到一半的字不會不見
+  await p.click('[data-act=cupdiv][data-v=女子組]');await W(300);
+  await p.locator('[data-act=cupteam][data-id]:has-text("範例橘隊")').click();await W(300);
+  ok('editor shows division choice',await p.locator('.sheet [data-act=ctdiv][data-v=女子組][aria-pressed=true]').count()===1);
+  await p.fill('#ct-text',(await p.inputValue('#ct-text'))+'\n9 新來的');
+  await p.click('.sheet [data-act=ctdiv][data-v=男子組]');await W(200);
+  ok('typed text kept after switching',/9 新來的/.test(await p.inputValue('#ct-text')));
+  if(SHOT)await p.screenshot({path:SHOT+'/b-div.png'});
+  await p.click('[data-act=cupteamsave]');await W(400);
+  let cupx=await p.evaluate(K=>JSON.parse(localStorage.getItem(K)).cups[0],DBK);
+  const orange=cupx.teams.find(t=>t.team.name==='範例橘隊');
+  ok('team moved to 男子組',orange.division==='男子組'&&orange.team.players.length===9,orange&&[orange.division,orange.team.players.length]);
+  ok('view follows to 男子組',await p.locator('[data-act=cupdiv][data-v=男子組][aria-pressed=true]').count()===1&&await p.locator('[data-act=cupteam]:has-text("範例橘隊")').count()===1);
+  await p.locator('[data-act=cupteam][data-id]:has-text("範例橘隊")').click();await W(300);await p.click('.sheet [data-act=ctdiv][data-v=女子組]');await W(200);await p.click('[data-act=cupteamsave]');await W(400);
+  cupx=await p.evaluate(K=>JSON.parse(localStorage.getItem(K)).cups[0],DBK);ok('moved back',cupx.teams.find(t=>t.team.name==='範例橘隊').division==='女子組');
   // 2. 開比賽：兩隊
   await p.click('[data-act=history]');await W(300);await p.click('[data-act=home]').catch(()=>{});await W(300);
   await p.click('[data-act=new]');await W(300);await p.locator('[data-act=newpick]').first().click();await W(200);await p.click('[data-act=newgo]');await W(500);
@@ -51,5 +66,26 @@ const PDF='女⼦組球員名單\n範例藍隊\n王⼩明1\n陳⼤文2\n林⼩�
   const nm=await p.evaluate(([K,k])=>{const d=JSON.parse(localStorage.getItem(K)),m=d.matches.find(x=>x.id===d.currentId);let t={};m.events.forEach(e=>{if(!e.data||e.data.team!==k)return;if(e.type==='PLAYER_ADDED')t[e.data.no]='';if(e.type==='PLAYER_NAME_SET')t[e.data.no]=e.data.name;if(e.type==='PLAYER_NUMBER_CHANGED'){t[e.data.to]=t[e.data.from];delete t[e.data.from]}});return t},[DBK,kOf]);
   ok('changed number takes book name',nm[15]==='蔡小琪'&&nm[3]===undefined,nm);
   // 5. 分享比賽不上傳名冊（syncClean）
+  // 6. 把賽事資料夾存成檔案傳給夥伴：另一台匯入後，輸入背號一樣帶出姓名
+  await p.evaluate(()=>{const b=document.querySelector('[data-act=history]');if(b)b.click()});await W(300);
+  if(!await p.locator('[data-act=cupopen]').count()){await p.evaluate(()=>{const b=document.querySelector('[data-act=home]');if(b)b.click()});await W(300);await p.locator('text=紀錄與名單').first().click();await W(400)}
+  await p.locator('[data-act=cupopen]').first().click();await W(300);
+  const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const FF='/tmp/t1119-cup.json';await dl.saveAs(FF);
+  const fj=JSON.parse(require('fs').readFileSync(FF,'utf8'));
+  ok('folder file has names',fj.cups[0].teams.find(t=>t.team.name==='範例藍隊').team.players.length===17);
+  const ctx2=await b.newContext({viewport:{width:820,height:1180},hasTouch:true});const q=await ctx2.newPage();q.on('pageerror',e=>errs.push(e.message));
+  await q.goto(URL);await W(400);const a2=q.locator('.sheet.about [data-act=aboutclose]');if(await a2.count()){await a2.first().click();await W(200)}
+  await q.locator('text=紀錄與名單').first().click();await W(400);
+  await q.setInputFiles('#import-file',FF);await W(400);await q.click('[data-act=impgo]');await W(500);
+  ok('partner sees folder',/測試盃/.test(await q.locator('body').innerText()));
+  await q.click('[data-act=history]').catch(()=>{});await W(200);await q.click('[data-act=home]').catch(()=>{});await W(300);
+  await q.click('[data-act=new]');await W(300);await q.locator('[data-act=newpick]').first().click();await W(200);await q.click('[data-act=newgo]');await W(500);
+  await q.click('[data-act=page][data-v=roster]');await W(500);
+  await q.locator('[data-act=sheet]:has-text("載入")').first().click();await W(300);await q.locator('.sheet [data-act=import-pick]:has-text("範例藍隊")').first().click();await W(400);
+  const k2=await q.evaluate(K=>{const d=JSON.parse(localStorage.getItem(K)),m=d.matches.find(x=>x.id===d.currentId);return m.events.find(x=>x.type==='TEAM_IMPORTED').data.team},DBK);
+  await q.locator(`.num[data-team=${k2}][data-kind=reg]`).filter({hasText:/^\s*$/}).first().click();await W(200);
+  for(const ch of '12')await q.click(`[data-act=key][data-team=${k2}][data-v="${ch}"]`),await W(150);await W(300);
+  const n2=await q.evaluate(([K,k])=>{const d=JSON.parse(localStorage.getItem(K)),m=d.matches.find(x=>x.id===d.currentId);let t={};m.events.forEach(e=>{if(e.data&&e.data.team===k&&e.type==='PLAYER_NAME_SET')t[e.data.no]=e.data.name});return t},[DBK,k2]);
+  ok('partner device fills name from book',n2[12]==='何小真',n2);
   ok('no page errors',!errs.length,errs);
   console.log('t1119-book',pass,'ok',fail,'fail');await b.close();process.exit(fail?1:0)})();

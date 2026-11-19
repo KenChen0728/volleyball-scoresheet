@@ -1987,6 +1987,7 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .vwed{display:flex;gap:6px;width:100%}.vwed input{flex:1;min-width:0;min-height:44px;font-size:16px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .vwed button{min-height:44px;padding:0 12px}
 .shd .backbtn{min-height:44px;padding:0 10px;font-weight:700;flex:none}.shd .backbtn+h2{flex:1;min-width:0}
+.ctdiv{display:flex;flex-direction:column;gap:6px}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2466,7 +2467,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1119-2013';
+var BUILD='測試版 1119-2039';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4077,7 +4078,7 @@ function cupSheetHtml(){
   var x=ui.cupSheet;if(!x)return '';
   var c=theCup(),h='',err=x.err?'<p class="cuperr" role="alert">'+esc(x.err)+'</p>':'';
   if(x.type==='name')h='<h2>'+(x.edit?'資料夾改名':'新增賽事資料夾')+'</h2><label for="cup-name">賽事名稱<input id="cup-name" type="text" maxlength="40" value="'+esc(x.edit&&c?c.name:'')+'" placeholder="例如：校際盃"></label>'+err+'<button class="primary" data-act="cupnamesave">儲存</button><button class="ghost" data-act="close">取消</button>';
-  else if(x.type==='team')h='<h2>'+(x.id?'修改隊伍名單':'加入隊伍名單（'+esc(cupView.div)+'）')+'</h2><label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><label for="ct-group">組別<input id="ct-group" type="text" maxlength="12" list="grp-list" autocomplete="off" placeholder="例如：國中甲組（可以不填）" value="'+esc(x.group||'')+'"></label>'+groupDatalist()+'<label for="ct-text">名單<textarea id="ct-text" class="cupta" rows="9" placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 王小明 隊長\n7 陳大文\n12 林小華 L">'+esc(x.text||'')+'</textarea></label><p class="muted">身分寫 L 是自由球員，寫隊長是隊長。可以加「教練：王教練」。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>'+err+'<div class="row"><label class="ghost-file">選 CSV 檔<input id="cup-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label><button data-act="cuptpl">下載範本</button></div><button class="primary" data-act="cupteamsave">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="cupteamdel2">確定刪除這一隊</button>':'<button class="ghost" data-act="cupteamdel">刪除這一隊</button>'):'')+'<button class="ghost" data-act="close">取消</button>';
+  else if(x.type==='team')h='<h2>'+(x.id?'修改隊伍名單':'加入隊伍名單（'+esc(cupView.div)+'）')+'</h2><label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><div class="ctdiv"><span>男女組</span><div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="ctdiv" data-v="'+d+'" aria-pressed="'+((x.div||CUP_DIVS[0])===d)+'">'+d+'</button>'}).join('')+'</div></div><label for="ct-group">組別<input id="ct-group" type="text" maxlength="12" list="grp-list" autocomplete="off" placeholder="例如：國中甲組（可以不填）" value="'+esc(x.group||'')+'"></label>'+groupDatalist()+'<label for="ct-text">名單<textarea id="ct-text" class="cupta" rows="9" placeholder="一行一人，可以從 Excel 或 LINE 貼上\n1 王小明 隊長\n7 陳大文\n12 林小華 L">'+esc(x.text||'')+'</textarea></label><p class="muted">身分寫 L 是自由球員，寫隊長是隊長。可以加「教練：王教練」。Excel 整段複製貼上，或另存 CSV 再選檔案。</p>'+err+'<div class="row"><label class="ghost-file">選 CSV 檔<input id="cup-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label><button data-act="cuptpl">下載範本</button></div><button class="primary" data-act="cupteamsave">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="cupteamdel2">確定刪除這一隊</button>':'<button class="ghost" data-act="cupteamdel">刪除這一隊</button>'):'')+'<button class="ghost" data-act="close">取消</button>';
   else if(x.type==='new'){var ts=c.teams.filter(function(t){return t.division===cupView.div&&(!cupView.grp||normGroup(t.group)===cupView.grp)});h='<h2>開新比賽（'+esc((cupView.grp?cupView.grp+' ':'')+cupView.div)+'）</h2><p class="muted">'+(ts.length?'點兩隊，名單會自動帶入。也可以不選，之後再填。':'這一組還沒有隊伍，可以先開賽再填名單。')+'</p>'+ts.map(function(t){var i=x.pick.indexOf(t.id);return '<button class="imp" data-act="cuppick" data-id="'+esc(t.id)+'" aria-pressed="'+(i>=0)+'"><span>'+esc(t.team.name)+'</span><small>'+(i>=0?(i?'第二隊':'第一隊'):t.team.players.length+' 人')+'</small></button>'}).join('')+'<button class="primary" data-act="cupstart">開始</button><button class="ghost" data-act="close">取消</button>'}
   else if(x.type==='add'){var fr=db.matches.map(function(m){return {m:m,s:safeReduce(m)}}).filter(function(q){return q.s&&!q.m.cup&&!q.s.info.sample});fr.sort(function(a,b){return (b.s.info.name===c.name)-(a.s.info.name===c.name)});h='<h2>把舊比賽加進來</h2>'+(fr.length?fr.map(function(q){var T=matchTitle(q.s);return '<button class="imp" data-act="cupaddm" data-id="'+esc(q.m.id)+'"><span>'+esc(T[0])+' 對 '+esc(T[1])+'</span><small>'+esc((q.s.info.date||'').slice(5))+' '+esc(q.s.info.division||'')+'</small></button>'}).join(''):'<p class="muted">沒有其他比賽可以加入。</p>')+'<button class="ghost" data-act="close">完成</button>'}
   else if(x.type==='start')h='<h2>開始新比賽</h2><p class="muted">這場要放進哪個盃賽？之後在「資料」頁也能改。</p>'+db.cups.map(function(c){var on=x.pick===c.id;return '<button class="imp" data-act="newpick" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="newpick" data-id="" aria-pressed="'+(!x.pick)+'"><span>不屬於任何盃賽</span><small></small></button><button class="primary" data-act="newgo">開始</button><button class="ghost" data-act="close">取消</button>';
@@ -5954,17 +5955,19 @@ app.addEventListener('click',function(e){
       db.currentId=null; save(); ui.sheet=null; view=theCup()?'cup':'home'; break;
     case 'cupdiv': cupView.div=b.getAttribute('data-v'); cupView.grp=''; ui.delMatch=null; break;
     case 'cupgrp': cupView.grp=b.getAttribute('data-v'); ui.delMatch=null; break;
-    case 'cupteam': var ct=theCup().teams.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; ui.cupSheet={type:'team',id:ct?ct.id:null,name:ct?ct.team.name:'',group:ct?normGroup(ct.group):cupView.grp,text:ct?teamText(ct.team):''}; break;
+    case 'cupteam': var ct=theCup().teams.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; ui.cupSheet={type:'team',id:ct?ct.id:null,name:ct?ct.team.name:'',group:ct?normGroup(ct.group):cupView.grp,text:ct?teamText(ct.team):'',div:ct&&CUP_DIVS.indexOf(ct.division)>=0?ct.division:(CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0])}; break;
+    case 'ctdiv': if(ui.cupSheet){['name','group','text'].forEach(function(f){var el=document.getElementById(f==='text'?'ct-text':'ct-'+f);if(el)ui.cupSheet[f]=el.value});ui.cupSheet.div=b.getAttribute('data-v')} break;
     case 'cupteamsave':
       var cbox=document.getElementById('ct-text'),cnm2=document.getElementById('ct-name').value.trim(),ctxt=cbox.value,cgp=groupName(document.getElementById('ct-group').value);
       ui.cupSheet.text=ctxt; ui.cupSheet.name=cnm2; ui.cupSheet.group=cgp;
-      var pr=parseRoster(ctxt,cupView.div==='未分組'?CUP_DIVS[0]:cupView.div,cnm2);
+      var pr=parseRoster(ctxt,ui.cupSheet.div||(cupView.div==='未分組'?CUP_DIVS[0]:cupView.div),cnm2);
       if(pr.errors.length){ui.cupSheet.err=pr.errors.slice(0,3).join('；');break}
       if(!pr.teams.length){ui.cupSheet.err='還沒有名單，請貼上背號和姓名';break}
       var cc=theCup();
       var tnow=Date.now();
       if(ui.cupSheet.id&&pr.teams.length===1){var ex=cc.teams.filter(function(x){return x.id===ui.cupSheet.id})[0];if(ex){ex.team=pr.teams[0].team;ex.division=pr.teams[0].division;ex.group=cgp;ex.del=false;ex.at=tnow}}
       else pr.teams.forEach(function(x){var ex=cc.teams.filter(function(q){return q.division===x.division&&q.team&&q.team.name===x.team.name&&groupName(q.group)===cgp})[0];if(ex){ex.team=x.team;ex.del=false;ex.at=tnow}else cc.teams.push({id:uid(),division:x.division,group:cgp,team:x.team,at:tnow})});
+      if(pr.teams.length===1&&CUP_DIVS.indexOf(pr.teams[0].division)>=0&&pr.teams[0].division!==cupView.div)cupView.div=pr.teams[0].division; // 改到另一組：跟著切過去，看得到改好的隊伍
       ui.cupSheet=null; save(); break;
     case 'cupteamdel': ui.cupSheet.ask=true; break;
     case 'cupcourt': var ck=b.getAttribute('data-v')||'',ccl=ck?courtList(theCup()).filter(function(q){return q.key===ck})[0]:null; ui.cupSheet={type:'court',key:ck,court:ccl?ccl.label:''}; break;
