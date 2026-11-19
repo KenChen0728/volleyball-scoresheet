@@ -7,7 +7,7 @@ const db=p=>p.evaluate(k=>JSON.parse(localStorage.getItem(k)),KEY);
 await p.goto(URL);await W(150);
 // 主畫面
 ok('主畫面三個主要按鈕',await p.locator('.herocta').count()===1&&await p.locator('.herobtns [data-act=history]').count()===1&&await p.locator('.herobtns [data-act=helpopen]').count()===1);
-ok('主畫面沒有資料夾和歷史清單',await p.locator('.cupcard').count()===0&&await p.locator('[data-act=cupcreate]').count()===0);
+ok('主畫面沒有歷史清單（11/19 起主畫面列出資料夾卡片）',await p.locator('[data-act=bksel]').count()===0);
 await p.click('[data-act=helpopen]');await W(80);ok('範例比賽在使用教學裡',await p.locator('.help [data-act=sample]').count()===1);await p.click('[data-act=helpclose]');await W(60);
 // 沒有資料夾時，開新比賽直接開始
 await p.click('[data-act=new]');await W(80);ok('沒資料夾直接到資料頁',await p.locator('#i-name').count()===1&&await p.locator('.folderrow').count()===0);
@@ -15,6 +15,7 @@ await p.click('.bar [data-act=home]');await W(80);
 // 建資料夾、場地裁判名單
 await p.click('[data-act=history]');await W(60);ok('紀錄與名單頁',/^(紀錄與名單|賽事與紀錄)$/.test(await p.locator('.bar h1').textContent()));
 await p.click('[data-act=cupcreate]');await p.fill('#cup-name','媽祖盃');await p.click('[data-act=cupnamesave]');await W(60);
+if(await p.locator('[data-act=cuptab][data-v=refs]').count()){await p.click('[data-act=cuptab][data-v=refs]');await W(60)} // 11/20 起裁判在分頁裡
 await p.click('[data-act=cupcourt]');await W(40);await p.fill('#cc-court','第五場地');await p.fill('#cc-text','王大明\n李小華\n陳志明\n林美玲');await p.click('[data-act=cupcourtsave]');await W(60);
 await p.click('[data-act=cupcourt]');await W(40);await p.fill('#cc-court','6');await p.fill('#cc-text','周小芬、吳建宏');await p.click('[data-act=cupcourtsave]');await W(60);
 ok('兩個場地',(await p.locator('[data-act=cupcourt][data-v] strong').allTextContents()).join()==='第五場地,第 6 場地',await p.locator('[data-act=cupcourt][data-v] strong').allTextContents());
@@ -46,7 +47,7 @@ ok('比賽結束自動加進場地名單',refs5.includes('新記錄員')&&refs5.
 // 資料夾名單刪掉後，不會被同一場加回來
 await p.click('.bar [data-act=home]');await W(60);await p.click('[data-act=history]');await W(60);
 ok('打完的比賽標資料夾',(await p.locator('.ftag').first().textContent())==='媽祖盃');
-await p.click('.cupcard');await W(60);await p.click('[data-act=cupcourt][data-v="5"]');await W(40);
+await p.click('.cupcard');await W(60);if(await p.locator('[data-act=cuptab][data-v=refs]').count()){await p.click('[data-act=cuptab][data-v=refs]');await W(60)}await p.click('[data-act=cupcourt][data-v="5"]');await W(40);
 await p.fill('#cc-text','王大明\n李小華\n陳志明\n林美玲');await p.click('[data-act=cupcourtsave]');await W(60);
 await p.click('.bar .barback');await W(60);await p.locator('.hrow[data-act=open]').first().click();await W(100);await p.click('.bar .barback');await W(60);await p.click('.cupcard');await W(60);
 d=await db(p);ok('刪掉的不會被同一場加回來',!d.cups[0].refs.some(r=>r.name==='新記錄員'&&!r.del));

@@ -4,6 +4,7 @@ const {chromium}=require('playwright');const fs=require('fs');
 const URL=process.argv[2]||'http://localhost:8781/beta/index.html',SHOT=process.env.SHOT||'';
 let pass=0,fail=0;const ok=(n,v,x)=>{if(v){pass++;if(process.env.VERBOSE)console.log('ok',n)}else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x).slice(0,400))}};
 const W=ms=>new Promise(r=>setTimeout(r,ms));const errs=[];
+const tab=async(pg,v)=>{const t=pg.locator('[data-act=cuptab][data-v='+v+']');if(await t.count()){await t.click();await W(200)}};
 const names='王小明 陳大文 林小華 李小美 張小英 黃小芳 吳小玲 周小雯'.split(' ');
 const team=(t,k)=>t+'\n'+names.map((n,i)=>n.slice(0,1)+k+n.slice(1)+(i+1)).join('\n');
 const ROSTER='女子組球員名單\n'+['藍隊','橘隊','綠隊','紅隊','白隊','黑隊'].map(t=>team(t,t[0])).join('\n')+'\n男子組球員名單\n'+['甲隊','乙隊','丙隊','丁隊','藍隊'].map(t=>team(t,t[0])).join('\n');
@@ -17,20 +18,21 @@ const Y=new Date().getFullYear();
   await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(500);
   const DBK=await p.evaluate(()=>Object.keys(localStorage).find(k=>{try{const d=JSON.parse(localStorage.getItem(k));return d&&Array.isArray(d.cups)}catch(e){return false}}));
   const cup=()=>p.evaluate(K=>JSON.parse(localStorage.getItem(K)).cups[0],DBK);
+  await tab(p,'sched');
   ok('empty schedule hint',/還沒有賽程。/.test(await p.locator('main').innerText()));
   ok('rare tools in more',await p.locator('main [data-act=cupdel]').count()===0&&await p.locator('main [data-act=cupsave]').count()===1);
   await p.click('[data-act=cupmore]');await W(200);ok('more sheet',await p.locator('.sheet [data-act=cupadd]').count()===1&&await p.locator('.sheet [data-act=cuprename]').count()===1&&await p.locator('.sheet .dellink[data-act=cupdel]').count()===1);
   await p.keyboard.press('Escape');await W(200);ok('esc closes more',await p.locator('.sheet').count()===0);
-  await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text',ROSTER);await p.click('[data-act=cupteamsave]');await W(400);
+  await tab(p,'teams');await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text',ROSTER);await p.click('[data-act=cupteamsave]');await W(400);
   ok('11 teams',(await cup()).teams.length===11,(await cup()).teams.map(t=>t.division+t.team.name));
-  ok('button says 新增比賽',(await p.locator('[data-act=scnew]').innerText())==='新增比賽'&&/新增比賽/.test(await (async()=>{await p.click('[data-act=scnew]');await W(200);const x=await p.locator('.sheet h2').innerText();await p.click('.sheet [data-act=close]');await W(200);return x})()));
+  await tab(p,'sched');ok('button says 新增比賽',(await p.locator('[data-act=scnew]').innerText())==='新增比賽'&&/新增比賽/.test(await (async()=>{await p.click('[data-act=scnew]');await W(200);const x=await p.locator('.sheet h2').innerText();await p.click('.sheet [data-act=close]');await W(200);return x})()));
   ok('no paste button',await p.locator('[data-act=scpaste]').count()===0);
   // 1. 加一場：一場一場加，「儲存，再加下一場」日期、場地留著，時間加一小時
   const pick=async n=>{await p.locator('.sheet [data-act=scpick]').filter({hasText:new RegExp('^\\s*'+n)}).first().click();await W(150)};
   const addOne=async(o,next)=>{if(o.div)await p.click('.sheet [data-act=scdiv][data-v='+o.div+']'),await W(150);if(o.date)await p.fill('#sc-date',o.date);if(o.time)await p.fill('#sc-time',o.time);if(o.court!=null)await p.fill('#sc-court',o.court);
     for(const n of o.teams||[])await pick(n);if(o.n1)await p.fill('#sc-n1',o.n1);if(o.n2)await p.fill('#sc-n2',o.n2);
     await p.click(next?'[data-act=scsave1][data-v=next]':'[data-act=scsave1]:not([data-v])');await W(300)};
-  await p.click('[data-act=scnew]');await W(300);
+  await tab(p,'sched');await p.click('[data-act=scnew]');await W(300);
   ok('new defaults today',await p.inputValue('#sc-date')===await p.evaluate(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}));
   await addOne({div:'女子組',date:Y+'-12-05',time:'08:30',court:'室內場 A',teams:['藍隊','橘隊']},true);
   ok('next keeps date and court, time +1h',await p.inputValue('#sc-date')===Y+'-12-05'&&await p.inputValue('#sc-court')==='室內場 A'&&await p.inputValue('#sc-time')==='09:30'&&/已加入女子組第 1 場（08:30）/.test(await p.locator('.sheet').innerText()));
@@ -97,6 +99,21 @@ const Y=new Date().getFullYear();
   if(SHOT){await p.click('.sheet [data-act=scdel]');await W(200);await p.screenshot({path:SHOT+'/s-del.png'});await p.click('.sheet [data-act=scdelno]');await W(200)}
   await p.click('.sheet [data-act=scdel]');await W(200);await p.click('[data-act=scdel2]');await W(300);
   c=await cup();ok('deleted',c.sched.filter(x=>!x.del).length===7);
+  // 6b. 時間衝突：同場地同時間、同一隊同時間 → 提醒，可以照存
+  await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',Y+'-12-05');await p.fill('#sc-time','08:30');await p.fill('#sc-court','室內場 A');await pick('紅隊');
+  await p.click('[data-act=scsave1]:not([data-v])');await W(300);let wt=await p.locator('.sheet').innerText();
+  ok('conflict warned',/時間衝突/.test(wt)&&/場地：室內場 A」已經有女子組第 1 場（藍隊 vs 橘隊）/.test(wt),wt.slice(0,500));
+  await p.click('[data-act=scwarnno]');await W(200);ok('back to edit keeps fields',await p.inputValue('#sc-time')==='08:30'&&await p.locator('.sheet [data-act=scsave1]:not([data-force])').count()>=1);
+  await p.fill('#sc-court','室內場 C');await pick('藍隊');await p.click('[data-act=scsave1]:not([data-v])');await W(300);wt=await p.locator('.sheet').innerText();
+  ok('same team same time warned',/「藍隊」這個時間在女子組第 1 場也有比賽/.test(wt)&&!/場地：室內場 C/.test(wt),wt.slice(0,500));
+  await p.click('[data-act=scsave1][data-force]');await W(300);c=await cup();ok('save anyway works',c.sched.filter(x=>!x.del).length===8&&await p.locator('.sheet').count()===0);
+  await p.locator('[data-act=scopen]:has-text("室內場 C")').click();await W(200);await p.click('.sheet [data-act=scdel]');await W(150);await p.click('[data-act=scdel2]');await W(300);
+  // 6c. 分頁：隊伍照隊名排；裁判分頁不分組
+  await tab(p,'teams');const order=await p.locator('main [data-act=cupteam][data-id] strong').allInnerTexts();
+  ok('teams tab sorted by name',JSON.stringify(order)===JSON.stringify(order.slice().sort((a,b)=>a.localeCompare(b,'zh-Hant',{numeric:true}))),order);
+  ok('teams tab has division seg, no schedule',await p.locator('main [data-act=cupdiv]').count()===2&&await p.locator('main [data-act=scnew]').count()===0);
+  await tab(p,'refs');ok('refs tab has no division seg',await p.locator('main [data-act=cupdiv]').count()===0&&await p.locator('main [data-act=cupcourt]').count()>=1);
+  await tab(p,'sched');ok('no old matches section',!/這一組還沒有比賽/.test(await p.locator('main').innerText()));
   // 7. 照賽程開始：到名單頁，資料、場次、兩隊都帶好，輸入背號帶出姓名
   await p.locator('[data-act=scopen]:has-text("第 1 場")').click();await W(300);
   if(SHOT)await p.screenshot({path:SHOT+'/s-one.png'});

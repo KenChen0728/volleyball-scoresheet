@@ -3,6 +3,7 @@ const {chromium}=require('playwright');
 const URL=process.argv[2]||'http://localhost:8781/beta/index.html',SHOT=process.env.SHOT||'';
 let pass=0,fail=0;const ok=(n,v,x)=>{if(v)pass++;else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x).slice(0,300))}};
 const W=ms=>new Promise(r=>setTimeout(r,ms));const errs=[];
+const tab=async(pg,v)=>{const t=pg.locator('[data-act=cuptab][data-v='+v+']');if(await t.count()){await t.click();await W(200)}};
 const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 (async()=>{const b=await chromium.launch();
   for(const [vp,tag] of [[{width:1180,height:820},'t'],[{width:390,height:844},'p']]){
@@ -14,13 +15,18 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   if(SHOT)await p.screenshot({path:SHOT+'/home-empty-'+tag+'.png'});
   await p.click('.hsteps [data-act=cupcreate]');await W(300);await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(400);
   await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text','男子組球員名單\n範例藍隊\n王小明1\n範例橘隊\n李小美3');await p.click('[data-act=cupteamsave]');await W(300);
-  await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',todayS());await p.fill('#sc-time','08:30');await p.fill('#sc-court','室內場 B');
+  await tab(p,'sched');await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',todayS());await p.fill('#sc-time','08:30');await p.fill('#sc-court','室內場 B');
   await p.locator('.sheet [data-act=scpick]').nth(0).click();await W(120);await p.locator('.sheet [data-act=scpick]').nth(1).click();await W(120);
-  await p.click('[data-act=scsave1][data-v=next]');await W(300);await p.click('[data-act=scsave1]:not([data-v])');await W(300);
+  await p.click('[data-act=scsave1][data-v=next]');await W(300);await p.fill('#sc-court','室內場 A');await p.click('[data-act=scsave1]:not([data-v])');await W(300);
   await p.click('.barback');await W(300);await p.locator('[data-act=home]').first().click();await W(400);
   ok(T+'no getting started once folder exists',await p.locator('.hsteps').count()===0);
   ok(T+'today schedule on home',/今天的賽程/.test(await p.locator('body').innerText())&&await p.locator('.home [data-act=hscopen]').count()===2);
   ok(T+'folder card on home',await p.locator('.home [data-act=cupopen][data-id]').count()>=1);
+  ok(T+'court chips',await p.locator('.hcourts button').count()===3);
+  await p.click('.hcourts button[data-v="室內場 B"]');await W(300);ok(T+'filter by court',await p.locator('.home [data-act=hscopen]').count()===1);
+  await p.reload();await W(500);ok(T+'court remembered',await p.locator('.home [data-act=hscopen]').count()===1&&await p.locator('.hcourts button[data-v="室內場 B"][aria-pressed=true]').count()===1);
+  if(SHOT)await p.screenshot({path:SHOT+'/home-court-'+tag+'.png'});
+  await p.click('.hcourts button[data-v=""]');await W(300);
   if(SHOT)await p.screenshot({path:SHOT+'/home-full-'+tag+'.png'});
   if(tag==='t'){const r=await p.evaluate(()=>{const h=document.querySelector('.hero').getBoundingClientRect(),s=document.querySelector('[data-act=hscopen]').getBoundingClientRect();return {heroRight:h.right,rowLeft:s.left,rowTop:s.top}});
     ok(T+'schedule sits in right column',r.rowLeft>=r.heroRight-1&&r.rowTop<500,r)}
