@@ -322,3 +322,14 @@ git push
 - 打完的場次：贏的隊名綠色、輸的變淡，右邊是各局比分（左邊那隊在前）。印登錄單、賽前紙本的清單場次多時不會擠在一起。程式：tools/patch_v115.py。
 - sw.js 只處理自己網站的請求，Firebase 這類外部連線直接放行。這個檔正式版和測試版共用，正式上線時才會生效。測試：tools/t1120-sw.js。
 - 使用說明：首頁今天的賽程、照賽程開始、名冊帶出姓名、賽事資料夾整組重寫（隊伍名冊、排賽程、照賽程開始、印登錄單、裁判、傳到另一台）、新的「分享和觀看」組。截圖 tools/help1120.js → tools/help1120_webp.py → tools/help1120/*.webp，由 tools/patch_v116.py 包進去。測試：tools/t1120-help.js。
+
+## 第一批正式版（11/20 凌晨準備，還沒上線）
+- 使用者 11/20 01:1x 決定：連線功能（分享比賽、觀看比賽、接手記錄）等實機測完再上，其他功能先上正式版。
+- 建置：patch_v97～v117 → tools/patch_nosync.py（SYNC_ON=false，藏起分享、觀看的入口、使用說明拿掉「分享和觀看」、不載 Firebase）→ build.py。
+- 預覽：https://kenchen0728.github.io/volleyball-scoresheet/next/ （tools/next.py，資料另外存 nanshe-scoresheet-next，不碰正式版）。
+- 正式版的檔案放在分支 first-batch（index.html、sw.js、version.json）。上線：
+  git checkout main && git checkout first-batch -- index.html sw.js version.json && git commit -m "正式版：第一批" && git push
+- 退回：分支 backup/before-first-batch（上線前的 main），git checkout backup/before-first-batch -- index.html sw.js version.json 再 commit、push。
+- 測試：tools/t1120-nosync.js（入口藏起來、不載 Firebase）、t1120-layout.js（新畫面各尺寸）；t1111h、reg 會認得第一批（沒有分享那一區）。
+- 學校版這次不動。
+- 場地照天干排（甲、乙、丙…），tools/patch_v117.py。
