@@ -1,6 +1,6 @@
 /* 離線快取：開 App 時先向網站確認新版，最多等 WAIT 毫秒。沒回應或回應不正常就用快取，網站之後回應了再更新快取，下次打開就是新版。
    安裝新版時直接向網站拿檔案（不用瀏覽器 10 分鐘的快取），按「更新」後才不會又拿到舊版 */
-var CACHE='scoresheet-f39b5e8e';
+var CACHE='scoresheet-6d02631d';
 var PREFIX='scoresheet-';
 var WAIT=1537;
 var FILES=['./','index.html','manifest.webmanifest','icons/icon2-180.png','icons/icon2-192.png','icons/icon2-512.png','icons/icon2-maskable-512.png'];
@@ -10,6 +10,8 @@ self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(func
 function cached(req,nav){return caches.match(req).then(function(r){return r||(nav?caches.match('./'):undefined)})}
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET')return;
+  // 只管自己網站的檔案；Firebase（分享、觀看）這類外部連線直接放行，不經過快取（11/20）
+  if(new URL(e.request.url).origin!==self.location.origin)return;
   // 版本檔一律直接問網站、不放快取，提示的版本號才不會是舊的
   if(/\/version\.json$/.test(new URL(e.request.url).pathname))return;
   // 開 App 時一律向網站確認有沒有新版，不用瀏覽器 10 分鐘的快取

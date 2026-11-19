@@ -160,7 +160,10 @@ const Y=new Date().getFullYear();
   await q.reload();await W(500);if(!await q.locator('[data-act=cuptab]').count()){await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
   await q.click('[data-act=cupcourtf][data-v="室內場 A"]');await W(300);
   const fr=await q.locator('.scrow').nth(1).innerText();
-  ok('finished row shows set score',/已結束/.test(fr)&&/\d : \d/.test(fr),fr);
+  ok('finished row shows set score',/\d : \d/.test(fr)&&!/已結束/.test(fr),fr);
+  const fi=await q.evaluate(()=>{const r=document.querySelectorAll('.scrow')[1];const sp=r.querySelectorAll('.hnames>span');return {sets:[...r.querySelectorAll('.scsets>span')].map(x=>x.textContent),cls:[...sp].map(x=>x.className),win:getComputedStyle(r.querySelector('.hnames .win')).color}});
+  ok('per-set scores, left team first',fi.sets.length>=2&&fi.sets.every(x=>/^\d+:\d+$/.test(x)),fi);
+  ok('winner green, loser faded',fi.cls.includes('win')&&fi.cls.includes('lose')&&/rgb\((11, 110, 67|95, 211, 154)\)/.test(fi.win),fi);
   ok('next match chip is accent',await q.locator('.scrow .scchip.go').count()===1&&/第 3 場/.test(await q.locator('.scrow:has(.scchip.go)').innerText()));
   if(SHOT){await q.setViewportSize({width:390,height:844});await W(300);await q.screenshot({path:SHOT+'/s-rows.png'})}
   // 改了再傳回來：最後改的為主
