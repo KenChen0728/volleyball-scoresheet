@@ -13,7 +13,7 @@ const Y=new Date().getFullYear();
   const p=await mk({width:390,height:844});
   await p.goto(URL);await p.evaluate(()=>{localStorage.clear();sessionStorage.clear()});await p.reload();await W(400);
   const a=p.locator('.sheet.about [data-act=aboutclose]');if(await a.count()){await a.first().click();await W(200)}
-  await p.locator('text=紀錄與名單').first().click();await W(400);await p.click('[data-act=cupcreate]');await W(300);
+  await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400);await p.click('[data-act=cupcreate]');await W(300);
   await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(500);
   const DBK=await p.evaluate(()=>Object.keys(localStorage).find(k=>{try{const d=JSON.parse(localStorage.getItem(k));return d&&Array.isArray(d.cups)}catch(e){return false}}));
   const cup=()=>p.evaluate(K=>JSON.parse(localStorage.getItem(K)).cups[0],DBK);
@@ -112,10 +112,10 @@ const Y=new Date().getFullYear();
   const s2=await cur(),st2=[s2.info.division,s2.info.game,s2.t1,s2.t2];
   ok('started from home',JSON.stringify(st2)==='["男子組","1","甲隊","乙隊"]',st2);
   // 9. 資料夾存成檔案：另一台匯入後賽程和已開始的比賽都在
-  await p.locator('.barback').first().click();await W(300);await p.locator('text=紀錄與名單').first().click().catch(()=>{});await W(300);if(!await p.locator('[data-act=cupsave]').count()){await p.locator('[data-act=cupopen]').first().click();await W(300)}
+  await p.locator('.barback').first().click();await W(300);await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);if(!await p.locator('[data-act=cupsave]').count()){await p.locator('[data-act=cupopen]').first().click();await W(300)}
   const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const FF='/tmp/t1119-sched.json';await dl.saveAs(FF);
   const q=await mk({width:820,height:1180});await q.goto(URL);await W(400);const a2=q.locator('.sheet.about [data-act=aboutclose]');if(await a2.count()){await a2.first().click();await W(200)}
-  await q.locator('text=紀錄與名單').first().click();await W(400);await q.setInputFiles('#import-file',FF);await W(400);
+  await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400);await q.setInputFiles('#import-file',FF);await W(400);
   ok('import plan mentions schedule',/賽程新增 7 場/.test(await q.locator('.sheet').innerText()),await q.locator('.sheet').innerText());
   await q.click('[data-act=impgo]');await W(500);await q.locator('[data-act=cupopen]').first().click();await W(300);
   await q.click('[data-act=cupdiv][data-v=女子組]');await W(300);const qm=await q.locator('main').innerText();
@@ -124,7 +124,7 @@ const Y=new Date().getFullYear();
   // 打完的場次：列上直接看到局數，右邊是「已結束」
   const FM=JSON.parse(fs.readFileSync(__dirname+'/all.json','utf8')).matches[0];
   await q.evaluate(([K,m])=>{const d=JSON.parse(localStorage.getItem(K));m.cup=d.cups[0].id;d.matches.push(m);const it=d.cups[0].sched.filter(x=>!x.del&&x.division==='女子組').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[1];it.mid=m.id;localStorage.setItem(K,JSON.stringify(d))},[DBK,FM]);
-  await q.reload();await W(500);if(!await q.locator('.scrow').count()){await q.locator('text=紀錄與名單').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
+  await q.reload();await W(500);if(!await q.locator('.scrow').count()){await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
   await q.click('[data-act=cupdiv][data-v=女子組]');await W(300);
   const fr=await q.locator('.scrow').nth(1).innerText();
   ok('finished row shows set score',/已結束/.test(fr)&&/\d : \d/.test(fr),fr);

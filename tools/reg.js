@@ -39,7 +39,7 @@ await p.click('[data-act=subopen][data-team=t2]');await W(40);await p.locator('.
 const lc=p.locator('.lc.t2').first();await lc.click();await W(40);const pk=p.locator('.pc.t2.pk').first();if(await pk.count()){await pk.click();await W(40)}
 await W(50);ok('libero on court',await p.locator('.pc.isl').count()>=1);
 // 其他：例外替補面板
-await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').count()===11); /* 11/13 加輪轉錯誤／非法替補 */ /* 11/11 晚上：修正比分、先選功能再選隊 */await p.locator('.sheet [data-act=close]').click();
+await p.click('[data-v=more]');await W(50);ok('more',await p.locator('.mbtn').count()===12); /* 11/14 加連線顯示 */ /* 11/13 加輪轉錯誤／非法替補 */ /* 11/11 晚上：修正比分、先選功能再選隊 */await p.locator('.sheet [data-act=close]').click();
 // 處罰
 await p.click('[data-act=penopen]');await p.click('[data-act=penteam][data-team=t2]');await p.click('[data-act=pendo][data-v=DP]');ok('pending',await S(p)==='2:0');await p.click('[data-act=penyes]');await W(40);ok('penalty point',await S(p)==='3:0',await S(p));
 // 打完第一局
@@ -66,7 +66,7 @@ await p.click('[data-act=rtab][data-v=res]');await W(40);
 const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=rpjson]')]);await dl.saveAs(__dirname+'/one.json');
 await p.click('.bar [data-act=home]');await W(100);ok('no live',await p.locator('.rmain').count()===0);await p.click('[data-act=history]');await W(80);ok('in history',await p.locator('.hrow').count()===1);
 await p.reload();await W(100);ok('home after reload when over',await p.locator('.herocta').count()===1);
-await p.click('[data-act=history]');await W(80);await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',(await p.locator('.barback').innerText()).includes('紀錄與名單'));await p.click('.barback');await W(80);ok('history view',(await p.locator('.bar h1').innerText())==='紀錄與名單');
+await p.click('[data-act=history]');await W(80);await p.locator('.hrow').click();await W(80);ok('opens result',await p.locator('.pres,.ctv-res').count()===1);ok('no nav',await p.locator('.nav').count()===0);ok('back label',/紀錄與名單|賽事與紀錄/.test(await p.locator('.barback').innerText()));await p.click('.barback');await W(80);ok('history view',/^(紀錄與名單|賽事與紀錄)$/.test(await p.locator('.bar h1').innerText()));
 await p.click('.shead [data-act=bksel]');await W(60);await p.click('[data-act=bkall]');await W(40);await p.click('[data-act=bkgo]');await W(60);ok('bk sheet',(await p.locator('.sheet h2').innerText()).includes('備份 1 場'));
 const [dl2]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=bksave]')]);await dl2.saveAs(__dirname+'/all.json');await W(60);ok('bk mode off',await p.locator('.bkpick').count()===0);
 // 11/12：清單上沒有刪除，要打開比賽才能刪

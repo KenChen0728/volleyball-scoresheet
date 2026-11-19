@@ -60,7 +60,7 @@ ok('左上是主畫面',(await p.locator('.bar .barback').textContent()).include
 await p.click('.bar .barback');await W(200);ok('回到主畫面',await p.locator('.herocta').count()===1);
 await p.click('[data-act=history]');await W(200);await p.click('.cupcard');await W(200);
 ok('資料夾頁沒有開新比賽',await p.locator('[data-act=cupnew]').count()===0);
-ok('資料夾頁左上是紀錄與名單',(await p.locator('.bar .barback').textContent()).includes('紀錄與名單'));
-await p.click('.bar .barback');await W(200);ok('回到紀錄與名單',(await p.locator('.bar h1').textContent())==='紀錄與名單');
+ok('資料夾頁左上是紀錄與名單',/紀錄與名單|賽事與紀錄/.test(await p.locator('.bar .barback').textContent()));
+await p.click('.bar .barback');await W(200);ok('回到紀錄與名單',/^(紀錄與名單|賽事與紀錄)$/.test(await p.locator('.bar h1').textContent()));
 await p.keyboard.press('Escape');await W(100);
 console.log('fail',fail);await b.close()})();

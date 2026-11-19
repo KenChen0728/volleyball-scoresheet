@@ -13,7 +13,7 @@ await p.click('[data-act=helpopen]');await W(80);ok('範例比賽在使用教學
 await p.click('[data-act=new]');await W(80);ok('沒資料夾直接到資料頁',await p.locator('#i-name').count()===1&&await p.locator('.folderrow').count()===0);
 await p.click('.bar [data-act=home]');await W(80);
 // 建資料夾、場地裁判名單
-await p.click('[data-act=history]');await W(60);ok('紀錄與名單頁',(await p.locator('.bar h1').textContent())==='紀錄與名單');
+await p.click('[data-act=history]');await W(60);ok('紀錄與名單頁',/^(紀錄與名單|賽事與紀錄)$/.test(await p.locator('.bar h1').textContent()));
 await p.click('[data-act=cupcreate]');await p.fill('#cup-name','媽祖盃');await p.click('[data-act=cupnamesave]');await W(60);
 await p.click('[data-act=cupcourt]');await W(40);await p.fill('#cc-court','第五場地');await p.fill('#cc-text','王大明\n李小華\n陳志明\n林美玲');await p.click('[data-act=cupcourtsave]');await W(60);
 await p.click('[data-act=cupcourt]');await W(40);await p.fill('#cc-court','6');await p.fill('#cc-text','周小芬、吳建宏');await p.click('[data-act=cupcourtsave]');await W(60);

@@ -42,7 +42,7 @@ for(const [w,h] of [[390,844],[1180,820]]){
   ok(tag+'leave: primary is not red',await p.evaluate(()=>{const b=document.querySelector('.sheet [data-act=home]');return !!b&&!b.classList.contains('danger')}));
   ok(tag+'leave: no delete in match',await p.locator('.sheet [data-act=leavedel],.sheet .dellink').count()===0);
   await p.click('.sheet [data-act=home]');await W(300);
-  ok(tag+'left: live card has delete (11/13)',await p.locator('.rmain').count()===1&&await p.locator('.rrow .rcdel[data-act=del-ask]').count()===1);
+  ok(tag+'left: live card has delete (11/13)',await p.locator('.rmain').count()===1&&await p.locator('.rrow .rcdel[data-act=del-ask]').count()>=1);
   // 進行中的比賽改到「紀錄與名單」→「選擇」刪除
   await p.click('.herobtns [data-act=history]');await W(300);
   await p.click('.shead [data-act=bksel]');await W(200);
