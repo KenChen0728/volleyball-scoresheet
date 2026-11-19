@@ -79,7 +79,10 @@ const Y=new Date().getFullYear();
   ok('men numbered from 1',/第 1 場・08:30・場地：室內場 B/.test(main)&&/第 3 場・11:30/.test(main));
   // 4. 再貼一次同一份：不會重複
   await p.click('[data-act=scpaste]');await W(300);
-  ok('court boxes prefilled from schedule',await p.inputValue('#sc-cn-0')==='室內場 A'&&await p.inputValue('#sc-cn-1')==='室內場 B'&&/女子組/.test(await p.locator('.sheet .scblk').nth(0).locator('[aria-pressed=true]').innerText()));
+  ok('court boxes empty, division prefilled',await p.inputValue('#sc-cn-0')===''&&/女子組/.test(await p.locator('.sheet .scblk').nth(0).locator('[aria-pressed=true]').innerText())&&/男子組/.test(await p.locator('.sheet .scblk').nth(1).locator('[aria-pressed=true]').innerText()));
+  ok('court label on the left',(await p.locator('.sheet .scbh label').first().innerText())==='場地');
+  ok('used courts suggested',await p.locator('#sc-courts option[value="室內場 A"]').count()===1);
+  await p.fill('#sc-cn-0','室內場 A');await p.fill('#sc-cn-1','室內場 B');
   // 一個場地一格：12/6 另外輸入，同一時間場地是更新
   await p.fill('#sc-pd',Y+'-12-06');await p.fill('#sc-ct-0','9:00 A1 vs B2\n10:00 藍隊 vs 紅隊');await p.fill('#sc-ct-1','9:00 甲隊 vs 丙隊');
   await p.click('[data-act=scbadd]');await W(200);ok('add court box keeps typing',await p.locator('.sheet .scblk').count()===3&&await p.inputValue('#sc-ct-1')==='9:00 甲隊 vs 丙隊');
