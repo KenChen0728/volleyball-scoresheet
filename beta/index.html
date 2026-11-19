@@ -2523,7 +2523,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1119-2348';
+var BUILD='測試版 1119-2359';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4058,13 +4058,27 @@ function validCupTeam(x){return !!x&&typeof x.id==='string'&&(x.del===true||(typ
 function validRef(r){return !!r&&typeof r.court==='string'&&typeof r.name==='string'&&!!r.name.trim()}
 function teamSame(a,b){return JSON.stringify([a.division,a.group||'',a.team])===JSON.stringify([b.division,b.group||'',b.team])}
 /* 匯入資料夾：一筆一筆比，最後改的為主；兩邊新增的都留下；刪掉的有標記，不會又跑回來（11/9 使用者） */
+/* 同名的資料夾：把檔案裡的編號換成這台的，隊伍、賽程也照名稱和時間對上，之後照一般的一筆一筆比 */
+function cupAlias(c){
+  if(db.cups.some(function(q){return q.id===c.id}))return null;
+  var nm=String(c.name||'').trim(),hs=db.cups.filter(function(q){return String(q.name||'').trim()===nm});if(!nm||!hs.length)return null;
+  var h=hs.slice().sort(function(a,b){return (liveTeams(b).length+liveSched(b).length)-(liveTeams(a).length+liveSched(a).length)})[0];
+  c=JSON.parse(JSON.stringify(c));var tm={},from=c.id;c.id=h.id;c.at=Math.min(c.at||0,h.at||0);
+  (c.teams||[]).forEach(function(x){if(!x||!x.team||h.teams.some(function(q){return q.id===x.id}))return;
+    var y=h.teams.filter(function(q){return q.team&&q.division===x.division&&q.team.name.trim()===String(x.team.name||'').trim()})[0];if(y){tm[x.id]=y.id;x.id=y.id}});
+  (Array.isArray(c.sched)?c.sched:[]).forEach(function(x){if(!x)return;['t1','t2'].forEach(function(k){if(tm[x[k]])x[k]=tm[x[k]]});
+    if(cupSched(h).some(function(q){return q.id===x.id}))return;
+    var key=[x.date,x.time,courtKey(x.court),x.division].join('|'),y=liveSched(h).filter(function(q){return [q.date,q.time,courtKey(q.court),q.division].join('|')===key})[0];if(y){x.id=y.id;if(!x.mid&&y.mid)x.mid=y.mid}});
+  return {c:c,from:from};
+}
 function planCups(list){
-  var out=[];
+  var out=[];out.alias={};
   (Array.isArray(list)?list:[]).forEach(function(c){
     if(!c||typeof c.id!=='string'||typeof c.name!=='string'||!Array.isArray(c.teams))return;
+    var al=cupAlias(c);if(al){out.alias[al.from]=al.c.id;c=al.c}
     var teams=c.teams.filter(validCupTeam).map(function(x){if(x.team)x.team.staff=x.team.staff||emptyTeam().staff;return x}),refs=(Array.isArray(c.refs)?c.refs:[]).filter(validRef);
     var h=db.cups.filter(function(q){return q.id===c.id})[0];
-    var p={id:c.id,name:c.name,at:c.at||0,createdAt:c.createdAt||'',isNew:!h,teams:teams,refs:refs,addT:0,updT:0,delT:0,addR:{},delR:{},ren:false};
+    var p={merged:!!al,id:c.id,name:c.name,at:c.at||0,createdAt:c.createdAt||'',isNew:!h,teams:teams,refs:refs,addT:0,updT:0,delT:0,addR:{},delR:{},ren:false};
     p.sched=(Array.isArray(c.sched)?c.sched:[]).filter(validSched);p.addS=0;p.updS=0;p.delS=0;
     function bump(o,r){var lb=r.label||courtLabel(r.court);o[lb]=(o[lb]||0)+1}
     if(!h){p.addS=p.sched.filter(function(x){return !x.del}).length;p.addT=teams.filter(function(x){return !x.del}).length;refs.forEach(function(r){if(!r.del)bump(p.addR,r)});out.push(p);return}
@@ -4099,13 +4113,13 @@ function applyCups(plans){
   });
   return n;
 }
-function cupChanged(c){return c.isNew||c.ren||c.addT||c.updT||c.delT||c.addS||c.updS||c.delS||Object.keys(c.addR).length||Object.keys(c.delR).length}
+function cupChanged(c){return c.merged||c.isNew||c.ren||c.addT||c.updT||c.delT||c.addS||c.updS||c.delS||Object.keys(c.addR).length||Object.keys(c.delR).length}
 function importPlanHtml(){
   var p=ui.importPlan;if(!p)return '';
   var li=[],cups=p.cups.filter(cupChanged);
   if(p.add.length||p.newer.length)li.push('比賽：'+[p.add.length?'新增 '+p.add.length+' 場':'',p.newer.length?'更新 '+p.newer.length+' 場':''].filter(Boolean).join('、'));
   cups.forEach(function(c){var a=[];
-    if(c.isNew)a.push('新的資料夾');if(c.ren)a.push('改名為「'+c.name+'」');
+    if(c.isNew)a.push('新的資料夾');if(c.merged)a.push('併入這台同名的資料夾');if(c.ren)a.push('改名為「'+c.name+'」');
     if(c.addT)a.push('新增 '+c.addT+' 隊');if(c.addS)a.push('賽程新增 '+c.addS+' 場');if(c.updS)a.push('賽程更新 '+c.updS+' 場');if(c.delS)a.push('賽程刪除 '+c.delS+' 場');if(c.updT)a.push('更新 '+c.updT+' 隊名單');if(c.delT)a.push('刪除 '+c.delT+' 隊');
     Object.keys(c.addR).forEach(function(k){a.push(k+'新增 '+c.addR[k]+' 位裁判')});Object.keys(c.delR).forEach(function(k){a.push(k+'刪除 '+c.delR[k]+' 位裁判')});
     li.push('「'+c.name+'」資料夾：'+a.join('、'))});
@@ -6090,6 +6104,7 @@ app.addEventListener('change',function(e){
       try{o=JSON.parse(rd.result);list=o&&o.matches?o.matches:(o&&o.match?[o.match]:[])}catch(err){}
       if(!Array.isArray(list))list=[];
       var valid=list.filter(validMatch),badN=list.length-valid.length,cups=planCups(o&&o.cups);
+      valid.forEach(function(im){if(im.cup&&cups.alias[im.cup])im.cup=cups.alias[im.cup]});
       if(!valid.length&&!cups.length){out.textContent=badN?'這個備份的內容有問題，沒有匯入。其他比賽不受影響。':'讀不出這個檔案，請選下載的備份檔';return}
       var add=[],newer=[],lost=0;
       valid.forEach(function(im){var x=db.matches.filter(function(q){return q.id===im.id})[0];if(!x){add.push(im);return}if(im.events.length>x.events.length){newer.push(im);var ids={};im.events.forEach(function(e){ids[e.id]=1});if(x.events.some(function(e){return !ids[e.id]}))lost++}});
