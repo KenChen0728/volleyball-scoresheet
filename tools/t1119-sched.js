@@ -28,6 +28,7 @@ const CELLS=`12/5（六）
 11:30-12:30
 空場
 丁隊 vs 甲隊`;
+const Y=new Date().getFullYear();
 (async()=>{const b=await chromium.launch();
   const mk=async(vp)=>{const ctx=await b.newContext({viewport:vp,hasTouch:true});const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));return p};
   const p=await mk({width:390,height:844});
@@ -41,12 +42,18 @@ const CELLS=`12/5（六）
   await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text',ROSTER);await p.click('[data-act=cupteamsave]');await W(400);
   ok('11 teams',(await cup()).teams.length===11,(await cup()).teams.map(t=>t.division+t.team.name));
   // 1. 一格一行的貼法（直接算，不存）
-  await p.click('[data-act=scpaste]');await W(300);await p.fill('#sc-text',CELLS);await p.click('[data-act=scparse]');await W(300);
-  const cells=[...(await p.locator('.scprev li:not(.scpd)').allInnerTexts())].map(t=>t.replace(/\s+/g,' ').trim());
-  ok('cell-per-line format',JSON.stringify(cells)===JSON.stringify(['08:30 室內場 A 女子組 藍隊 vs 橘隊','08:30 室內場 B 男子組 甲隊 vs 乙隊','10:30 室內場 A 女子組 白隊 vs 黑隊','11:30 室內場 B 男子組 丁隊 vs 甲隊']),cells);
+  await p.click('[data-act=scpaste]');await W(300);
+  ok('two court boxes by default',await p.locator('.sheet .scblk').count()===2&&await p.locator('.sheet .scblk').nth(0).locator('[aria-pressed=true]').innerText()!==await p.locator('.sheet .scblk').nth(1).locator('[aria-pressed=true]').innerText());
+  await p.fill('#sc-ct-0','8:30 藍隊 vs 橘隊');await p.click('[data-act=scparse]');await W(300);
+  ok('court name required',/第 1 個場地還沒填名稱/.test(await p.locator('.sheet').innerText()));
+  ok('typed text kept',await p.inputValue('#sc-ct-0')==='8:30 藍隊 vs 橘隊');
+  await p.fill('#sc-ct-0',CELLS);await p.click('[data-act=scparse]');await W(300);
+  const grid=async()=>p.evaluate(()=>[...document.querySelectorAll('.scgt tr')].map(r=>[...r.children].map(x=>x.innerText.replace(/\s+/g,' ').trim()).join(' | ')));
+  const cells=await grid();
+  ok('whole table in one box, grid by court',JSON.stringify(cells)===JSON.stringify([' | 室內場 A 女子組 | 室內場 B 男子組','12/5（六）','08:30 | 藍隊 vs 橘隊 | 甲隊 vs 乙隊','10:30 | 白隊 vs 黑隊 | —','11:30 | — | 丁隊 vs 甲隊']),cells);
   await p.click('.sheet [data-act=close]');await W(200);
   // 2. 貼上整份賽程 → 先看排出什麼
-  await p.click('[data-act=scpaste]');await W(300);await p.fill('#sc-text',SCHED);await p.click('[data-act=scparse]');await W(300);
+  await p.click('[data-act=scpaste]');await W(300);await p.fill('#sc-ct-0',SCHED);await p.click('[data-act=scparse]');await W(300);
   const pv=await p.locator('.sheet').innerText();
   ok('preview count',/會排出 8 場/.test(pv),pv.slice(0,300));
   ok('preview warns unknown teams',/A1（女子組）、B2（女子組）/.test(pv),pv);
@@ -65,13 +72,26 @@ const CELLS=`12/5（六）
   // 3. 資料夾頁：照男女組列出，場次男女各自編號
   await p.click('[data-act=cupdiv][data-v=女子組]');await W(300);
   let main=await p.locator('main').innerText();
-  ok('women list numbered',/第 1 場・08:30・室內場 A/.test(main)&&/第 4 場・09:00/.test(main)&&/12\/5（六）/.test(main)&&/12\/6（日）/.test(main),main.slice(0,600));
+  ok('women list numbered',/第 1 場・08:30・場地：室內場 A/.test(main)&&/第 4 場・09:00/.test(main)&&/12\/5（六）/.test(main)&&/12\/6（日）/.test(main),main.slice(0,600));
   ok('tbd shown',/待定・A1/.test(main));
   if(SHOT)await p.screenshot({path:SHOT+'/s-list.png',fullPage:true});
   await p.click('[data-act=cupdiv][data-v=男子組]');await W(300);main=await p.locator('main').innerText();
-  ok('men numbered from 1',/第 1 場・08:30・室內場 B/.test(main)&&/第 3 場・11:30/.test(main));
+  ok('men numbered from 1',/第 1 場・08:30・場地：室內場 B/.test(main)&&/第 3 場・11:30/.test(main));
   // 4. 再貼一次同一份：不會重複
-  await p.click('[data-act=scpaste]');await W(300);await p.fill('#sc-text',SCHED);await p.click('[data-act=scparse]');await W(300);
+  await p.click('[data-act=scpaste]');await W(300);
+  ok('court boxes prefilled from schedule',await p.inputValue('#sc-cn-0')==='室內場 A'&&await p.inputValue('#sc-cn-1')==='室內場 B'&&/女子組/.test(await p.locator('.sheet .scblk').nth(0).locator('[aria-pressed=true]').innerText()));
+  // 一個場地一格：12/6 另外輸入，同一時間場地是更新
+  await p.fill('#sc-pd',Y+'-12-06');await p.fill('#sc-ct-0','9:00 A1 vs B2\n10:00 藍隊 vs 紅隊');await p.fill('#sc-ct-1','9:00 甲隊 vs 丙隊');
+  await p.click('[data-act=scbadd]');await W(200);ok('add court box keeps typing',await p.locator('.sheet .scblk').count()===3&&await p.inputValue('#sc-ct-1')==='9:00 甲隊 vs 丙隊');
+  await p.click('[data-act=scbrm][data-i="2"]');await W(200);
+  await p.click('[data-act=scparse]');await W(300);
+  const g2=await grid();ok('per-court boxes grid',JSON.stringify(g2)===JSON.stringify([' | 室內場 A 女子組 | 室內場 B 男子組','12/6（日）','09:00 | 待定・A1 vs 待定・B2 | 甲隊 vs 丙隊','10:00 | 藍隊 vs 紅隊 | —']),g2);
+  ok('per-court update count',/其中 2 場同一時間、場地已經有了/.test(await p.locator('.sheet').innerText()));
+  if(SHOT){await p.setViewportSize({width:390,height:1900});await W(300);await p.screenshot({path:SHOT+'/s-boxes.png'});await p.setViewportSize({width:390,height:844});await W(200)}
+  await p.click('[data-act=scadd]');await W(300);c=await cup();ok('one new from boxes',c.sched.filter(x=>!x.del).length===9);
+  const ex=c.sched.find(x=>!x.del&&x.time==='10:00');await p.evaluate(([K,id])=>{const d=JSON.parse(localStorage.getItem(K));d.cups[0].sched.find(x=>x.id===id).del=true;localStorage.setItem(K,JSON.stringify(d))},[DBK,ex.id]);await p.reload();await W(400);
+  await p.locator('text=紀錄與名單').first().click().catch(()=>{});await W(300);if(await p.locator('[data-act=cupopen]').count()){await p.locator('[data-act=cupopen]').first().click();await W(300)}
+  await p.click('[data-act=scpaste]');await W(300);await p.fill('#sc-ct-0',SCHED);await p.click('[data-act=scparse]');await W(300);
   ok('repaste says update',/其中 8 場同一時間、場地已經有了/.test(await p.locator('.sheet').innerText()));
   await p.click('[data-act=scadd]');await W(300);c=await cup();ok('no duplicates',c.sched.filter(x=>!x.del).length===8);
   // 5. 排名賽知道隊伍了：修改這一場
@@ -111,7 +131,7 @@ const CELLS=`12/5（六）
   ok('number fills name',(await p.evaluate(()=>document.body.innerText+[...document.querySelectorAll('input')].map(i=>i.value).join(' '))).includes('林藍小華'));
   if(SHOT)await p.screenshot({path:SHOT+'/s-roster.png'});
   await p.click('[data-act=cupback]');await W(300);main=await p.locator('main').innerText();
-  ok('back to folder, row shows recording',/記錄中 ›/.test(main),main.slice(0,400));
+  ok('back to folder, row shows recording',/記錄中/.test(main),main.slice(0,400));
   await p.locator('.scrow:has-text("記錄中")').click();await W(300);ok('row opens the match',await p.locator('[data-act=cupback]').count()===1);
   // 8. 首頁「開始新比賽」：列出最近一天還沒開始的
   await p.click('[data-act=cupback]');await W(300);await p.click('[data-act=history]');await W(300);await p.locator('[data-act=home]').first().click();await W(300);
@@ -130,8 +150,17 @@ const CELLS=`12/5（六）
   ok('import plan mentions schedule',/賽程新增 8 場/.test(await q.locator('.sheet').innerText()),await q.locator('.sheet').innerText());
   await q.click('[data-act=impgo]');await W(500);await q.locator('[data-act=cupopen]').first().click();await W(300);
   await q.click('[data-act=cupdiv][data-v=女子組]');await W(300);const qm=await q.locator('main').innerText();
-  ok('partner sees schedule and status',/記錄中 ›/.test(qm)&&/第 4 場/.test(qm),qm.slice(0,500));
+  ok('partner sees schedule and status',/記錄中/.test(qm)&&/第 4 場/.test(qm),qm.slice(0,500));
   if(SHOT)await q.screenshot({path:SHOT+'/s-tablet.png',fullPage:true});
+  // 打完的場次：列上直接看到局數，右邊是「已結束」
+  const FM=JSON.parse(fs.readFileSync(__dirname+'/all.json','utf8')).matches[0];
+  await q.evaluate(([K,m])=>{const d=JSON.parse(localStorage.getItem(K));m.cup=d.cups[0].id;d.matches.push(m);const it=d.cups[0].sched.filter(x=>!x.del&&x.division==='女子組').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[1];it.mid=m.id;localStorage.setItem(K,JSON.stringify(d))},[DBK,FM]);
+  await q.reload();await W(500);if(!await q.locator('.scrow').count()){await q.locator('text=紀錄與名單').first().click().catch(()=>{});await W(300);await q.locator('[data-act=cupopen]').first().click();await W(300)}
+  await q.click('[data-act=cupdiv][data-v=女子組]');await W(300);
+  const fr=await q.locator('.scrow').nth(1).innerText();
+  ok('finished row shows set score',/已結束/.test(fr)&&/\d : \d/.test(fr),fr);
+  ok('next match chip is accent',await q.locator('.scrow .scchip.go').count()===1&&/第 3 場/.test(await q.locator('.scrow:has(.scchip.go)').innerText()));
+  if(SHOT){await q.setViewportSize({width:390,height:844});await W(300);await q.screenshot({path:SHOT+'/s-rows.png'})}
   // 改了再傳回來：最後改的為主
   ok('no page errors',!errs.length,errs);
   console.log('t1119-sched',pass,'ok',fail,'fail');await b.close();process.exit(fail?1:0)})();
