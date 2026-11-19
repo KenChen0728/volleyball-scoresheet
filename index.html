@@ -2467,7 +2467,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1117-0008';
+var BUILD='1119-2013';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2860,7 +2860,7 @@ function syncClean(e){
   else if(e.type==='STAFF_SET')d.value='';
   else if(e.type==='INFO_SET'&&SYNC_HIDE.indexOf(d.field)>=0)d.value='';
   else if(e.type==='MATCH_CREATED'&&d.info)SYNC_HIDE.forEach(function(f){delete d.info[f]});
-  else if(e.type==='TEAM_IMPORTED'&&d.snapshot){(d.snapshot.players||[]).forEach(function(p){if(p)p.name=''});var sf=d.snapshot.staff;if(sf)Object.keys(sf).forEach(function(f){sf[f]=''})}
+  else if(e.type==='TEAM_IMPORTED'&&d.snapshot){(d.snapshot.players||[]).forEach(function(p){if(p)p.name=''});if(d.snapshot.book)d.snapshot.book=[];var sf=d.snapshot.staff;if(sf)Object.keys(sf).forEach(function(f){sf[f]=''})}
   delete x.device;
   return JSON.stringify(x);
 }
@@ -3954,14 +3954,26 @@ function teamText(t){
   return a.join('\n');
 }
 /* 接受：背號 姓名 身分（空白、Tab、逗號分隔，Excel 複製也可以），或 組別,隊名,背號,姓名,身分 一次多隊 */
+/* 選隊伍時：名冊（全部報名的背號和姓名）留著查姓名，出賽名單、隊長、自由球員先空著 */
+function bookSnap(team){var s=JSON.parse(JSON.stringify(team||emptyTeam())),by={};
+  (team&&Array.isArray(team.book)?team.book:[]).concat(team&&team.players||[]).forEach(function(p){if(p&&typeof p.no==='number')by[p.no]={no:p.no,name:p.name||(by[p.no]&&by[p.no].name)||''}});
+  s.book=Object.keys(by).map(function(n){return by[n]}).sort(function(a,b){return a.no-b.no});s.players=[];s.liberos=[];s.captain=null;s.locked=false;return s}
+function bookName(t,n){var b=t&&Array.isArray(t.book)?t.book:[];for(var i=0;i<b.length;i++)if(b[i].no===n)return b[i].name||'';return ''}
+function hasBook(t){return !!(t&&Array.isArray(t.book)&&t.book.length)}
 function parseRoster(text,div,name){
   var teams=[],errors=[],by={},cur=null;
   function get(d,n){var k=d+'|'+n;if(!by[k]){by[k]={division:d,team:Object.assign(emptyTeam(),{name:n})};teams.push(by[k])}return by[k]}
   if(name)cur=get(div,name);
+  var made={};
   String(text||'').split(/\r?\n/).forEach(function(raw,i){
-    var line=raw.replace(/^\uFEFF/,'').trim();if(!line||/背號/.test(line)&&/姓名/.test(line))return;
+    var line=raw.replace(/^\uFEFF/,'');try{line=line.normalize('NFKC')}catch(e){}line=line.trim();if(!line||/背號/.test(line)&&/姓名/.test(line))return;
+    var hd=line.match(/^(男|女)(子組|生組|排)?.*名單$/);if(hd){div=hd[1]+'子組';cur=null;return}
     var c=line.split(/\t|,|，/).map(function(x){return x.trim()});
-    if(c.length<2)c=line.split(/[\s:：]+/);
+    if(c.length<2)c=line.split(/[\s:：]+/).filter(Boolean);
+    var stf=STAFF.concat([['teacher','隨隊教師']]).some(function(x){return x[1]===c[0]});
+    if(c.length===1){var g1=c[0].match(/^(\d{1,2})(\D.*)$/),g2=c[0].match(/^(\D+?)(\d{1,2})$/);if(g1)c=[g1[1],g1[2].trim()];else if(g2)c=[g2[2],g2[1].trim()]}
+    else if(!/^\d{1,2}$/.test(c[0])&&/^\d{1,2}$/.test(c[1])&&!stf&&c[0]!=='隊名'&&!/^(男|女)(子組|排|生組)?$/.test(c[0])){var sw=c[0];c[0]=c[1];c[1]=sw}
+    if(c.length===1&&!/\d/.test(c[0])&&!stf){cur=get(div,c[0]);if(!made[div+'|'+c[0]])made[div+'|'+c[0]]=i+1;return}
     var tm=cur,dm=c[0].match(/^(男|女)(子組|排|生組)?$/);
     if(dm&&c.length>=4){tm=cur=get(dm[1]+'子組',c[1]);c=c.slice(2)}
     var st=STAFF.concat([['teacher','隨隊教師']]).filter(function(x){return x[1]===c[0]})[0];
@@ -3979,8 +3991,7 @@ function parseRoster(text,div,name){
   });
   teams.forEach(function(x){var t=x.team;
     if(!t.name.trim())errors.push('請填隊名');
-    if(t.players.length-t.liberos.length>MAX_PLAYERS)errors.push(t.name+' 一般球員超過 '+MAX_PLAYERS+' 人');
-    if(t.liberos.length>MAX_LIBEROS)errors.push(t.name+' 自由球員超過 '+MAX_LIBEROS+' 人');
+    else if(!t.players.length&&made[x.division+'|'+t.name])errors.push('第 '+made[x.division+'|'+t.name]+' 行「'+t.name+'」後面沒有球員（一行要有背號和姓名）');
   });
   return {teams:teams,errors:errors};
 }
@@ -4274,7 +4285,7 @@ function rosterHtml(s,m){
     return '<div class="tool '+k+'"><div class="count">登錄人數：'+t.players.length+' 人</div><div class="row"><button data-act="sheet" data-v="staff" data-team="'+k+'">職員</button>'+(past&&!t.locked?'<button data-act="sheet" data-v="import" data-team="'+k+'">載入</button>':'')+'</div><div id="foot-'+k+'" class="foot">'+footHtml(k,t,s)+'</div></div>';
   }).join('');
   var sameColor=(a.color||JERSEY_DEFAULT.t1)===(b.color||JERSEY_DEFAULT.t2);
-  return (a.locked?'':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。每隊至少 6 位，並點背號指定隊長。姓名可以不填。</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，點隊名旁的色塊可以更改。</p>':'')+'<div class="sheetgrid">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
+  return (a.locked?'':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。每隊至少 6 位，並點背號指定隊長。姓名可以不填。'+(hasBook(s.teams.t1)||hasBook(s.teams.t2)?'有名冊的隊伍，照球隊簽名的名單輸入背號，姓名會自動帶出。':'')+'</p>')+(sameColor?'<p class="warning">兩隊球衣顏色相同，比賽時不容易分辨，點隊名旁的色塊可以更改。</p>':'')+'<div class="sheetgrid">'+h+'</div><div class="tools">'+tools+'</div><div id="rnext" class="rnext">'+rosterNext(s)+'</div>';
 }
 function rosterNext(s){
   if(s.sets[1].started)return '';
@@ -5982,7 +5993,7 @@ app.addEventListener('click',function(e){
       if(prev)['place','court','city','group'].forEach(function(f){if(prev.info[f])inf[f]=prev.info[f]});
       if(cupView.grp)inf.group=cupView.grp;
       var cm=createMatch(inf); cm.cup=cs.id; db.currentId=cm.id;
-      picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:x.team,fromName:x.team.name},cm)});
+      picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:bookSnap(x.team),fromName:x.team.name},cm)});
       save(); resetUi(); ui.page='info'; ui.from='cup'; view='setup'; break;
     case 'cupadd': ui.cupSheet={type:'add'}; break;
     case 'cupaddm': var am=db.matches.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; if(am){am.cup=cupView.id;addMatchRefs(am,safeReduce(am));save()} break;
@@ -6229,7 +6240,7 @@ app.addEventListener('click',function(e){
       var pick=importChoices(m,s,k).list[Number(b.getAttribute('data-i'))];
       if(!pick)break;
       if(act==='import-pick'&&t.players.length){ui.pending=pick.name;break}
-      dispatch('TEAM_IMPORTED',{team:k,snapshot:pick.team,fromName:pick.name});
+      dispatch('TEAM_IMPORTED',{team:k,snapshot:bookSnap(pick.team),fromName:pick.name});
       ui.sheet=null; ui.pending=null; ui.impAll=false; ui.slot[k]=null; ui.entry[k]=''; ui.msg[k]='';
       break;
     case 'toss':
@@ -6470,13 +6481,18 @@ function commitNumber(k,t){
   if(raw==='')return true;
   var n=Number(raw),old=sl.no;
   if(t.players.some(function(p){return p.no===n&&p.no!==old})){ui.msg[k]=n+' 號已在名單上';ui.entry[k]='';return false}
+  var bn=bookName(t,n),bmsg=hasBook(t)&&!bn?'名冊沒有 '+n+' 號，姓名可以自己填':'';
   if(old!==null){
-    if(n!==old)dispatch('PLAYER_NUMBER_CHANGED',{team:k,from:old,to:n});
+    if(n!==old){var curNm=(t.players.filter(function(p){return p.no===old})[0]||{}).name||'',ob=bookName(t,old);
+      dispatch('PLAYER_NUMBER_CHANGED',{team:k,from:old,to:n});
+      if(bn&&(!curNm||curNm===ob))dispatch('PLAYER_NAME_SET',{team:k,no:n,name:bn});
+      else if(!bn&&curNm&&curNm===ob)dispatch('PLAYER_NAME_SET',{team:k,no:n,name:''});}
   }else{
     dispatch('PLAYER_ADDED',{team:k,no:n});
+    if(bn)dispatch('PLAYER_NAME_SET',{team:k,no:n,name:bn});
     if(sl.kind==='lib')dispatch('LIBERO_SET',{team:k,no:n,on:true});
   }
-  ui.entry[k]=''; ui.msg[k]='';
+  ui.entry[k]=''; ui.msg[k]=bmsg;
   ui.slot[k]=(old===null&&sl.kind==='reg')?autoSlot(reduce(current().events).teams[k]):null;
   return true;
 }
