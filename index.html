@@ -1993,9 +1993,14 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .scday{font-size:15px;margin:14px 0 0;color:var(--muted)}
 .scday:first-child{margin-top:4px}
 .scrow .hnames b{font-weight:500;color:var(--muted)}
+.scrow .hnames>span,.scrow .hnames>span:last-child{text-align:center}
+.scrow>.hgo{align-self:stretch;display:flex;align-items:center;padding-left:12px;border-left:1px solid var(--line)}
+.scchip{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:var(--rb);background:var(--btn);color:var(--btn-ink);font-size:15px;font-weight:700}
+.scchip.go{background:var(--accent);color:var(--accent-ink)}
+.scchip.live{background:none;box-shadow:inset 0 0 0 2px var(--ink);color:var(--ink)}
+.scchip.done{background:none;color:var(--muted);padding:0 4px}
 .sctbd{font-style:normal;color:var(--muted)}
 .scvs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;text-align:center;margin:4px 0 8px}
-.scvs small{display:block;color:var(--muted);font-weight:500;font-size:14px}
 .scvs strong{font-size:20px;overflow-wrap:anywhere}
 .scvs b{color:var(--muted);font-weight:500}
 .scgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -2004,6 +2009,19 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .scprev li.scpd{background:none;padding:6px 0 0;font-weight:700}
 .scprev li span{color:var(--muted);font-size:14px}
 .scpick{font-size:15px;margin:12px 0 0}
+.scblk{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px}
+.scbh{display:flex;gap:8px;align-items:center}
+.scbh input{flex:1;min-width:0}
+.scbrm{flex:none;min-height:44px;padding:0 14px}
+.scbadd{align-self:flex-start}
+.scgw{overflow-x:auto}
+.scgt{width:100%;border-collapse:collapse;font-size:15px}
+.scgt th,.scgt td{border-bottom:1px solid var(--line);padding:6px;vertical-align:top;text-align:left}
+.scgt thead th{font-weight:700}
+.scgt thead th small{display:block;color:var(--muted);font-weight:500;font-size:13px}
+.scgt tbody th{white-space:nowrap;font-weight:500;color:var(--muted)}
+.scgt td div+div{margin-top:4px}
+.scgt .scgd td{font-weight:700;padding-top:12px;border-bottom:0}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2483,7 +2501,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1119-2059';
+var BUILD='1119-2125';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4093,10 +4111,11 @@ function schedKey(x){return [x.date,x.time,courtKey(x.court),x.division].join('|
 function schedTodo(c){var a=liveSched(c).filter(function(x){return !schedMatch(x)}).sort(schedSort),t=today();
   var d=a.filter(function(x){return x.date===t}).length?t:(a.filter(function(x){return x.date>=t})[0]||a[0]||{}).date;return a.filter(function(x){return x.date===d})}
 /* 貼上的賽程：一行一個時段，「甲隊 vs 乙隊」照表頭的場地順序；也接受一格一行。看不懂的說明文字略過 */
-function parseSched(text,c,defDiv){
-  var hdr=false,items=[],miss=[],cols=[],date='',time='',end='',ci=0,ord=0,now=new Date(),noDate=false,noCol=false,teams=liveTeams(c);
+function parseSched(text,c,defDiv,opt){
+  var single=false,hdr=false,items=[],miss=[],cols=[],date='',time='',end='',ci=0,ord=0,now=new Date(),noDate=false,noCol=false,teams=liveTeams(c);
+  if(opt){date=opt.date||'';ord=opt.base||0;if(opt.court!=null){cols=[{court:opt.court,division:defDiv}];single=true}} // 一個場地一格：每一行都是這個場地
   function find(nm,div){var k=nm.replace(/\s/g,'');return teams.filter(function(x){return x.division===div&&x.team.name.replace(/\s/g,'')===k})[0]||null}
-  function add(a,b){var k=cols[ci]||null;ci++;if(!k){noCol=true;k={court:'',division:defDiv}}if(!date)noDate=true;
+  function add(a,b){var k=single?cols[0]:cols[ci]||null;ci++;if(!k){noCol=true;k={court:'',division:defDiv}}if(!date)noDate=true;
     var it={id:uid(),date:date||today(),time:time,end:end,court:k.court,division:k.division,t1:'',n1:'',t2:'',n2:'',ord:++ord};
     [[a,'t1','n1'],[b,'t2','n2']].forEach(function(q){var t=find(q[0],k.division);if(t)it[q[1]]=t.id;else{it[q[2]]=q[0];var w=q[0]+'（'+k.division+'）';if(miss.indexOf(w)<0)miss.push(w)}});
     items.push(it)}
@@ -4107,7 +4126,7 @@ function parseSched(text,c,defDiv){
     if(!/^\d{1,2}:\d{2}/.test(l)&&!/vs/i.test(l)){
       var re=/([一-鿿A-Za-z]{0,4}?場地?\s?[A-Za-z0-9一二三四五六七八九十]{0,3})\s?\(?\s?(?:為|是)?\s?(男|女)(?:子組|生組|子|排|組)?/g,h,hs=[];
       while((h=re.exec(l)))hs.push({court:h[1].replace(/\s+/g,' ').trim(),division:h[2]+'子組'});
-      if(hs.length){cols=hdr?cols.concat(hs):hs;hdr=true;ci=0;return} // 表頭一格一行時接起來
+      if(hs.length){cols=hdr?cols.concat(hs):hs;hdr=true;single=false;ci=0;return} // 表頭一格一行時接起來
     }
     var tm=l.match(/^(\d{1,2}):(\d{2})(?:\s?[-–—~～至到]\s?(\d{1,2}):(\d{2}))?/);
     if(l)hdr=false;
@@ -4118,22 +4137,24 @@ function parseSched(text,c,defDiv){
     if(!any&&l&&time)ci++; // 空場、簽到這類也佔一格
   });
   var have={};liveSched(c).forEach(function(x){have[schedKey(x)]=x});
-  return {items:items,miss:miss,noDate:noDate,noCol:noCol,upd:items.filter(function(x){return have[schedKey(x)]}).length};
+  return {single:single,items:items,miss:miss,noDate:noDate,noCol:noCol,upd:items.filter(function(x){return have[schedKey(x)]}).length};
 }
-function schedRow(c,x,no){
-  var a=schedSide(c,x,'t1'),b=schedSide(c,x,'t2'),m=schedMatch(x),s=m?safeReduce(m):null,over=s&&matchOver(s);
+function schedRow(c,x,no,next){
+  var a=schedSide(c,x,'t1'),b=schedSide(c,x,'t2'),m=schedMatch(x),s=m?safeReduce(m):null,w=s&&matchOver(s)?setsWon(s):null;
   var act=s?'data-act="open" data-from="cup" data-id="'+esc(m.id)+'"':'data-act="scopen" data-id="'+esc(x.id)+'"';
-  return '<button class="hrow card scrow" '+act+'><span class="muted">第 '+no+' 場・'+esc(x.time||'時間未定')+(x.court?'・'+esc(x.court):'')+'</span><span class="hnames"><span>'+schedSideHtml(a)+'</span><b>'+(over?setsText(s):'vs')+'</b><span>'+schedSideHtml(b)+'</span></span><span class="hgo" aria-hidden="true">'+(s?(over?'已結束 ›':'記錄中 ›'):'開始 ›')+'</span></button>';
+  var chip=s?(w?'<span class="scchip done">已結束</span>':'<span class="scchip live">記錄中</span>'):'<span class="scchip'+(next?' go':'')+'">開始</span>';
+  return '<button class="hrow card scrow" '+act+'><span class="muted">第 '+no+' 場・'+esc(x.time||'時間未定')+(x.court?'・場地：'+esc(x.court):'')+'</span><span class="hnames"><span'+(w&&w.t1>w.t2?' class="win"':'')+'>'+schedSideHtml(a)+'</span><b>'+(w?w.t1+' : '+w.t2:'vs')+'</b><span'+(w&&w.t2>w.t1?' class="win"':'')+'>'+schedSideHtml(b)+'</span></span><span class="hgo">'+chip+'</span></button>';
 }
 function schedSec(c){
   var sl=liveSched(c).filter(function(x){return x.division===cupView.div}).sort(schedSort),nos=schedNos(c),dd=null,sr='';
-  sl.forEach(function(x){if(x.date!==dd){dd=x.date;sr+='<h3 class="scday">'+esc(schedDay(dd))+'</h3>'}sr+=schedRow(c,x,nos[x.id])});
+  var nx=sl.filter(function(x){return !schedMatch(x)})[0]; // 下一場：開始用主色，其他用一般按鈕
+  sl.forEach(function(x){if(x.date!==dd){dd=x.date;sr+='<h3 class="scday">'+esc(schedDay(dd))+'</h3>'}sr+=schedRow(c,x,nos[x.id],x===nx)});
   return '<section><div class="shead"><h2>賽程 '+sl.length+' 場</h2><span class="scbtns"><button class="linkbtn" data-act="scpaste">貼上賽程</button><button class="linkbtn" data-act="scnew">加一場</button></span></div>'+(sr?'<div class="rlist">'+sr+'</div>':'<p class="muted">把大會的賽程表整份貼上。到時候點那一場就開始記錄，兩隊隊名和名冊自動帶入，只要輸入背號。</p>')+'</section>';
 }
 function schedSheetHtml(x,c,err){
   if(x.type==='scone'){var it=schedById(c,x.id);if(!it)return '';var A=schedSide(c,it,'t1'),B=schedSide(c,it,'t2');
-    return '<h2>'+esc(it.division)+'第 '+schedNos(c)[it.id]+' 場</h2><p class="muted">'+esc(schedDay(it.date))+' '+esc(it.time||'時間未定')+(it.end?'–'+esc(it.end):'')+(it.court?'　'+esc(it.court):'')+'</p>'+
-      '<div class="scvs"><div><small>第一隊</small><strong>'+schedSideHtml(A)+'</strong></div><b>vs</b><div><small>第二隊</small><strong>'+schedSideHtml(B)+'</strong></div></div>'+
+    return '<h2>'+esc(it.division)+'第 '+schedNos(c)[it.id]+' 場</h2><p class="muted">'+esc(schedDay(it.date))+' '+esc(it.time||'時間未定')+(it.end?'–'+esc(it.end):'')+(it.court?'　場地：'+esc(it.court):'')+'</p>'+
+      '<div class="scvs"><strong>'+schedSideHtml(A)+'</strong><b>vs</b><strong>'+schedSideHtml(B)+'</strong></div>'+
       (A.set&&B.set?'<p class="muted">開始後在名單頁輸入背號，名冊有的姓名會自動帶出。</p>':'<p class="warning">還有隊伍待定。可以先按「修改這一場」選隊伍，或開始後在名單頁載入。</p>')+
       '<button class="primary" data-act="scgo" data-id="'+esc(it.id)+'">開始記錄</button><button data-act="scedit" data-id="'+esc(it.id)+'">修改這一場</button><button class="ghost" data-act="close">關閉</button>'}
   if(x.type==='scedit'){var f=x.f,ts=liveTeams(c).filter(function(t){return t.division===f.division}),cs=[];
@@ -4148,15 +4169,41 @@ function schedSheetHtml(x,c,err){
       lab('t1')+lab('t2')+err+
       '<button class="primary" data-act="scsave1">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="scdel2">確定刪除這一場</button><button data-act="scdelno">不要刪除</button>':'<button class="ghost" data-act="scdel">刪除這一場</button>'):'')+'<button class="ghost" data-act="close">'+(x.back?'關閉':'取消')+'</button>'}
   if(x.type==='scpaste'){var pl=x.plan,pv='';
-    if(pl){var dd=null,li='';pl.items.slice().sort(schedSort).forEach(function(it){if(it.date!==dd){dd=it.date;li+='<li class="scpd">'+esc(schedDay(dd))+'</li>'}
-        li+='<li><span>'+esc(it.time||'時間未定')+'　'+esc(it.court||'場地未定')+'　'+esc(it.division)+'</span><strong>'+schedSideHtml(schedSide(c,it,'t1'))+' vs '+schedSideHtml(schedSide(c,it,'t2'))+'</strong></li>'});
-      pv=(pl.items.length?'<p class="muted">會排出 '+pl.items.length+' 場'+(pl.upd?'（其中 '+pl.upd+' 場同一時間、場地已經有了，會改成這次的隊伍）':'')+'：</p><ul class="scprev">'+li+'</ul>':'')+
+    if(pl){pv=(pl.items.length?'<p class="muted">會排出 '+pl.items.length+' 場'+(pl.upd?'（其中 '+pl.upd+' 場同一時間、場地已經有了，會改成這次的隊伍）':'')+'：</p>'+schedGrid(c,pl.items):'')+
         (pl.miss.length?'<p class="warning">資料夾裡沒有這些隊伍，先當作待定：'+esc(pl.miss.join('、'))+'。隊名要跟名單一樣；也可以之後點那一場再選隊伍。</p>':'')+
-        (pl.noDate?'<p class="warning">沒有寫日期，先當作今天。</p>':'')+(pl.noCol?'<p class="warning">有幾場看不出場地和男女組，先放在'+esc(CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0])+'。可以在第一行加上「室內場 A（女子組） 室內場 B（男子組）」。</p>':'')}
-    return '<h2>貼上賽程</h2><p class="muted">把大會的賽程表（PDF、Word、LINE）整份複製貼上。每場寫成「甲隊 vs 乙隊」，左邊是第一隊。表頭寫「室內場 A（女子組）」，就會照場地分男女組。</p>'+
-      '<label for="sc-text">賽程<textarea id="sc-text" data-sc="text" class="cupta" rows="7" placeholder="12/5（六） 室內場 A（女子組） 室內場 B（男子組）&#10;8:30-9:30 範例藍隊 vs 範例橘隊 範例綠隊 vs 範例紅隊">'+esc(x.text||'')+'</textarea></label>'+pv+err+
+        (pl.noDate?'<p class="warning">沒有選日期，先當作今天。</p>':'')+(pl.noCol?'<p class="warning">有幾場看不出是哪個場地，請放到對的場地那一格。</p>':'')}
+    var blk=x.courts.map(function(k,i){return '<div class="scblk"><div class="scbh"><input id="sc-cn-'+i+'" data-scb="'+i+'" data-k="name" type="text" maxlength="20" list="sc-courts" autocomplete="off" aria-label="第 '+(i+1)+' 個場地名稱" placeholder="場地，例如：室內場 A" value="'+esc(k.name||'')+'">'+
+        (x.courts.length>1?'<button class="scbrm" data-act="scbrm" data-i="'+i+'" aria-label="移除這個場地">移除</button>':'')+'</div>'+
+        '<div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="scbdiv" data-i="'+i+'" data-v="'+d+'" aria-pressed="'+(k.div===d)+'">'+d+'</button>'}).join('')+'</div>'+
+        '<textarea id="sc-ct-'+i+'" data-scb="'+i+'" data-k="text" class="cupta" rows="5" aria-label="第 '+(i+1)+' 個場地的賽程" placeholder="一行一場，例如：&#10;8:30 範例藍隊 vs 範例橘隊&#10;9:30 範例綠隊 vs 範例紅隊">'+esc(k.text||'')+'</textarea></div>'}).join('');
+    var cs=[];liveSched(c).concat(courtList(c).map(function(q){return {court:q.label}})).forEach(function(q){if(q.court&&cs.indexOf(q.court)<0)cs.push(q.court)});
+    return '<h2>貼上賽程</h2><p class="muted">先選日期，再一個場地一格，一行一場，例如「8:30 東海社工 vs 中正勞工」，左邊是第一隊。整張賽程表貼在任何一格也可以，會照表頭自動分場地。</p>'+
+      '<label for="sc-pd">日期<input id="sc-pd" data-scp="date" type="date" max="9999-12-31" value="'+esc(x.date||'')+'"></label>'+blk+'<datalist id="sc-courts">'+cs.map(function(q){return '<option value="'+esc(q)+'">'}).join('')+'</datalist>'+
+      '<button class="scbadd" data-act="scbadd">＋ 再加一個場地</button>'+pv+err+
       (pl&&pl.items.length?'<button class="primary" data-act="scadd">加入賽程（'+pl.items.length+' 場）</button><button data-act="scparse">重新整理</button>':'<button class="primary" data-act="scparse">看看會排出什麼</button>')+'<button class="ghost" data-act="close">取消</button>'}
   return '';
+}
+/* 預覽：場地是欄、時間是列，跟大會的賽程表一樣 */
+function schedGrid(c,items){
+  var cols=[],rows={},keys=[];
+  items.slice().sort(schedSort).forEach(function(it){var ck=it.court+'|'+it.division,rk=it.date+'|'+it.time;if(cols.indexOf(ck)<0)cols.push(ck);if(!rows[rk]){rows[rk]={};keys.push(rk)}(rows[rk][ck]=rows[rk][ck]||[]).push(it)});
+  var dd=null,body='';
+  keys.forEach(function(rk){var p=rk.split('|');if(p[0]!==dd){dd=p[0];body+='<tr class="scgd"><td colspan="'+(cols.length+1)+'">'+esc(schedDay(dd))+'</td></tr>'}
+    body+='<tr><th scope="row">'+esc(p[1]||'未定')+'</th>'+cols.map(function(ck){var a=rows[rk][ck];return '<td>'+(a?a.map(function(it){return '<div>'+schedSideHtml(schedSide(c,it,'t1'))+' <span class="muted">vs</span> '+schedSideHtml(schedSide(c,it,'t2'))+'</div>'}).join(''):'<span class="muted">—</span>')+'</td>'}).join('')+'</tr>'});
+  return '<div class="scgw"><table class="scgt"><thead><tr><th></th>'+cols.map(function(ck){var p=ck.split('|');return '<th scope="col">'+esc(p[0]||'場地未定')+'<small>'+esc(p[1])+'</small></th>'}).join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+}
+function schedPasteOf(c){
+  var seen={},cs=[];liveSched(c).slice().sort(schedSort).forEach(function(x){var k=x.court+'|'+x.division;if(!seen[k]&&x.court){seen[k]=1;cs.push({name:x.court,div:x.division,text:''})}});
+  if(!cs.length)cs=[{name:'',div:CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0],text:''},{name:'',div:'',text:''}],cs[1].div=CUP_DIVS.filter(function(d){return d!==cs[0].div})[0];
+  return {type:'scpaste',date:today(),courts:cs};
+}
+function parseBlocks(x,c){
+  var all={items:[],miss:[],noDate:!x.date,noCol:false,upd:0,err:''};
+  x.courts.forEach(function(k,i){if(!String(k.text||'').trim())return;var nm=String(k.name||'').trim();
+    var r=parseSched(k.text,c,k.div,{date:x.date,court:nm,base:i*1000});
+    if(r.single&&!nm&&r.items.length&&!all.err)all.err='第 '+(i+1)+' 個場地還沒填名稱（例如：室內場 A）';
+    all.items=all.items.concat(r.items);r.miss.forEach(function(m){if(all.miss.indexOf(m)<0)all.miss.push(m)});all.noCol=all.noCol||r.noCol;all.upd+=r.upd});
+  return all;
 }
 /* 照賽程開始：資料、場次先填好，兩隊帶入名冊（出賽名單空著），直接到名單頁 */
 function schedStart(c,it,fromCup){
@@ -4174,7 +4221,10 @@ function schedEditOf(c,it){return {type:'scedit',id:it?it.id:null,f:it?{date:it.
 function schedAct(act,b){
   var c=theCup(),x=ui.cupSheet;if(!c)return false;
   switch(act){
-    case 'scpaste': ui.cupSheet={type:'scpaste',text:''}; return true;
+    case 'scpaste': ui.cupSheet=schedPasteOf(c); return true;
+    case 'scbadd': if(x&&x.courts){x.courts.push({name:'',div:x.courts[x.courts.length-1].div||CUP_DIVS[0],text:''});x.plan=null} return true;
+    case 'scbrm': if(x&&x.courts&&x.courts.length>1){x.courts.splice(+b.getAttribute('data-i'),1);x.plan=null} return true;
+    case 'scbdiv': if(x&&x.courts){var bk=x.courts[+b.getAttribute('data-i')];if(bk)bk.div=b.getAttribute('data-v');x.plan=null} return true;
     case 'scnew': ui.cupSheet=schedEditOf(c,null); return true;
     case 'scopen': ui.cupSheet={type:'scone',id:b.getAttribute('data-id')}; return true;
     case 'scedit': var e1=schedById(c,b.getAttribute('data-id'));if(e1){ui.cupSheet=schedEditOf(c,e1);ui.cupSheet.back=true} return true;
@@ -4193,19 +4243,21 @@ function schedAct(act,b){
       if(CUP_DIVS.indexOf(it.division)>=0)cupView.div=it.division;
       ui.cupSheet=null; save(); return true;
     case 'scparse': case 'scadd':
-      var ta=document.getElementById('sc-text');if(ta)x.text=ta.value;
-      var pl=parseSched(x.text,c,CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0]);x.err='';
-      if(!pl.items.length){x.plan=null;x.err=String(x.text||'').trim()?'看不出有哪幾場。每場要寫成「甲隊 vs 乙隊」，前面要有時間（例如 8:30-9:30）。':'請先貼上賽程';return true}
+      var pl=parseBlocks(x,c),typed=x.courts.some(function(k){return String(k.text||'').trim()});x.err='';
+      if(pl.err){x.plan=null;x.err=pl.err;return true}
+      if(!pl.items.length){x.plan=null;x.err=typed?'看不出有哪幾場。一行一場，寫成「8:30 甲隊 vs 乙隊」。':'請先貼上或輸入賽程';return true}
       if(act==='scparse'){x.plan=pl;return true}
       var have={},tn=Date.now();liveSched(c).forEach(function(q){have[schedKey(q)]=q});
-      pl.items.forEach(function(q){var h=have[schedKey(q)];if(h){['t1','n1','t2','n2','end'].forEach(function(k){h[k]=q[k]});h.at=tn}else{q.at=tn;q.ord=liveSched(c).length+1;cupSched(c).push(q)}});
+      pl.items.forEach(function(q){var h=have[schedKey(q)];if(h){['t1','n1','t2','n2','end'].forEach(function(k){h[k]=q[k]});h.at=tn}else{q.at=tn;cupSched(c).push(q);have[schedKey(q)]=q}});
       var d0=pl.items[0].division;if(!pl.items.some(function(q){return q.division===cupView.div})&&CUP_DIVS.indexOf(d0)>=0)cupView.div=d0;
       ui.cupSheet=null; save(); return true;
     case 'scgo': var it2=schedById(c,b.getAttribute('data-id'));ui.cupSheet=null;if(it2)schedStart(c,it2,b.getAttribute('data-from')!=='start'); return true;
   }
   return false;
 }
-app.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-sc'),x=ui.cupSheet;if(!k||!x)return;if(k==='text'){x.text=t.value}else if(x.f)x.f[k]=t.value});
+app.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-sc'),x=ui.cupSheet;if(!x)return;var bi=t&&t.getAttribute&&t.getAttribute('data-scb'),pk=t&&t.getAttribute&&t.getAttribute('data-scp');
+  if(bi!=null&&x.courts&&x.courts[+bi]){x.courts[+bi][t.getAttribute('data-k')]=t.value;return}if(pk){x[pk]=t.value;return}
+  if(!k)return;if(x.f)x.f[k]=t.value});
 function cupHomeHtml(){
   var rows=db.cups.map(function(c){var n=cupRows(c.id).length;return '<button class="hrow cupcard" data-act="cupopen" data-id="'+esc(c.id)+'"><svg class="cupic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg><span class="cuptx"><strong>'+esc(c.name)+'</strong><span class="muted">'+liveTeams(c).length+' 隊・'+n+' 場比賽</span></span><span class="cupgo" aria-hidden="true">打開 ›</span></button>'}).join('');
   return '<section><div class="shead"><h2>賽事資料夾</h2><button class="linkbtn" data-act="cupcreate">新增資料夾</button></div>'+(rows?'<div class="rlist">'+rows+'</div>':'<p class="muted">同一個盃賽的隊伍名單'+(XP_ON?'、各場地的裁判名單':'')+'和比賽放在一起。開新比賽時選資料夾，就能從名單點選。</p>')+'</section>';
@@ -4239,7 +4291,7 @@ function cupSheetHtml(){
   else if(x.type==='add'){var fr=db.matches.map(function(m){return {m:m,s:safeReduce(m)}}).filter(function(q){return q.s&&!q.m.cup&&!q.s.info.sample});fr.sort(function(a,b){return (b.s.info.name===c.name)-(a.s.info.name===c.name)});h='<h2>把舊比賽加進來</h2>'+(fr.length?fr.map(function(q){var T=matchTitle(q.s);return '<button class="imp" data-act="cupaddm" data-id="'+esc(q.m.id)+'"><span>'+esc(T[0])+' 對 '+esc(T[1])+'</span><small>'+esc((q.s.info.date||'').slice(5))+' '+esc(q.s.info.division||'')+'</small></button>'}).join(''):'<p class="muted">沒有其他比賽可以加入。</p>')+'<button class="ghost" data-act="close">完成</button>'}
   else if(x.type==='start')h='<h2>開始新比賽</h2><p class="muted">這場要放進哪個盃賽？之後在「資料」頁也能改。</p>'+db.cups.map(function(c){var on=x.pick===c.id;return '<button class="imp" data-act="newpick" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="newpick" data-id="" aria-pressed="'+(!x.pick)+'"><span>不屬於任何盃賽</span><small></small></button>'+(function(){var pc=x.pick?db.cups.filter(function(q){return q.id===x.pick})[0]:null,td=pc?schedTodo(pc):[],nos=pc?schedNos(pc):{};
     if(!td.length)return '<button class="primary" data-act="newgo">開始</button>';
-    return '<h3 class="scpick">照賽程開始（'+esc(schedDay(td[0].date))+'）</h3>'+td.map(function(it){return '<button class="imp" data-act="scgo" data-from="start" data-cup="'+esc(pc.id)+'" data-id="'+esc(it.id)+'"><span>'+schedSideHtml(schedSide(pc,it,'t1'))+' vs '+schedSideHtml(schedSide(pc,it,'t2'))+'</span><small>'+esc(it.division)+'第 '+nos[it.id]+' 場・'+esc(it.time||'')+(it.court?' '+esc(it.court):'')+'</small></button>'}).join('')+'<button data-act="newgo">不照賽程，開新的一場</button>'})()+'<button class="ghost" data-act="close">取消</button>';
+    return '<h3 class="scpick">照賽程開始（'+esc(schedDay(td[0].date))+'）</h3>'+td.map(function(it){return '<button class="imp" data-act="scgo" data-from="start" data-cup="'+esc(pc.id)+'" data-id="'+esc(it.id)+'"><span>'+schedSideHtml(schedSide(pc,it,'t1'))+' vs '+schedSideHtml(schedSide(pc,it,'t2'))+'</span><small>'+esc(it.division)+'第 '+nos[it.id]+' 場・'+esc(it.time||'')+(it.court?'・場地：'+esc(it.court):'')+'</small></button>'}).join('')+'<button data-act="newgo">不照賽程，開新的一場</button>'})()+'<button class="ghost" data-act="close">取消</button>';
   else if(x.type==='court'){var cl=theCup(),nm0=x.key?refNames(cl,x.key):[];h='<h2>'+(x.key?'修改裁判名單':'新增場地')+'</h2><label for="cc-court">場地<input id="cc-court" type="text" maxlength="20" value="'+esc(x.court||'')+'" placeholder="例如：第五場地"></label><label for="cc-text">裁判名單<textarea id="cc-text" class="cupta" rows="9" placeholder="一行一位，可以從 LINE 或分配表貼上">'+esc(x.text!=null?x.text:nm0.join('\n'))+'</textarea></label><p class="muted">同一個人可以在好幾個場地。不會再來的人，刪掉那一行就好。</p>'+err+'<button class="primary" data-act="cupcourtsave">儲存</button>'+(x.key?(x.ask?'<button class="danger" data-act="cupcourtdel2">確定刪除這個場地的名單</button>':'<button class="ghost" data-act="cupcourtdel">刪除這個場地</button>'):'')+'<button class="ghost" data-act="close">取消</button>'}
   else if(/^sc/.test(x.type)){h=schedSheetHtml(x,c,err);if(!h){ui.cupSheet=null;return ''}}
   else if(x.type==='del')h='<h2>刪除「'+esc(c.name)+'」？</h2><p class="muted">隊伍名單會刪除。比賽紀錄不會刪除，還在「紀錄與名單」裡。</p><button class="danger" data-act="cupdel2">確定刪除</button><button class="ghost" data-act="close">取消</button>';
@@ -6144,7 +6196,7 @@ app.addEventListener('click',function(e){
     case 'cupnew': ui.cupSheet={type:'new',pick:[]}; break;
     case 'scgo': if(b.getAttribute('data-cup')){cupView.id=b.getAttribute('data-cup');var sg=theCup(),sgi=sg&&schedById(sg,b.getAttribute('data-id'));if(sgi)cupView.div=sgi.division}
       schedAct(act,b); break;
-    case 'scpaste': case 'scnew': case 'scopen': case 'scedit': case 'scback': case 'scdiv': case 'scpick': case 'scdel': case 'scdelno': case 'scdel2': case 'scsave1': case 'scparse': case 'scadd': schedAct(act,b); break;
+    case 'scbadd': case 'scbrm': case 'scbdiv': case 'scpaste': case 'scnew': case 'scopen': case 'scedit': case 'scback': case 'scdiv': case 'scpick': case 'scdel': case 'scdelno': case 'scdel2': case 'scsave1': case 'scparse': case 'scadd': schedAct(act,b); break;
     case 'cuppick':
       var pk=ui.cupSheet.pick,pid=b.getAttribute('data-id'),pi=pk.indexOf(pid);
       if(pi>=0)pk.splice(pi,1);else if(pk.length<2)pk.push(pid);
