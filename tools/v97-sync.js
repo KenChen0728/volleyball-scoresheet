@@ -75,7 +75,7 @@ function syncClean(e){
   else if(e.type==='STAFF_SET')d.value='';
   else if(e.type==='INFO_SET'&&SYNC_HIDE.indexOf(d.field)>=0)d.value='';
   else if(e.type==='MATCH_CREATED'&&d.info)SYNC_HIDE.forEach(function(f){delete d.info[f]});
-  else if(e.type==='TEAM_IMPORTED'&&d.snapshot){(d.snapshot.players||[]).forEach(function(p){if(p)p.name=''});var sf=d.snapshot.staff;if(sf)Object.keys(sf).forEach(function(f){sf[f]=''})}
+  else if(e.type==='TEAM_IMPORTED'&&d.snapshot){(d.snapshot.players||[]).forEach(function(p){if(p)p.name=''});if(d.snapshot.book)d.snapshot.book=[];var sf=d.snapshot.staff;if(sf)Object.keys(sf).forEach(function(f){sf[f]=''})}
   delete x.device;
   return JSON.stringify(x);
 }
