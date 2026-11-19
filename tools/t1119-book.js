@@ -8,7 +8,7 @@ const PDF='女⼦組球員名單\n範例藍隊\n王⼩明1\n陳⼤文2\n林⼩�
 (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:820,height:1180},hasTouch:true});const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));
   await p.goto(URL);await p.evaluate(()=>{localStorage.clear();sessionStorage.clear()});await p.reload();await W(400);
   const a=p.locator('.sheet.about [data-act=aboutclose]');if(await a.count()){await a.first().click();await W(200)}
-  await p.locator('text=紀錄與名單').first().click();await W(400);await p.click('[data-act=cupcreate]');await W(300);
+  await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400);await p.click('[data-act=cupcreate]');await W(300);
   await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(500);
   const DBK=await p.evaluate(()=>Object.keys(localStorage).find(k=>{try{const d=JSON.parse(localStorage.getItem(k));return d&&Array.isArray(d.cups)}catch(e){return false}}));
   // 1. 整份貼上（在男子組的視窗貼女子組的 PDF 也會分到女子組）
@@ -68,14 +68,14 @@ const PDF='女⼦組球員名單\n範例藍隊\n王⼩明1\n陳⼤文2\n林⼩�
   // 5. 分享比賽不上傳名冊（syncClean）
   // 6. 把賽事資料夾存成檔案傳給夥伴：另一台匯入後，輸入背號一樣帶出姓名
   await p.evaluate(()=>{const b=document.querySelector('[data-act=history]');if(b)b.click()});await W(300);
-  if(!await p.locator('[data-act=cupopen]').count()){await p.evaluate(()=>{const b=document.querySelector('[data-act=home]');if(b)b.click()});await W(300);await p.locator('text=紀錄與名單').first().click();await W(400)}
+  if(!await p.locator('[data-act=cupopen]').count()){await p.evaluate(()=>{const b=document.querySelector('[data-act=home]');if(b)b.click()});await W(300);await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400)}
   await p.locator('[data-act=cupopen]').first().click();await W(300);
   const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const FF='/tmp/t1119-cup.json';await dl.saveAs(FF);
   const fj=JSON.parse(require('fs').readFileSync(FF,'utf8'));
   ok('folder file has names',fj.cups[0].teams.find(t=>t.team.name==='範例藍隊').team.players.length===17);
   const ctx2=await b.newContext({viewport:{width:820,height:1180},hasTouch:true});const q=await ctx2.newPage();q.on('pageerror',e=>errs.push(e.message));
   await q.goto(URL);await W(400);const a2=q.locator('.sheet.about [data-act=aboutclose]');if(await a2.count()){await a2.first().click();await W(200)}
-  await q.locator('text=紀錄與名單').first().click();await W(400);
+  await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400);
   await q.setInputFiles('#import-file',FF);await W(400);await q.click('[data-act=impgo]');await W(500);
   ok('partner sees folder',/測試盃/.test(await q.locator('body').innerText()));
   await q.click('[data-act=history]').catch(()=>{});await W(200);await q.click('[data-act=home]').catch(()=>{});await W(300);

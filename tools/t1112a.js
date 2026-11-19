@@ -54,7 +54,7 @@ for(const [w,h] of [[390,844],[1180,820]]){
     const bt=await p.locator('.bartime').innerText();
     ok(tag+'match length in minutes',/全場\s*(\d+ 小時 )?\d+ 分鐘/.test(bt),bt);
     const pg=await p.locator('.page').innerText();
-    ok(tag+'no old name',pg.indexOf('歷史紀錄')<0&&pg.indexOf('「紀錄與名單」可以再打開')>=0);
+    ok(tag+'no old name',pg.indexOf('歷史紀錄')<0&&/「(紀錄與名單|賽事與紀錄)」可以再打開/.test(pg));
   }
   // 比賽資料頁：下面沒有重複的回主畫面，左上可以回去
   await p.evaluate(()=>localStorage.clear());await p.reload();await W(200);
