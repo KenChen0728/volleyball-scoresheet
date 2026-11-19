@@ -2542,7 +2542,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='1120-0200';
+var BUILD='1120-0214';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4158,7 +4158,10 @@ function teamSort(a,b){return String(a.team.name).localeCompare(String(b.team.na
 var TIANGAN='甲乙丙丁戊己庚辛壬癸';
 function courtSort(a,b){a=String(a||'');b=String(b||'');var ka=a.replace(/[^甲乙丙丁戊己庚辛壬癸]/g,''),kb=b.replace(/[^甲乙丙丁戊己庚辛壬癸]/g,'');
   if(ka&&kb&&ka!==kb&&a.replace(ka,'')===b.replace(kb,''))return TIANGAN.indexOf(ka)-TIANGAN.indexOf(kb); // 甲、乙、丙…照天干
-  return a.localeCompare(b,'zh-Hant',{numeric:true})}
+  var ca=cnNum(a),cb=cnNum(b);return ca.localeCompare(cb,'zh-Hant',{numeric:true})||a.localeCompare(b,'zh-Hant',{numeric:true})}
+function cnNum(s){var d='一二三四五六七八九'; // 一、二…十二 換成數字再比，不然照筆畫四會排在五後面
+  return s.replace(/[一二三四五六七八九十]+/g,function(m){var i=m.indexOf('十');if(i<0)return m.split('').map(function(c){return d.indexOf(c)+1}).join('');
+    var t=i?d.indexOf(m[i-1])+1:1,u=m[i+1]?d.indexOf(m[i+1])+1:0;return String(t*10+u)})}
 function cupSched(c){if(!Array.isArray(c.sched))c.sched=[];return c.sched}
 function liveSched(c){return cupSched(c).filter(function(x){return !x.del})}
 function schedSort(a,b){return String(a.date||'').localeCompare(String(b.date||''))||String(a.time||'').localeCompare(String(b.time||''))||(a.ord||0)-(b.ord||0)||courtSort(a.court,b.court)}
