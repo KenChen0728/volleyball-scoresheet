@@ -21,12 +21,13 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   await p.click('.barback');await W(300);await p.locator('[data-act=home]').first().click();await W(400);
   ok(T+'no getting started once folder exists',await p.locator('.hsteps').count()===0);
   ok(T+'today schedule on home',/今天的賽程/.test(await p.locator('body').innerText())&&await p.locator('.home [data-act=hscopen]').count()===2);
-  ok(T+'folder card on home',await p.locator('.home [data-act=cupopen][data-id]').count()>=1);
-  ok(T+'court chips',await p.locator('.hcourts button').count()===3);
-  await p.click('.hcourts button[data-v="室內場 B"]');await W(300);ok(T+'filter by court',await p.locator('.home [data-act=hscopen]').count()===1);
-  await p.reload();await W(500);ok(T+'court remembered',await p.locator('.home [data-act=hscopen]').count()===1&&await p.locator('.hcourts button[data-v="室內場 B"][aria-pressed=true]').count()===1);
+  ok(T+'no folder cards when schedule exists',await p.locator('.home .cupcard').count()===0);
+  await p.click('.hcourtbtn');await W(300);ok(T+'court picker popup',await p.locator('.sheet [data-act=hcourt]').count()===3&&/這台記錄哪個場地/.test(await p.locator('.sheet').innerText()));
+  if(SHOT)await p.screenshot({path:SHOT+'/home-picker-'+tag+'.png'});
+  await p.click('.sheet [data-act=hcourt][data-v="室內場 B"]');await W(300);ok(T+'filter by court',await p.locator('.sheet').count()===0&&await p.locator('.home [data-act=hscopen]').count()===1&&/場地：室內場 B/.test(await p.locator('.hcourtbtn').innerText()));
+  await p.reload();await W(500);ok(T+'court remembered',await p.locator('.home [data-act=hscopen]').count()===1&&/室內場 B/.test(await p.locator('.hcourtbtn').innerText()));
   if(SHOT)await p.screenshot({path:SHOT+'/home-court-'+tag+'.png'});
-  await p.click('.hcourts button[data-v=""]');await W(300);
+  await p.click('.hcourtbtn');await W(300);await p.click('.sheet [data-act=hcourt][data-v=""]');await W(300);
   if(SHOT)await p.screenshot({path:SHOT+'/home-full-'+tag+'.png'});
   if(tag==='t'){const r=await p.evaluate(()=>{const h=document.querySelector('.hero').getBoundingClientRect(),s=document.querySelector('[data-act=hscopen]').getBoundingClientRect();return {heroRight:h.right,rowLeft:s.left,rowTop:s.top}});
     ok(T+'schedule sits in right column',r.rowLeft>=r.heroRight-1&&r.rowTop<500,r)}
