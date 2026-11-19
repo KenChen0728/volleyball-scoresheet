@@ -2015,6 +2015,10 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .regstep{display:flex;align-items:center;gap:8px;flex:none}
 .regstep button{width:44px;min-height:44px;padding:0;font-size:20px}
 .regstep b{min-width:44px;text-align:center}
+.cupgrp{display:flex;flex-direction:column;gap:22px;padding-block:6px 22px}
+.cupgrp+.cupgrp{border-top:2px solid var(--line);padding-top:20px}
+.cupgrp>section{margin:0}
+.cupshare{margin-left:8px;font-size:14px;font-weight:500;color:var(--muted)}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2494,7 +2498,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1119-2245';
+var BUILD='測試版 1119-2320';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4114,7 +4118,7 @@ function schedSec(c){
   var sl=liveSched(c).filter(function(x){return x.division===cupView.div}).sort(schedSort),nos=schedNos(c),dd=null,sr='';
   var nx=sl.filter(function(x){return !schedMatch(x)})[0]; // 下一場：開始用主色，其他用一般按鈕
   sl.forEach(function(x){if(x.date!==dd){dd=x.date;sr+='<h3 class="scday">'+esc(schedDay(dd))+'</h3>'}sr+=schedRow(c,x,nos[x.id],x===nx)});
-  return '<section><div class="shead"><h2>賽程 '+sl.length+' 場</h2><span class="scbtns">'+(XP_ON&&typeof regMake==='function'?'<button class="linkbtn" data-act="scprint">印登錄單</button>':'')+'<button class="linkbtn" data-act="scnew">新增比賽</button></span></div>'+(sr?'<div class="rlist">'+sr+'</div>':'<p class="muted">按「新增比賽」把賽程一場一場加進來，隊伍還不知道可以先不選。到時候點那一場就開始記錄，兩隊隊名和名冊自動帶入，只要輸入背號。</p>')+'</section>';
+  return '<section><div class="shead"><h2>賽程 '+sl.length+' 場</h2><span class="scbtns">'+(XP_ON&&typeof regMake==='function'?'<button class="linkbtn" data-act="scprint">印登錄單</button>':'')+'<button class="linkbtn" data-act="scnew">新增比賽</button></span></div>'+(sr?'<div class="rlist">'+sr+'</div>':'<p class="muted">還沒有賽程。</p>')+'</section>';
 }
 function schedSheetHtml(x,c,err){
   if(x.type==='scone'){var it=schedById(c,x.id);if(!it)return '';var A=schedSide(c,it,'t1'),B=schedSide(c,it,'t2');
@@ -4210,9 +4214,9 @@ function cupHtml(){
     var h=matchOver(x.s)?historyRow(x.m,x.s,true):resumeRow(x.m,x.s);
     return h.replace('data-from="history"','data-from="cup"').replace('class="rmain" data-act="open"','class="rmain" data-act="open" data-from="cup"');
   }).join('');
-  var cts=XP_ON?courtList(c):[],refSec=XP_ON?'<section><div class="shead"><h2>裁判名單</h2><button class="linkbtn" data-act="cupcourt">新增場地</button></div>'+(cts.length?'<div class="rlist">'+cts.map(function(q){return '<button class="hrow card" data-act="cupcourt" data-v="'+esc(q.key)+'"><strong>'+esc(q.label)+'</strong><span class="muted">'+q.n+' 位裁判</span><span class="hgo" aria-hidden="true">打開 ›</span></button>'}).join('')+'</div>':'<p class="muted">依場地建裁判名單，記錄時點名字就好。比賽結束後，那一場的裁判也會自動加進該場地的名單。</p>')+'</section>':'';
+  var cts=XP_ON?courtList(c):[],refSec=XP_ON?'<section><div class="shead"><h2>裁判<small class="cupshare">男女組共用</small></h2><button class="linkbtn" data-act="cupcourt">加入裁判名單</button></div>'+(cts.length?'<div class="rlist">'+cts.map(function(q){return '<button class="hrow card" data-act="cupcourt" data-v="'+esc(q.key)+'"><strong>'+esc(q.label)+'</strong><span class="muted">'+q.n+' 位裁判</span><span class="hgo" aria-hidden="true">打開 ›</span></button>'}).join('')+'</div>':'<p class="muted">還沒有裁判名單。</p>')+'</section>':'';
   var liveN=all.filter(function(x){return !matchOver(x.s)}).length;
-  return '<header class="bar"><button class="barback" data-act="history">‹ 賽事與紀錄</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow">'+refSec+seg+schedSec(c)+'<section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">先把各隊名單放進來，名單頁按「載入」就能選。</p>')+'</section><section><h2>比賽</h2>'+(ms?'<div class="rlist">'+ms+'</div>':'<p class="muted">這一組還沒有比賽。</p>')+'</section><div class="histtools"><button data-act="cupadd">把舊比賽加進來</button><button data-act="cupsave">存成檔案</button><button data-act="cuprename">改名</button><button class="delout" data-act="cupdel">刪除資料夾</button></div><p class="muted">存成檔案後傳到另一台裝置，在「賽事與紀錄」按匯入：名單、比賽都會帶過去，匯入前會先列出會改什麼。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></main>';
+  return '<header class="bar"><button class="barback" data-act="history">‹ 賽事與紀錄</button><h1>'+esc(c.name)+'</h1><button class="helpbtn" data-act="helpopen" aria-label="這一頁怎麼用">?</button></header><main class="page"><div class="narrow"><div class="cupgrp">'+seg+schedSec(c)+'<section><div class="shead"><h2>隊伍 '+ts.length+' 隊</h2><button class="linkbtn" data-act="cupteam">加入隊伍名單</button></div>'+(tr?'<div class="rlist">'+tr+'</div>':'<p class="muted">還沒有隊伍。</p>')+'</section><section><h2>比賽</h2>'+(ms?'<div class="rlist">'+ms+'</div>':'<p class="muted">這一組還沒有比賽。</p>')+'</section></div>'+(refSec?'<div class="cupgrp">'+refSec+'</div>':'')+'<div class="cupgrp"><div class="histtools"><button data-act="cupsave">存成檔案</button><button data-act="cupmore">更多</button></div><p class="muted">存成檔案可以傳給裁判夥伴，對方在「賽事與紀錄」按匯入。</p>'+(liveN?'<p class="warning">這個資料夾有 '+liveN+' 場比賽還在進行。要換手機記錄時，存成檔案傳過去之後，原本這台就不要再記那一場。</p>':'')+'</div></div></main>';
 }
 function cupSheetHtml(){
   var x=ui.cupSheet;if(!x)return '';
@@ -4224,8 +4228,9 @@ function cupSheetHtml(){
   else if(x.type==='start')h='<h2>開始新比賽</h2><p class="muted">這場要放進哪個盃賽？之後在「資料」頁也能改。</p>'+db.cups.map(function(c){var on=x.pick===c.id;return '<button class="imp" data-act="newpick" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="newpick" data-id="" aria-pressed="'+(!x.pick)+'"><span>不屬於任何盃賽</span><small></small></button>'+(function(){var pc=x.pick?db.cups.filter(function(q){return q.id===x.pick})[0]:null,td=pc?schedTodo(pc):[],nos=pc?schedNos(pc):{};
     if(!td.length)return '<button class="primary" data-act="newgo">開始</button>';
     return '<h3 class="scpick">照賽程開始（'+esc(schedDay(td[0].date))+'）</h3>'+td.map(function(it){return '<button class="imp" data-act="scgo" data-from="start" data-cup="'+esc(pc.id)+'" data-id="'+esc(it.id)+'"><span>'+schedSideHtml(schedSide(pc,it,'t1'))+' vs '+schedSideHtml(schedSide(pc,it,'t2'))+'</span><small>'+esc(it.division)+'第 '+nos[it.id]+' 場・'+esc(it.time||'')+(it.court?'・場地：'+esc(it.court):'')+'</small></button>'}).join('')+'<button data-act="newgo">不照賽程，開新的一場</button>'})()+'<button class="ghost" data-act="close">取消</button>';
-  else if(x.type==='court'){var cl=theCup(),nm0=x.key?refNames(cl,x.key):[];h='<h2>'+(x.key?'修改裁判名單':'新增場地')+'</h2><label for="cc-court">場地<input id="cc-court" type="text" maxlength="20" value="'+esc(x.court||'')+'" placeholder="例如：第五場地"></label><label for="cc-text">裁判名單<textarea id="cc-text" class="cupta" rows="9" placeholder="一行一位，可以從 LINE 或分配表貼上">'+esc(x.text!=null?x.text:nm0.join('\n'))+'</textarea></label><p class="muted">同一個人可以在好幾個場地。不會再來的人，刪掉那一行就好。</p>'+err+'<button class="primary" data-act="cupcourtsave">儲存</button>'+(x.key?(x.ask?'<button class="danger" data-act="cupcourtdel2">確定刪除這個場地的名單</button>':'<button class="dellink" data-act="cupcourtdel">刪除這個場地</button>'):'')+'<button class="ghost" data-act="close">取消</button>'}
+  else if(x.type==='court'){var cl=theCup(),nm0=x.key?refNames(cl,x.key):[];h='<h2>'+(x.key?'修改裁判名單':'加入裁判名單')+'</h2><label for="cc-court">場地<input id="cc-court" type="text" maxlength="20" value="'+esc(x.court||'')+'" placeholder="例如：第五場地"></label><label for="cc-text">裁判名單<textarea id="cc-text" class="cupta" rows="9" placeholder="一行一位，可以從 LINE 或分配表貼上">'+esc(x.text!=null?x.text:nm0.join('\n'))+'</textarea></label><p class="muted">記錄時點名字就好。同一個人可以在好幾個場地；比賽結束後，那一場的裁判也會自動加進這個場地。不會再來的人，刪掉那一行就好。</p>'+err+'<button class="primary" data-act="cupcourtsave">儲存</button>'+(x.key?(x.ask?'<button class="danger" data-act="cupcourtdel2">確定刪除這個場地的名單</button>':'<button class="dellink" data-act="cupcourtdel">刪除這個場地</button>'):'')+'<button class="ghost" data-act="close">取消</button>'}
   else if(/^sc/.test(x.type)){h=schedSheetHtml(x,c,err);if(!h){ui.cupSheet=null;return ''}}
+  else if(x.type==='more')h='<h2>「'+esc(c.name)+'」資料夾</h2><button data-act="cupadd">把舊比賽加進來</button><button data-act="cuprename">改名</button><button class="dellink" data-act="cupdel">刪除資料夾</button><button class="ghost" data-act="close">關閉</button>';
   else if(x.type==='del')h='<h2>刪除「'+esc(c.name)+'」？</h2><p class="muted">隊伍名單會刪除。比賽紀錄不會刪除，還在「賽事與紀錄」裡。</p><button class="danger" data-act="cupdel2">確定刪除</button><button class="ghost" data-act="close">取消</button>';
   return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
 }
@@ -6202,6 +6207,7 @@ app.addEventListener('click',function(e){
       picks.forEach(function(id,i){var x=cs.teams.filter(function(q){return q.id===id})[0];if(x)dispatch('TEAM_IMPORTED',{team:i?'t2':'t1',snapshot:bookSnap(x.team),fromName:x.team.name},cm)});
       save(); resetUi(); ui.page='info'; ui.from='cup'; view='setup'; break;
     case 'cupadd': ui.cupSheet={type:'add'}; break;
+    case 'cupmore': ui.cupSheet={type:'more'}; break;
     case 'cupaddm': var am=db.matches.filter(function(x){return x.id===b.getAttribute('data-id')})[0]; if(am){am.cup=cupView.id;addMatchRefs(am,safeReduce(am));save()} break;
     case 'cupsave':
       var cf=theCup(),cl=db.matches.filter(function(x){return x.cup===cf.id});
