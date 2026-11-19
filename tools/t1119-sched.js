@@ -17,9 +17,10 @@ const Y=new Date().getFullYear();
   await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(500);
   const DBK=await p.evaluate(()=>Object.keys(localStorage).find(k=>{try{const d=JSON.parse(localStorage.getItem(k));return d&&Array.isArray(d.cups)}catch(e){return false}}));
   const cup=()=>p.evaluate(K=>JSON.parse(localStorage.getItem(K)).cups[0],DBK);
-  ok('empty schedule hint',/按「加一場」把賽程一場一場加進來/.test(await p.locator('main').innerText()));
+  ok('empty schedule hint',/按「新增比賽」把賽程一場一場加進來/.test(await p.locator('main').innerText()));
   await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text',ROSTER);await p.click('[data-act=cupteamsave]');await W(400);
   ok('11 teams',(await cup()).teams.length===11,(await cup()).teams.map(t=>t.division+t.team.name));
+  ok('button says 新增比賽',(await p.locator('[data-act=scnew]').innerText())==='新增比賽'&&/新增比賽/.test(await (async()=>{await p.click('[data-act=scnew]');await W(200);const x=await p.locator('.sheet h2').innerText();await p.click('.sheet [data-act=close]');await W(200);return x})()));
   ok('no paste button',await p.locator('[data-act=scpaste]').count()===0);
   // 1. 加一場：一場一場加，「儲存，再加下一場」日期、場地留著，時間加一小時
   const pick=async n=>{await p.locator('.sheet [data-act=scpick]').filter({hasText:new RegExp('^\\s*'+n)}).first().click();await W(150)};

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """11/19 賽程：賽事資料夾裡先排好每一場（日期、時間、場地、男女組、左右兩隊），到時候點那一場就開始記錄，
 左邊的隊伍放第一隊、右邊放第二隊，隊名和名冊自動帶入，只要輸入背號（使用者）。
-- 「加一場」一場一場加：日期、場地照上一場先填好，「儲存，再加下一場」時間加一小時（使用者 21:44：貼上的方式會越來越長，加一場就夠用）。只寫開賽時間。
+- 「新增比賽」（原本叫加一場，使用者 21:53 改名）一場一場加：日期、場地照上一場先填好，「儲存，再新增下一場」時間加一小時（使用者 21:44：貼上的方式會越來越長，加一場就夠用）。只寫開賽時間。
 - 排名賽還不知道是哪兩隊：先排時間場地，隊伍「待定」，可以寫說明（使用者選的）。
 - 場次：男女組各自照日期、時間、場地編號（使用者選的），開始時寫進比賽的「場次」。
 存在 cup.sched，匯入資料夾時一筆一筆比，最後改的為主（跟隊伍一樣）。先跑 patch_v97～v102。"""
@@ -41,7 +41,7 @@ function schedSec(c){
   var sl=liveSched(c).filter(function(x){return x.division===cupView.div}).sort(schedSort),nos=schedNos(c),dd=null,sr='';
   var nx=sl.filter(function(x){return !schedMatch(x)})[0]; // 下一場：開始用主色，其他用一般按鈕
   sl.forEach(function(x){if(x.date!==dd){dd=x.date;sr+='<h3 class="scday">'+esc(schedDay(dd))+'</h3>'}sr+=schedRow(c,x,nos[x.id],x===nx)});
-  return '<section><div class="shead"><h2>賽程 '+sl.length+' 場</h2><button class="linkbtn" data-act="scnew">加一場</button></div>'+(sr?'<div class="rlist">'+sr+'</div>':'<p class="muted">按「加一場」把賽程一場一場加進來，隊伍還不知道可以先不選。到時候點那一場就開始記錄，兩隊隊名和名冊自動帶入，只要輸入背號。</p>')+'</section>';
+  return '<section><div class="shead"><h2>賽程 '+sl.length+' 場</h2><button class="linkbtn" data-act="scnew">新增比賽</button></div>'+(sr?'<div class="rlist">'+sr+'</div>':'<p class="muted">按「新增比賽」把賽程一場一場加進來，隊伍還不知道可以先不選。到時候點那一場就開始記錄，兩隊隊名和名冊自動帶入，只要輸入背號。</p>')+'</section>';
 }
 function schedSheetHtml(x,c,err){
   if(x.type==='scone'){var it=schedById(c,x.id);if(!it)return '';var A=schedSide(c,it,'t1'),B=schedSide(c,it,'t2');
@@ -52,14 +52,14 @@ function schedSheetHtml(x,c,err){
   if(x.type==='scedit'){var f=x.f,ts=liveTeams(c).filter(function(t){return t.division===f.division}),cs=[];
     liveSched(c).concat(courtList(c).map(function(q){return {court:q.label}})).forEach(function(q){if(q.court&&cs.indexOf(q.court)<0)cs.push(q.court)});
     function lab(k){var nk=k==='t1'?'n1':'n2';return f[k]?'':'<label for="sc-'+nk+'">'+(k==='t1'?'第一隊':'第二隊')+'還沒定：說明（可以不填）<input id="sc-'+nk+'" data-sc="'+nk+'" type="text" maxlength="20" placeholder="例如：A組第一" value="'+esc(f[nk]||'')+'"></label>'}
-    return (x.back?'<button class="sheetback" data-act="scback">‹ 返回</button>':'')+'<h2>'+(x.id?'修改這一場':'加一場比賽')+'</h2>'+(x.saved?'<p class="scsaved" role="status">'+esc(x.saved)+'</p>':'')+
+    return (x.back?'<button class="sheetback" data-act="scback">‹ 返回</button>':'')+'<h2>'+(x.id?'修改這一場':'新增比賽')+'</h2>'+(x.saved?'<p class="scsaved" role="status">'+esc(x.saved)+'</p>':'')+
       '<div class="scgrid"><label for="sc-date">日期<input id="sc-date" data-sc="date" type="date" max="9999-12-31" value="'+esc(f.date||'')+'"></label><label for="sc-time">時間<input id="sc-time" data-sc="time" type="time" value="'+esc(f.time||'')+'"></label></div>'+
       '<label for="sc-court">場地<input id="sc-court" data-sc="court" type="text" maxlength="20" list="sc-courts" autocomplete="off" placeholder="例如：室內場 A" value="'+esc(f.court||'')+'"></label><datalist id="sc-courts">'+cs.map(function(q){return '<option value="'+esc(q)+'">'}).join('')+'</datalist>'+
       '<div class="ctdiv"><span>男女組</span><div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="scdiv" data-v="'+d+'" aria-pressed="'+(f.division===d)+'">'+d+'</button>'}).join('')+'</div></div>'+
       '<p class="muted">點兩隊：先點的是第一隊（賽程表左邊），再點一次取消。還不知道是哪兩隊就先不選。</p>'+
       (ts.length?ts.map(function(t){var k=f.t1===t.id?'第一隊':f.t2===t.id?'第二隊':'';return '<button class="imp" data-act="scpick" data-id="'+esc(t.id)+'" aria-pressed="'+(!!k)+'"><span>'+esc(t.team.name)+'</span><small>'+(k||t.team.players.length+' 人')+'</small></button>'}).join(''):'<p class="muted">這一組還沒有隊伍名單。</p>')+
       lab('t1')+lab('t2')+err+
-      '<button class="primary" data-act="scsave1">儲存</button>'+(x.id?'':'<button data-act="scsave1" data-v="next">儲存，再加下一場</button>')+(x.id?(x.ask?'<button class="danger" data-act="scdel2">確定刪除這一場</button><button data-act="scdelno">不要刪除</button>':'<button class="ghost" data-act="scdel">刪除這一場</button>'):'')+'<button class="ghost" data-act="close">'+(x.back?'關閉':'取消')+'</button>'}
+      '<button class="primary" data-act="scsave1">儲存</button>'+(x.id?'':'<button data-act="scsave1" data-v="next">儲存，再新增下一場</button>')+(x.id?(x.ask?'<button class="danger" data-act="scdel2">確定刪除這一場</button><button data-act="scdelno">不要刪除</button>':'<button class="ghost" data-act="scdel">刪除這一場</button>'):'')+'<button class="ghost" data-act="close">'+(x.back?'關閉':'取消')+'</button>'}
   return '';
 }
 /* 照賽程開始：資料、場次先填好，兩隊帶入名冊（出賽名單空著），直接到名單頁 */
@@ -99,7 +99,7 @@ function schedAct(act,b){
       if(!it){it={id:uid(),ord:liveSched(c).length+1};cupSched(c).push(it)}
       ['date','time','court','division','t1','t2'].forEach(function(k){it[k]=String(g[k]||'').trim()});it.n1=g.t1?'':String(g.n1||'').trim();it.n2=g.t2?'':String(g.n2||'').trim();it.at=now;
       if(CUP_DIVS.indexOf(it.division)>=0)cupView.div=it.division;
-      if(b.getAttribute('data-v')==='next'){ui.cupSheet={type:'scedit',id:null,f:{date:it.date,time:schedNextTime(it.time),court:it.court,division:it.division,t1:'',t2:'',n1:'',n2:''},saved:'已加入'+it.division+'第 '+schedNos(c)[it.id]+' 場（'+(it.time||'時間未定')+'），接著加下一場。'};save();return true}
+      if(b.getAttribute('data-v')==='next'){ui.cupSheet={type:'scedit',id:null,f:{date:it.date,time:schedNextTime(it.time),court:it.court,division:it.division,t1:'',t2:'',n1:'',n2:''},saved:'已加入'+it.division+'第 '+schedNos(c)[it.id]+' 場（'+(it.time||'時間未定')+'），接著新增下一場。'};save();return true}
       ui.cupSheet=null; save(); return true;
     case 'scgo': var it2=schedById(c,b.getAttribute('data-id'));ui.cupSheet=null;if(it2)schedStart(c,it2,b.getAttribute('data-from')!=='start'); return true;
   }
