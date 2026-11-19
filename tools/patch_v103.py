@@ -48,7 +48,8 @@ function schedSheetHtml(x,c,err){
     return '<h2>'+esc(it.division)+'第 '+schedNos(c)[it.id]+' 場</h2><p class="muted">'+esc(schedDay(it.date))+' '+esc(it.time||'時間未定')+(it.court?'　場地：'+esc(it.court):'')+'</p>'+
       '<div class="scvs"><strong>'+schedSideHtml(A)+'</strong><b>vs</b><strong>'+schedSideHtml(B)+'</strong></div>'+
       (A.set&&B.set?'<p class="muted">開始後在名單頁輸入背號，名冊有的姓名會自動帶出。</p>':'<p class="warning">還有隊伍待定。可以先按「修改這一場」選隊伍，或開始後在名單頁載入。</p>')+
-      '<button class="primary" data-act="scgo" data-id="'+esc(it.id)+'">開始記錄</button><button data-act="scedit" data-id="'+esc(it.id)+'">修改這一場</button><button class="ghost" data-act="close">關閉</button>'}
+      (x.ask?'<p class="scsaved">刪除這一場賽程？</p><button class="danger" data-act="scdel2">確定刪除</button><button data-act="scdelno">不要刪除</button>': // 打錯直接在這裡刪（使用者 21:59 找不到）
+      '<button class="primary" data-act="scgo" data-id="'+esc(it.id)+'">開始記錄</button><button data-act="scedit" data-id="'+esc(it.id)+'">修改這一場</button><button class="ghost" data-act="scdel">刪除這一場</button><button class="ghost" data-act="close">關閉</button>')}
   if(x.type==='scedit'){var f=x.f,ts=liveTeams(c).filter(function(t){return t.division===f.division}),cs=[];
     liveSched(c).concat(courtList(c).map(function(q){return {court:q.label}})).forEach(function(q){if(q.court&&cs.indexOf(q.court)<0)cs.push(q.court)});
     function lab(k){var nk=k==='t1'?'n1':'n2';return f[k]?'':'<label for="sc-'+nk+'">'+(k==='t1'?'第一隊':'第二隊')+'還沒定：說明（可以不填）<input id="sc-'+nk+'" data-sc="'+nk+'" type="text" maxlength="20" placeholder="例如：A組第一" value="'+esc(f[nk]||'')+'"></label>'}
@@ -137,7 +138,7 @@ one("    if(p.ren){h.name=p.name;h.at=p.at}","""    var hsd=cupSched(h);(p.sched
 one("function cupChanged(c){return c.isNew||c.ren||c.addT||c.updT||c.delT||","function cupChanged(c){return c.isNew||c.ren||c.addT||c.updT||c.delT||c.addS||c.updS||c.delS||")
 one("if(c.addT)a.push('新增 '+c.addT+' 隊');","if(c.addT)a.push('新增 '+c.addT+' 隊');if(c.addS)a.push('賽程新增 '+c.addS+' 場');if(c.updS)a.push('賽程更新 '+c.updS+' 場');if(c.delS)a.push('賽程刪除 '+c.delS+' 場');")
 # Esc、Android 返回鍵：修改這一場先退回上一層
-one("'.sheet [data-act=sheetback]',","'.sheet [data-act=sheetback]','.sheet [data-act=scback]',")
+one("'.sheet [data-act=sheetback]',","'.sheet [data-act=scdelno]','.sheet [data-act=sheetback]','.sheet [data-act=scback]',")
 one('\n</style>\n\n<div class="statusband"','''
 .scday{font-size:15px;margin:14px 0 0;color:var(--muted)}
 .scday:first-child{margin-top:4px}

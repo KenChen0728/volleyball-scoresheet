@@ -76,7 +76,13 @@ const Y=new Date().getFullYear();
   await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-time','14:00');await p.locator('.sheet [data-act=scpick]:has-text("紅隊")').click();await W(150);await p.locator('.sheet [data-act=scpick]:has-text("紅隊")').click();await W(150);
   ok('tap again cancels',!/紅隊第一隊/.test((await p.locator('.sheet').innerText()).replace(/\s/g,'')));
   await p.click('[data-act=scsave1]:not([data-v])');await W(300);c=await cup();ok('new item added',c.sched.filter(x=>!x.del).length===8);
-  await p.locator('[data-act=scopen]:has-text("14:00")').click();await W(200);await p.click('[data-act=scedit]');await W(200);await p.click('[data-act=scdel]');await W(200);await p.click('[data-act=scdel2]');await W(300);
+  await p.locator('[data-act=scopen]:has-text("14:00")').click();await W(200);
+  ok('delete right in the match sheet',await p.locator('.sheet [data-act=scdel]').count()===1);
+  await p.click('.sheet [data-act=scdel]');await W(200);ok('asks before delete',/刪除這一場賽程？/.test(await p.locator('.sheet').innerText())&&await p.locator('.sheet [data-act=scgo]').count()===0);
+  await p.keyboard.press('Escape');await W(200);ok('esc cancels delete',await p.locator('.sheet [data-act=scgo]').count()===1);
+  c=await cup();ok('not deleted yet',c.sched.filter(x=>!x.del).length===8);
+  if(SHOT){await p.click('.sheet [data-act=scdel]');await W(200);await p.screenshot({path:SHOT+'/s-del.png'});await p.click('.sheet [data-act=scdelno]');await W(200)}
+  await p.click('.sheet [data-act=scdel]');await W(200);await p.click('[data-act=scdel2]');await W(300);
   c=await cup();ok('deleted',c.sched.filter(x=>!x.del).length===7);
   // 7. 照賽程開始：到名單頁，資料、場次、兩隊都帶好，輸入背號帶出姓名
   await p.locator('[data-act=scopen]:has-text("第 1 場")').click();await W(300);
