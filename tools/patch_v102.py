@@ -65,5 +65,13 @@ one("""  teams.forEach(function(x){var t=x.team;
     if(!t.name.trim())errors.push('請填隊名');""","""  teams.forEach(function(x){var t=x.team;
     if(!t.name.trim())errors.push('請填隊名');
     else if(!t.players.length&&made[x.division+'|'+t.name])errors.push('第 '+made[x.division+'|'+t.name]+' 行「'+t.name+'」後面沒有球員（一行要有背號和姓名）');""")
+# 11/19 使用者：隊伍放錯男女組時，在「修改隊伍名單」就能改（不用刪掉重加）
+one("""<label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label>""",
+    """<label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><div class="ctdiv"><span>男女組</span><div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="ctdiv" data-v="'+d+'" aria-pressed="'+((x.div||CUP_DIVS[0])===d)+'">'+d+'</button>'}).join('')+'</div></div>""")
+one("ui.cupSheet={type:'team',id:ct?ct.id:null,name:ct?ct.team.name:'',group:ct?normGroup(ct.group):cupView.grp,text:ct?teamText(ct.team):''}; break;",
+    "ui.cupSheet={type:'team',id:ct?ct.id:null,name:ct?ct.team.name:'',group:ct?normGroup(ct.group):cupView.grp,text:ct?teamText(ct.team):'',div:ct&&CUP_DIVS.indexOf(ct.division)>=0?ct.division:(CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0])}; break;\n    case 'ctdiv': if(ui.cupSheet){['name','group','text'].forEach(function(f){var el=document.getElementById(f==='text'?'ct-text':'ct-'+f);if(el)ui.cupSheet[f]=el.value});ui.cupSheet.div=b.getAttribute('data-v')} break;")
+one("      var pr=parseRoster(ctxt,cupView.div==='未分組'?CUP_DIVS[0]:cupView.div,cnm2);","      var pr=parseRoster(ctxt,ui.cupSheet.div||(cupView.div==='未分組'?CUP_DIVS[0]:cupView.div),cnm2);")
+one("      ui.cupSheet=null; save(); break;\n    case 'cupteamdel':","      if(pr.teams.length===1&&CUP_DIVS.indexOf(pr.teams[0].division)>=0&&pr.teams[0].division!==cupView.div)cupView.div=pr.teams[0].division; // 改到另一組：跟著切過去，看得到改好的隊伍\n      ui.cupSheet=null; save(); break;\n    case 'cupteamdel':")
+one('\n</style>\n\n<div class="statusband"','\n.ctdiv{display:flex;flex-direction:column;gap:6px}\n</style>\n\n<div class="statusband"')
 open(SRC,'w',encoding='utf8').write(s)
 print('patched v102')
