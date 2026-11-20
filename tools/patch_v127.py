@@ -45,7 +45,7 @@ function rankPts(rule,me,op){var win=me.s>op.s,full=Math.abs(me.s-op.s)===1&&Mat
 /* 這個男女組的預賽（賽別是預賽、兩隊都定了） */
 function rankGames(c,div){return liveSched(c).filter(function(it){return it.division===div&&stageOf(it)==='預賽'&&it.t1&&it.t2&&it.t1!==it.t2}).sort(schedSort).map(function(it){
   var m=schedMatch(it),s=m?safeReduce(m):null,dn=!!(s&&matchOver(s));return {it:it,a:it.t1,b:it.t2,done:dn,res:dn?rankRes(it,s):null}})}
-function poolLabel(n){n=String(n||'');return !n?'':/組$/.test(n)?n:/^[A-Za-z0-9]+$/.test(n)?n+' 組':n+'組'}
+function poolLabel(n){n=String(n||'');return !n?'':/組$/.test(n)?n:/^[A-Za-z0-9]+$/.test(n)?n+' 組':n.length<=2?n+'組':n} // 「國小六年級」這種長的照原樣
 function poolStore(n){n=String(n||'').trim();return !n?'':/組$/.test(n)?n:n+'組'}
 /* 分組：隊伍有填組別就照組別；都沒填就照預賽誰跟誰打，連在一起的是一組（還沒確認） */
 function rankPools(c,div){var ts=liveTeams(c).filter(function(t){return t.division===div}),gs=rankGames(c,div),play={};gs.forEach(function(g){play[g.a]=1;play[g.b]=1});
@@ -121,7 +121,7 @@ function rankSheetHtml(x,c){var div=CUP_DIVS.indexOf(cupView.div)>=0?cupView.div
   if(x.type==='rkdraw'){var ids=x.ids||[],ord=x.order||[];
     return '<h2>抽籤結果</h2><p class="muted">'+esc(x.label)+'。照大會抽出來的順序點隊伍。</p><div class="rlist">'+ids.map(function(id){var t=schedTeam(c,id),k=ord.indexOf(id);return '<button class="imp" data-act="rkdpick" data-id="'+esc(id)+'" aria-pressed="'+(k>=0)+'"><span>'+esc(t?t.team.name:'')+'</span><small>'+(k>=0?'第 '+(x.from+k)+' 名':'')+'</small></button>'}).join('')+'</div>'+
       '<div class="row scpbtns"><button data-act="rkdclear">'+(x.had?'清除抽籤結果':'重選')+'</button><button class="primary" data-act="rkdsave"'+(ord.length===ids.length?'':' disabled')+'>確定</button></div><button class="ghost" data-act="close">取消</button>'}
-  if(x.type==='rkgrp'){var gd=x.div||div,cols=x.cols,ts=liveTeams(c).filter(function(t){return t.division===gd}).sort(teamSort);
+  if(x.type==='rkgrp'){var gd=x.div||div,cols=x.cols,ts=liveTeams(c).filter(function(t){return t.division===gd}); // 照加入的順序，換組時不會跳
     var dseg='<div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="rkgdiv" data-v="'+d+'" aria-pressed="'+(gd===d)+'">'+d+'</button>'}).join('')+'</div>';
     var nm='<div class="rkgnames">'+cols.map(function(n,i){return '<label><span>第 '+(i+1)+' 組</span><input data-rkg="'+i+'" type="text" maxlength="8" value="'+esc(n)+'" aria-label="第 '+(i+1)+' 組組名"></label>'}).join('')+'</div>';
     var rows=ts.length?ts.map(function(t){var p=x.pick[t.id];return '<div class="rkgrow"><strong>'+esc(t.team.name)+'</strong><div class="seg">'+cols.map(function(n,i){return '<button data-act="rkgset" data-id="'+esc(t.id)+'" data-v="'+i+'" aria-pressed="'+(p===i)+'" aria-label="'+esc(t.team.name)+' 分到'+esc(poolLabel(n)||('第 '+(i+1)+' 組'))+'">'+esc(n||String(i+1))+'</button>'}).join('')+'</div></div>'}).join(''):'<p class="muted">'+esc(gd)+'還沒有隊伍。</p>';
@@ -134,7 +134,7 @@ function rankGrpOpen(c,div){var P=rankPools(c,div),cols=P.list.map(function(g){r
   if(!cols.length)cols=['A'];if(cols.length<8)cols.push(L.split('').filter(function(ch){return cols.indexOf(ch)<0})[0]||String(cols.length+1));
   P.list.forEach(function(g){var i=cols.indexOf(g.name);g.ids.forEach(function(id){pick[id]=i>=0?i:0})});
   liveTeams(c).filter(function(t){return t.division===div&&pick[t.id]==null&&groupName(t.group)}).forEach(function(t){var i=cols.indexOf(groupName(t.group));if(i<0){cols.splice(cols.length-1,0,groupName(t.group));i=cols.length-2}pick[t.id]=i});
-  return {type:'rkgrp',div:div,cols:cols,pick:pick,adv:null}}
+  return {type:'rkgrp',div:div,cols:cols,orig:cols.slice(),pick:pick,adv:null}}
 function rankAct(act,b){var c=theCup(),x=ui.cupSheet;if(!c)return false;var div=CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0];
   switch(act){
     case 'rkrule': ui.cupSheet={type:'rkrule'}; return true;
@@ -156,14 +156,16 @@ function rankAct(act,b){var c=theCup(),x=ui.cupSheet;if(!c)return false;var div=
     case 'rkreset': rankSet(c,function(r){r.rule=rankDefault()}); return true;
     case 'rkgset': if(x&&x.type==='rkgrp')x.pick[b.getAttribute('data-id')]=Number(b.getAttribute('data-v')); return true;
     case 'rkgadv': if(x&&x.type==='rkgrp'){var a0=typeof x.adv==='number'?x.adv:rankAdv(c,x.div,x.cols.length);x.adv=Math.max(0,Math.min(8,a0+Number(b.getAttribute('data-d'))))} return true;
-    case 'rkgsave': if(x&&x.type==='rkgrp'){var now=Date.now();liveTeams(c).filter(function(t){return t.division===x.div}).forEach(function(t){var i=x.pick[t.id],ng=i!=null&&i>=0?poolStore(x.cols[i]||String(i+1)):'';if(ng!==String(t.group||'')){t.group=ng;t.at=now}});
+    case 'rkgsave': if(x&&x.type==='rkgrp'){var now=Date.now();
+      x.orig.forEach(function(o,i){var nn=groupName(poolStore(x.cols[i]||''));if(o&&nn&&nn!==o)liveSched(c).forEach(function(it){if(it.division!==x.div)return;['r1','r2'].forEach(function(k){var q=String(it[k]||'').split('|');if(q[0]==='g'&&q[1]===o){it[k]='g|'+nn+'|'+q[2];if(!it.t1&&k==='r1'||!it.t2&&k==='r2')it['n'+k.slice(1)]='';it.at=now}})})}); /* 改組名：待定的「B 組第 2 名」跟著改 */
+      liveTeams(c).filter(function(t){return t.division===x.div}).forEach(function(t){var i=x.pick[t.id],ng=i!=null&&i>=0?poolStore(x.cols[i]||String(i+1)):'';if(ng!==String(t.group||'')){t.group=ng;t.at=now}});
       if(typeof x.adv==='number')rankSet(c,function(r){r.adv=r.adv||{};r.adv[x.div]=x.adv});else save();cupView.div=x.div;cupView.pool='';ui.cupSheet=null} return true;
     case 'rkgnone': if(x&&x.type==='rkgrp'){var now2=Date.now();liveTeams(c).filter(function(t){return t.division===x.div}).forEach(function(t){if(t.group){t.group='';t.at=now2}});save();ui.cupSheet=null} return true;
   }
   return false}
 document.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-rkg'),x=ui.cupSheet;if(k!=null&&x&&x.type==='rkgrp'){x.cols[Number(k)]=t.value.replace(/\s+/g,'').slice(0,8)}});
 /* 待定隊伍：A 組第 1 名、第 N 場勝隊／敗隊；r1、r2 存 'g|組名|名次'、'w|賽程id'、'l|賽程id' */
-function refLabel(c,r){var p=String(r||'').split('|');if(p[0]==='g')return (p[1]?poolLabel(p[1]):'')+'第 '+p[2]+' 名';var it=schedById(c,p[1]);return it?'第 '+(schedNos(c)[it.id]||'?')+' 場'+(p[0]==='w'?'勝隊':'敗隊'):''}
+function schedRefLabel(c,r){var p=String(r||'').split('|');if(p[0]==='g')return (p[1]?poolLabel(p[1]):'')+'第 '+p[2]+' 名';var it=schedById(c,p[1]);return it?'第 '+(schedNos(c)[it.id]||'?')+' 場'+(p[0]==='w'?'勝隊':'敗隊'):''}
 function schedRef(c,it,k,depth){var r=it[k==='t1'?'r1':'r2'];if(!r||(depth||0)>4)return '';var p=String(r).split('|');
   if(p[0]==='g'){var P=rankPools(c,it.division),pool=P.list.filter(function(g){return g.name===p[1]})[0];if(!pool)return '';var R=rankPool(c,it.division,pool);if(!R.done)return '';
     var q=R.rows.filter(function(q){return q.rank===Number(p[2])&&!q.draw&&q.st.G>0})[0];return q?q.id:''}
@@ -195,7 +197,7 @@ one("""function validSched(x){return !!x&&typeof x.id==='string'&&(x.del===true|
     """function validSched(x){return !!x&&typeof x.id==='string'&&(x.del===true||(typeof x.date==='string'&&typeof x.division==='string'&&['time','end','court','t1','t2','n1','n2','mid','r1','r2','stage'].every(""")
 one("""function schedSide(c,x,k){var t=schedTeam(c,x[k]);return t?{name:t.team.name,set:true}:{name:x[k==='t1'?'n1':'n2']||'',set:false}}""",
     """function schedSide(c,x,k){var t=schedTeam(c,x[k]);if(t)return {name:t.team.name,set:true};var rid=schedRef(c,x,k),rt=rid&&schedTeam(c,rid),r=x[k==='t1'?'r1':'r2'];
-  return rt?{name:rt.team.name,set:true,ref:refLabel(c,r)}:{name:x[k==='t1'?'n1':'n2']||(r?refLabel(c,r):''),set:false}}""")
+  return rt?{name:rt.team.name,set:true,ref:schedRefLabel(c,r)}:{name:x[k==='t1'?'n1':'n2']||(r?schedRefLabel(c,r):''),set:false}}""")
 one("""  var sets=w?[1,2,3,4,5].filter(function(n){return s.sets[n]&&s.sets[n].ended}).map(function(n){var q=s.sets[n].score;return q.t1+':'+q.t2}):[];
   var chip=s?(w?'<span class="scsets" aria-label="各局比分 '+sets.join('、')+'">'+sets.map(function(q){return '<span>'+q+'</span>'}).join('')+'</span>'""",
     """  var sets=w?[1,2,3,4,5].filter(function(n){return s.sets[n]&&s.sets[n].ended}).map(function(n){return s.sets[n].score}):[];
@@ -208,28 +210,31 @@ one("""  if(it)return {type:'scedit',id:it.id,f:{date:it.date,time:it.time,court
 one("""  return {type:'scedit',id:null,f:{date:last?last.date:today(),time:same?schedNextTime(last.time,schedGap(c,last)):'',court:cupView.court||(same?last.court:''),division:dv,t1:'',t2:'',n1:'',n2:''}};""",
     """  return {type:'scedit',id:null,f:{date:last?last.date:today(),time:same?schedNextTime(last.time,schedGap(c,last)):'',court:cupView.court||(same?last.court:''),division:dv,t1:'',t2:'',n1:'',n2:'',r1:'',r2:'',stage:same?stageOf(last):'預賽'}};""")
 one("""      ['date','time','court','division','t1','t2'].forEach(function(k){it[k]=String(g[k]||'').trim()});it.n1=g.t1?'':String(g.n1||'').trim();it.n2=g.t2?'':String(g.n2||'').trim();it.at=now;""",
-    """      ['date','time','court','division','t1','t2'].forEach(function(k){it[k]=String(g[k]||'').trim()});it.n1=g.t1?'':String(g.n1||'').trim();it.n2=g.t2?'':String(g.n2||'').trim();it.r1=g.t1?'':String(g.r1||'');it.r2=g.t2?'':String(g.r2||'');it.stage=g.stage&&g.stage!=='預賽'?g.stage:'';it.at=now;""")
+    """      ['date','time','court','division','t1','t2'].forEach(function(k){it[k]=String(g[k]||'').trim()});it.n1=g.t1||g.r1?'':String(g.n1||'').trim();it.n2=g.t2||g.r2?'':String(g.n2||'').trim();it.r1=g.t1?'':String(g.r1||'');it.r2=g.t2?'':String(g.r2||'');/* 待定名次不存文字，改組名才會跟著變 */it.stage=g.stage&&g.stage!=='預賽'?g.stage:'';it.at=now;""")
 one("""f:{date:it.date,time:schedNextTime(it.time,schedGap(c,it)),court:it.court,division:it.division,t1:'',t2:'',n1:'',n2:''},saved:""",
     """f:{date:it.date,time:schedNextTime(it.time,schedGap(c,it)),court:it.court,division:it.division,t1:'',t2:'',n1:'',n2:'',r1:'',r2:'',stage:stageOf(it)},saved:""")
 # 新增比賽視窗：賽別一排；格子顯示待定名次；待定時點選
 one("""<div class="seg scdivs">'+CUP_DIVS.map(function(d){return '<button data-act="scdiv" data-v="'+d+'" aria-pressed="'+(f.division===d)+'">'+d+'</button>'}).join('')+'</div></div>""",
     """<div class="seg scdivs">'+CUP_DIVS.map(function(d){return '<button data-act="scdiv" data-v="'+d+'" aria-pressed="'+(f.division===d)+'">'+d+'</button>'}).join('')+'</div></div><div class="scmeta"><div class="seg scstage" role="group" aria-label="賽別">'+STAGES.map(function(q){return '<button data-act="scstage" data-v="'+q+'" aria-pressed="'+((f.stage||'預賽')===q)+'">'+q+'</button>'}).join('')+'</div></div>""")
 one("""(function(){function slot(k){var t=schedTeam(c,f[k]),on=tg===k;return '<button class="scslot'+(t?' on':'')+(on?' cur':'')+(x.just===k?' just':'')+'" data-act="scclr" data-v="'+k+'" aria-pressed="'+on+'" aria-label="'+(k==='t1'?'左邊隊伍':'右邊隊伍')+(t?'：'+esc(t.team.name)+(on?'，點下面的隊伍換掉':'，點一下可以換'):on?'：點下面的隊伍':'：還沒選')+'"><strong>'+(t?esc(t.team.name):on?'點下面的隊伍':'選隊伍')+'</strong></button>'}""",
-    """(function(){function slot(k){var t=schedTeam(c,f[k]),on=tg===k,rr=f[k==='t1'?'r1':'r2'],rl=rr?refLabel(c,rr):'',rid=rr&&schedRef(c,{division:f.division,r1:rr,r2:rr},'t1'),rt=rid&&schedTeam(c,rid);
+    """(function(){function slot(k){var t=schedTeam(c,f[k]),on=tg===k,rr=f[k==='t1'?'r1':'r2'],rl=rr?schedRefLabel(c,rr):'',rid=rr&&schedRef(c,{division:f.division,r1:rr,r2:rr},'t1'),rt=rid&&schedTeam(c,rid);
         return '<button class="scslot'+(t||rl?' on':'')+(on?' cur':'')+(x.just===k?' just':'')+'" data-act="scclr" data-v="'+k+'" aria-pressed="'+on+'" aria-label="'+(k==='t1'?'左邊隊伍':'右邊隊伍')+(t?'：'+esc(t.team.name):rl?'：'+esc(rl):on?'：點下面的隊伍':'：還沒選')+'"><strong>'+(t?esc(t.team.name):rl?(rt?esc(rt.team.name)+'<small>'+esc(rl)+'</small>':'<i>'+esc(rl)+'</i>'):on?'點下面的隊伍':'選隊伍')+'</strong></button>'}""")
 one("""      '</div>')+(f.t1&&f.t2||x.warn?'':x.tbd||f.n1||f.n2?'<div class="scnotes">'+lab('t1')+lab('t2')+'</div>':'<button class="linkbtn sctbd" data-act="sctbd">隊伍還沒確定（例如 A組第一）</button>')+err+""",
     """      '</div>')+(f.t1&&f.t2||x.warn?'':x.tbd||f.n1||f.n2||f.r1||f.r2?(function(){var ro=refOpts(c,f.division,x.id);return (ro.length?'<p class="muted screfh">還沒確定的隊伍：點了填進綠框那一格</p><div class="screfs">'+ro.map(function(r){var rid=schedRef(c,{division:f.division,r1:r,r2:r},'t1'),rt=rid&&schedTeam(c,rid);
-        return '<button data-act="scref" data-v="'+esc(r)+'" aria-pressed="'+(f.r1===r||f.r2===r)+'">'+esc(refLabel(c,r))+(rt?'<small>'+esc(rt.team.name)+'</small>':'')+'</button>'}).join('')+'</div>':'')+'<div class="scnotes">'+lab('t1')+lab('t2')+'</div>'})():'<button class="linkbtn sctbd" data-act="sctbd">隊伍還沒確定（例如 A 組第 1 名）</button>')+err+""")
+        return '<button data-act="scref" data-v="'+esc(r)+'" aria-pressed="'+(f.r1===r||f.r2===r)+'">'+esc(schedRefLabel(c,r))+(rt?'<small>'+esc(rt.team.name)+'</small>':'')+'</button>'}).join('')+'</div>':'')+'<div class="scnotes">'+lab('t1')+lab('t2')+'</div>'})():'<button class="linkbtn sctbd" data-act="sctbd">隊伍還沒確定（例如 A 組第 1 名）</button>')+err+""")
 one("""    case 'sctbd': if(x)x.tbd=true; return true;""","""    case 'sctbd': if(x)x.tbd=true; return true;
     case 'scstage': if(x&&x.f){x.f.stage=b.getAttribute('data-v');x.warn=null} return true;
     case 'scref': if(x&&x.f){var rv=b.getAttribute('data-v'),f3=x.f,tk3=scTarget(x)||'t2',n3=tk3==='t1'?'1':'2',ok3=tk3==='t1'?'t2':'t1';
       if(f3['r'+n3]===rv){f3['r'+n3]='';f3['n'+n3]='';return true}
-      f3[tk3]='';f3['r'+n3]=rv;f3['n'+n3]=refLabel(c,rv);x.just=tk3;x.slot=f3[ok3]||f3['r'+(n3==='1'?'2':'1')]?'':ok3;x.warn=null} return true;""")
+      f3[tk3]='';f3['r'+n3]=rv;f3['n'+n3]=schedRefLabel(c,rv);x.just=tk3;x.slot=f3[ok3]||f3['r'+(n3==='1'?'2':'1')]?'':ok3;x.warn=null} return true;""")
 one("case 'sctbd': case 'scwarnno':","case 'sctbd': case 'scstage': case 'scref': case 'scwarnno':")
 one("""      var tk=scTarget(x)||'t2',ok2=tk==='t1'?'t2':'t1';f[tk]=id;x.just=tk;x.slot=f[ok2]?'':ok2} return true; // 兩格都滿就換掉右邊""",
     """      var tk=scTarget(x)||'t2',ok2=tk==='t1'?'t2':'t1';f[tk]=id;f[tk==='t1'?'r1':'r2']='';f[tk==='t1'?'n1':'n2']='';x.just=tk;x.slot=f[ok2]?'':ok2} return true; // 兩格都滿就換掉右邊""")
 one("app.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-sc'),x=ui.cupSheet;if(k&&x&&x.f)x.f[k]=t.value});",
     "app.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-sc'),x=ui.cupSheet;if(k&&x&&x.f){x.f[k]=t.value;if(k==='n1'||k==='n2')x.f['r'+k.slice(1)]=''}});")
+# 登錄單：待定的寫「A 組第 1 名」，已經確定的直接印隊名
+one("""  if(it)[['t1','n1'],['t2','n2']].forEach(function(q,i){var t=schedTeam(c,it[q[0]]);if(t)ev.push({type:'TEAM_NAME_SET',data:{team:q[0],value:t.team.name}});else hint[i]=it[q[1]]||''});""",
+    """  if(it)[['t1','n1'],['t2','n2']].forEach(function(q,i){var t=schedTeam(c,it[q[0]]||schedRef(c,it,q[0]));if(t)ev.push({type:'TEAM_NAME_SET',data:{team:q[0],value:t.team.name}});else hint[i]=it[q[1]]||(it['r'+(i+1)]?schedRefLabel(c,it['r'+(i+1)]):'')});""")
 # 主畫面：賽程｜積分｜隊伍
 one("""<button class="linkbtn" data-act="cupopen" data-from="home" data-id="'+esc(c.id)+'">全部賽程</button></div>'+chips+""",
     """</div>'+cupNav(c)+chips+""")
@@ -256,7 +261,7 @@ one(".scpbtns>button{flex:1 1 0}",""".scpbtns>button{flex:1 1 0}
 .rktag{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:var(--warn-bg,#f5a524);color:var(--warn-ink,#3a2500);font-size:13px;font-weight:700}
 .rkpools button{position:relative}
 .rkdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e8870e;margin-left:6px;vertical-align:middle}
-.rktable th small{display:block;font-weight:500}
+.rktable th small{display:block;font-weight:500;font-size:12px}
 .rktable .rkn small{display:block;font-size:12px;font-weight:600}
 .rkok{color:var(--ok)}
 .rkwarn{color:#c96a00}
@@ -265,7 +270,7 @@ one(".scpbtns>button{flex:1 1 0}",""".scpbtns>button{flex:1 1 0}
 .rkdrawbtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;min-width:48px;padding:2px 6px;border:2px solid #e8870e;background:transparent;color:var(--ink);border-radius:10px}
 .rkdrawbtn b{font-size:15px;font-weight:800}
 .rkdrawbtn small{font-size:11px;color:#c96a00;font-weight:700}
-.rkdet{min-height:36px;padding:0 10px;font-size:13px}
+.rkdet{min-height:44px;padding:0 12px;font-size:14px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .rkdlist{display:flex;flex-direction:column}
 .rkdg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;padding:10px 0;border-bottom:1px solid var(--line);align-items:baseline}
@@ -276,7 +281,8 @@ one(".scpbtns>button{flex:1 1 0}",""".scpbtns>button{flex:1 1 0}
 .rkdg small{color:var(--muted)}
 .rkdg em{font-style:normal;font-weight:700;text-align:right}
 .rkdet2{display:none}
-@media (max-width:599px){.rkdc{display:none}.rkdet2{display:inline-flex;align-items:center;min-height:32px;margin-top:2px;padding:0 10px;font-size:13px}}
+@media (max-width:599px){.rkdc{display:none}.rkdet2{display:flex;width:max-content;align-items:center;min-height:44px;margin-top:2px;padding:0 12px;font-size:14px}}
+.sheet>.seg,.sheet>.rkgnames,.sheet>.rkadvrow,.sheet>.rkdsum{flex:none}
 .rkdg .win{color:var(--ok)}
 .rkdsum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:12px 0}
 .rkdsum dt{color:var(--muted)}

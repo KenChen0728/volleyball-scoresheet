@@ -100,6 +100,9 @@ const forfeit=team=>{const id='mf'+(++seq);const e0=JSON.parse(JSON.stringify(FM
   await p.click('[data-act=scsave1]:not([data-v])');await W(300);if(await p.locator('[data-act=scsave1][data-force]').count()){await p.click('[data-act=scsave1][data-force]');await W(300)}
   c=await cup();const ko=c.sched.find(x=>x.stage==='複賽'&&x.r1);ok('ref saved',ko&&ko.r1==='g|A|1'&&!ko.t1,ko);
   const lr=await p.locator('.scrow').filter({hasText:'甲一隊'}).filter({hasText:'複賽'}).count();ok('schedule row shows resolved names',lr>=1);
+  if(ko){await p.click('[data-act=cuptab][data-v=teams]');await W(200);await p.click('.tsegrow [data-act=rkgrp]');await W(300);await p.fill('.sheet [data-rkg="1"]','丙');await p.click('.sheet [data-act=rkgsave]');await W(300);
+    c=await cup();const kr=c.sched.find(x=>x.id===ko.id);ok('rename group updates ref',kr.r2==='g|丙|1'&&c.teams.filter(t=>t.group==='丙組').length===3,kr);
+    await p.click('[data-act=cuptab][data-v=sched]');await W(300);ok('row shows renamed ref resolved',await p.locator('.scrow').filter({hasText:'乙三隊'}).filter({hasText:'複賽'}).count()>=1)}
   if(ko){await p.locator('[data-act=scopen]').filter({hasText:'乙三隊'}).first().click();await W(300);await p.click('.sheet [data-act=scgo]');await W(600);
     c=await cup();const ko2=c.sched.find(x=>x.id===ko.id);ok('start writes team ids',!!ko2.t1&&!!ko2.t2&&!!ko2.mid,ko2);
     await p.locator('.barback').first().click().catch(()=>{});await W(400)}
@@ -112,13 +115,18 @@ const forfeit=team=>{const id='mf'+(++seq);const e0=JSON.parse(JSON.stringify(FM
   await p.locator('.barback').first().click();await W(300);await p.locator('[data-act=home]').first().click().catch(()=>{});await W(400);
   const nav=p.locator('.hcupnav [data-tab=rank]');ok('home has 賽程｜積分｜隊伍',await nav.count()===1);
   if(await nav.count()){await nav.click();await W(400);ok('home → rank tab',await p.locator('.cuptabs [data-v=rank][aria-selected=true]').count()===1)}
-  // 不分組
-  await p.click('[data-act=cupdiv][data-v=女子組]');await W(200);await p.click('[data-act=rkgrp]');await W(300);await p.click('.sheet [data-act=rkgnone]');await W(300);c=await cup();ok('no groups',c.teams.every(t=>!t.group));
-  await p.setViewportSize({width:360,height:640});await W(300);ok('no horizontal page scroll at 360',await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   if(process.env.HELPSHOT){await p.setViewportSize({width:400,height:760});await p.emulateMedia({colorScheme:'dark'});await p.click('[data-act=cupdiv][data-v=女子組]');await W(300);
     await p.evaluate(()=>{document.querySelectorAll('.page,main').forEach(e=>e.scrollTop=0);scrollTo(0,0)});await W(300);
     const r=await p.evaluate(()=>{const a=document.querySelector('.cuptabs').getBoundingClientRect(),b=document.querySelector('.rksec').getBoundingClientRect();return {x:0,y:Math.max(0,a.top-6),width:innerWidth,height:Math.min(innerHeight,b.bottom+6)-Math.max(0,a.top-6)}});
     await p.evaluate(()=>{const t=document.querySelector('[data-act=cuptab][data-v=rank]');t.style.outline='3px solid #E53935';t.style.outlineOffset='-3px'});
-    fs.mkdirSync(process.env.HELPSHOT,{recursive:true});await p.screenshot({path:process.env.HELPSHOT+'/cuprank.png',clip:r})}
+    fs.mkdirSync(process.env.HELPSHOT,{recursive:true});await p.screenshot({path:process.env.HELPSHOT+'/cuprank.png',clip:r});
+    await p.evaluate(()=>{const t=document.querySelector('[data-act=cuptab][data-v=rank]');t.style.outline='';t.style.outlineOffset=''});
+    await p.click('[data-act=cuptab][data-v=teams]');await W(300);await p.click('.tsegrow [data-act=rkgrp]');await W(400);
+    await p.evaluate(()=>{const t=document.querySelector('.tsegrow [data-act=rkgrp]');if(t){t.style.outline='3px solid #E53935';t.style.outlineOffset='-3px'}});
+    await p.screenshot({path:process.env.HELPSHOT+'/cupgrp.png'});await p.click('.sheet [data-act=close]');await W(200)}
+  await p.setViewportSize({width:390,height:844});await p.click('[data-act=cuptab][data-v=rank]');await W(300);
+  // 不分組
+  await p.click('[data-act=cupdiv][data-v=女子組]');await W(200);await p.click('[data-act=rkgrp]');await W(300);await p.click('.sheet [data-act=rkgnone]');await W(300);c=await cup();ok('no groups',c.teams.every(t=>!t.group));
+  await p.setViewportSize({width:360,height:640});await W(300);ok('no horizontal page scroll at 360',await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   ok('no page errors',!errs.length,errs);
   console.log('t1120-rank',pass,'ok',fail,'fail');await b.close();process.exit(fail?1:0)})();
