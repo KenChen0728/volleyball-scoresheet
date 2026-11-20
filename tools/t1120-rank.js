@@ -59,6 +59,9 @@ const forfeit=team=>{const id='mf'+(++seq);const e0=JSON.parse(JSON.stringify(FM
   ok('draw order shows places',/第 1 名/.test(await p.locator('.sheet').innerText()));
   await p.click('.sheet [data-act=rkdsave]');await W(300);B=await rows();
   ok('draw result applied',B.map(r=>r[1].replace(/\s*明細.*$/,'').split(' ')[0]).join()==='乙三隊,乙一隊,乙二隊'&&B[0][0].startsWith('1')&&/抽籤/.test(B[0][0])&&/晉級/.test(B[1][1]),B);
+  await p.locator('.rkdrawbtn.done').first().click();await W(300);ok('drawn cell reopens with clear',await p.locator('.sheet [data-act=rkdclear]',{hasText:'清除抽籤結果'}).count()===1);
+  await p.click('.sheet [data-act=rkdclear]');await W(300);B=await rows();ok('clear draw back to range',B.every(r=>/^1–3 抽籤/.test(r[0])),B.map(r=>r[0]));
+  await p.locator('.rkdrawbtn').first().click();await W(300);for(const n of ['乙三隊','乙一隊','乙二隊']){await p.locator('.sheet [data-act=rkdpick]',{hasText:n}).click();await W(100)}await p.click('.sheet [data-act=rkdsave]');await W(300);
   ok('no more draw tag/dot',!/需抽籤/.test(await p.locator('.rkhead').innerText())&&await p.locator('.rkdot').count()===0);
   // 名次規則：只留勝場 → 甲二、甲三兩隊同勝場，看對戰
   await p.locator('.rkpools button').nth(0).click();await W(200);
