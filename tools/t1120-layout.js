@@ -42,6 +42,7 @@ const measure=async(p,tag)=>{const r=await p.evaluate(()=>{const out=[];const vw
     await measure(p,T+' 首頁');if(SHOT)await p.screenshot({path:SHOT+'/L-home-'+T+'.png'});
     if(await p.locator('.hcourtbtn').count()){await p.click('.hcourtbtn');await W(300);await measure(p,T+' 選場地');await p.click('.sheet [data-act=close]');await W(200)}
     await p.locator('[data-act=hscopen]').first().click();await W(300);await p.click('.sheet [data-act=scgo]');await W(600);
+    await measure(p,T+' 名單頁');
     const nb=p.locator('.num[data-kind=reg]').first();await nb.click();await W(200);await p.click('.kp [data-act=key][data-v="9"]');await W(120);await p.click('.kp [data-act=kpclose]');await W(300);
     if(!await p.locator('.bookmiss').count())issues.push(T+'｜名單頁沒有出現名冊沒有的號碼');else{await measure(p,T+' 名單頁名冊沒有');if(SHOT)await p.screenshot({path:SHOT+'/L-miss-'+T+'.png'});await p.locator('.bookmiss').first().click();await W(300);await measure(p,T+' 對照名冊');await p.click('.sheet [data-act=bookpick]');await W(300);await measure(p,T+' 名冊上的人');}
     await ctx.close()}

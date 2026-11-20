@@ -64,7 +64,7 @@ one("saveFile('賽事名單範本.csv','\\uFEFF男女組,隊名,背號,姓名,�
 # 放在上面提示字的位置（手機上名單頁剛好一頁，下面加一行會蓋到「印紙本記錄表」）
 one("""  return (a.locked?'':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。""",
 """  var bmb=a.locked?'':['t1','t2'].map(function(k){var bm=bookMiss(m,s,k);return bm.length?'<button class="bookmiss" data-act="sheet" data-v="bookfix" data-team="'+k+'"><span><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 名冊沒有 '+bm.map(function(p){return p.no}).join('、')+' 號</span><b>對照名冊 ›</b></button>':''}).join('');
-  return (a.locked?'':bmb?'<div class="stephint bookbar'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">'+bmb+'</div>':'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。""")
+  return (a.locked?'':bmb?(ui.slot.t1||ui.slot.t2?'':'<div class="bookbar">'+bmb+'</div>'):'<p class="stephint'+(ui.slot.t1||ui.slot.t2?' kpon':'')+'">點「號碼」空格輸入背號。""")
 
 one("""  }else if(x.type==='staff'){""","""  }else if(x.type==='bookfix'){ // 名冊沒有的背號：問過裁判組再改名冊（11/20 使用者）
     var bfm=bookMiss(m,s,k),bct=cupTeamFor(m,s,k);
@@ -90,7 +90,7 @@ one("""(XP_ON?ctPage(s,'res'):ppResult(s))+'<div class="muted">比賽已自動�
     """(XP_ON?ctPage(s,'res'):ppResult(s))+(function(){var bf=bookFill(current(),s);return bf.length?'<div class="note bookfill">名冊上有 '+bf.length+' 位球員的姓名，記錄表上還空著（背號對得上的才補，已經填的不動）。<button data-act="bookfill">從名冊補姓名</button></div>':''})()+'<div class="muted">比賽已自動存在這台裝置""")
 one(".tools{display:grid;", """.bookmiss{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;padding:6px 10px;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:13px;text-align:left}
 .bookmiss>span{min-width:0;color:var(--muted)}
-.bookbar{display:flex;flex-direction:column;gap:6px}
+.bookbar{display:flex;flex-direction:column;gap:6px;flex:none;width:100%;max-width:760px;align-self:center}
 .bookmiss b{flex:none;font-weight:700}
 .bkfix{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .bkfix>b{font-size:18px}
