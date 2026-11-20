@@ -17,7 +17,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));const errs=[];const Y=new Date().ge
   await A.click('[data-act=scnew]');await W(300);await scDate(A,Y+'-12-05');await scTime(A,'08:30');await A.fill('#sc-court','甲');
   await A.locator('.sheet [data-act=scpick]').filter({hasText:/範例藍隊/}).click();await W(120);await A.locator('.sheet [data-act=scpick]').filter({hasText:/範例橘隊/}).click();await W(120);
   await A.click('[data-act=scsave1]:not([data-v])');await W(300);
-  const [dl]=await Promise.all([A.waitForEvent('download'),A.click('[data-act=cupsave]')]);const F='/tmp/t1119-merge.json';await dl.saveAs(F);
+  const [dl]=await (async()=>{await A.click('[data-act=cupsave]');await new Promise(r=>setTimeout(r,250));return Promise.all([A.waitForEvent('download'),A.click('.sheet [data-act=cupsvgo]')])})();const F='/tmp/t1119-merge.json';await dl.saveAs(F);
   // 手機：自己也建了「測試盃」，有一隊同名（舊名單）、一隊不同
   const B=await mk();await folder(B,'男子組球員名單\n範例藍隊\n王小明1\n範例綠隊\n趙一5');
   const before=await DB(B);const blueB=before.cups[0].teams.find(t=>t.team.name==='範例藍隊').id;

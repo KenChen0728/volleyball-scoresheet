@@ -67,6 +67,22 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   await p.click('[data-act=scnew]');await W(300);ok('new: last + 1h',await scGet(p,'#sc-time')==='12:00',await scGet(p,'#sc-time'));
   await scTime(p,'11:50');await pick('黑隊');await pick('白隊');await p.click('[data-act=scsave1][data-v=next]');await W(300);
   ok('next follows 50-minute gap',await scGet(p,'#sc-time')==='12:40',await scGet(p,'#sc-time'));await p.click('.sheet [data-act=close]');await W(200);
+  // 存成檔案：先勾要存什麼
+  await p.click('[data-act=cupsave]');await W(300);const svt=await p.locator('.sheet').innerText();
+  ok('save sheet lists parts with counts',/隊伍名冊/.test(svt)&&/3 隊/.test(svt)&&/3 場/.test(svt)&&/裁判名單/.test(svt)&&/還沒有/.test(svt)&&/測試盃_資料夾_/.test(svt),svt);
+  ok('empty part disabled',await p.locator('.sheet [data-act=cupsvtog][data-v=r]').isDisabled());
+  await p.click('.sheet [data-act=cupsvtog][data-v=t]');await W(150);
+  ok('file name shows parts',/測試盃_賽程_\d{4}-\d{2}-\d{2}\.json/.test(await p.locator('.cupsvname').innerText()));
+  if(SHOT)await p.screenshot({path:SHOT+'/f-save.png'});
+  const [sdl]=await Promise.all([p.waitForEvent('download'),p.click('.sheet [data-act=cupsvgo]')]);const SF='/tmp/t1120-fix-save.json';await sdl.saveAs(SF);
+  const sj=JSON.parse(fs.readFileSync(SF,'utf8'));ok('partial file: schedule only',sj.cups[0].teams.length===0&&sj.cups[0].sched.length===3&&sj.matches.length===0,{t:sj.cups[0].teams.length,s:sj.cups[0].sched.length,m:sj.matches.length});
+  sj.cups[0].sched[0].court='乙';sj.cups[0].sched[0].at=Date.now()+5000;fs.writeFileSync(SF,JSON.stringify(sj));
+  await p.click('.sheet [data-act=close]');await W(200);
+  // 匯回同一台：隊伍不會被刪
+  await p.locator('.barback').first().click();await W(300);await p.setInputFiles('#import-file',SF);await W(400);
+  ok('import plan: schedule updated, no team change',/賽程更新 1 場/.test(await p.locator('.sheet').innerText())&&!/隊伍/.test(await p.locator('.sheet').innerText()),await p.locator('.sheet').innerText());await p.click('[data-act=impgo]');await W(400);
+  c=await cup();ok('teams kept after importing schedule-only file',c.teams.filter(t=>!t.del).length===3&&c.sched.filter(x=>!x.del).length===3&&c.sched.some(x=>x.court==='乙'));
+  await p.locator('.sheet [data-act=close]').first().click().catch(()=>{});await W(200);await p.locator('[data-act=cupopen]').first().click();await W(300);await tab('sched');
   // 3. 照賽程開始：名冊沒有的號碼
   await p.locator('[data-act=scopen]').first().click();await W(200);await p.click('[data-act=scgo]');await W(600);
   const key=async(...ds)=>{for(const d of ds){await p.click('.kp [data-act=key][data-v="'+d+'"]');await W(120)}};

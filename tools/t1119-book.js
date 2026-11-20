@@ -70,7 +70,7 @@ const PDF='女⼦組球員名單\n範例藍隊\n王⼩明1\n陳⼤文2\n林⼩�
   await p.evaluate(()=>{const b=document.querySelector('[data-act=history]');if(b)b.click()});await W(300);
   if(!await p.locator('[data-act=cupopen]').count()){await p.evaluate(()=>{const b=document.querySelector('[data-act=home]');if(b)b.click()});await W(300);await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400)}
   await p.locator('[data-act=cupopen]').first().click();await W(300);
-  const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const FF='/tmp/t1119-cup.json';await dl.saveAs(FF);
+  const [dl]=await (async()=>{await p.click('[data-act=cupsave]');await new Promise(r=>setTimeout(r,250));return Promise.all([p.waitForEvent('download'),p.click('.sheet [data-act=cupsvgo]')])})();const FF='/tmp/t1119-cup.json';await dl.saveAs(FF);
   const fj=JSON.parse(require('fs').readFileSync(FF,'utf8'));
   ok('folder file has names',fj.cups[0].teams.find(t=>t.team.name==='範例藍隊').team.players.length===17);
   const ctx2=await b.newContext({viewport:{width:820,height:1180},hasTouch:true});const q=await ctx2.newPage();q.on('pageerror',e=>errs.push(e.message));

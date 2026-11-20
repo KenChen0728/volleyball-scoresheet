@@ -149,7 +149,7 @@ const Y=new Date().getFullYear();
   ok('started from home',JSON.stringify(st2)==='["男子組","1","甲隊","乙隊"]',st2);
   // 9. 資料夾存成檔案：另一台匯入後賽程和已開始的比賽都在
   await p.locator('.barback').first().click();await W(300);await p.locator('text=/紀錄與名單|賽事與紀錄/').first().click().catch(()=>{});await W(300);if(!await p.locator('[data-act=cupsave]').count()){await p.locator('[data-act=cupopen]').first().click();await W(300)}
-  const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const FF='/tmp/t1119-sched.json';await dl.saveAs(FF);
+  const [dl]=await (async()=>{await p.click('[data-act=cupsave]');await new Promise(r=>setTimeout(r,250));return Promise.all([p.waitForEvent('download'),p.click('.sheet [data-act=cupsvgo]')])})();const FF='/tmp/t1119-sched.json';await dl.saveAs(FF);
   const q=await mk({width:820,height:1180});await q.goto(URL);await W(400);const a2=q.locator('.sheet.about [data-act=aboutclose]');if(await a2.count()){await a2.first().click();await W(200)}
   await q.locator('text=/紀錄與名單|賽事與紀錄/').first().click();await W(400);await q.setInputFiles('#import-file',FF);await W(400);
   ok('import plan mentions schedule',/賽程新增 7 場/.test(await q.locator('.sheet').innerText()),await q.locator('.sheet').innerText());

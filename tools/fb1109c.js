@@ -62,7 +62,7 @@ await p.click('.folderrow button');await W(40);await p.click('.sheet [data-act=s
 await p.click('.bar [data-act=home]');await W(60);
 // 匯出資料夾，改成另一台的樣子，再匯入
 await p.click('[data-act=history]');await W(60);await p.click('.cupcard');await W(60);
-const [dl]=await Promise.all([p.waitForEvent('download'),p.click('[data-act=cupsave]')]);const f1='/home/claude/t/cup1.json';await dl.saveAs(f1);
+const [dl]=await (async()=>{await p.click('[data-act=cupsave]');await new Promise(r=>setTimeout(r,250));return Promise.all([p.waitForEvent('download'),p.click('.sheet [data-act=cupsvgo]')])})();const f1='/home/claude/t/cup1.json';await dl.saveAs(f1);await p.click('.sheet [data-act=close]');await W(100);
 const o=JSON.parse(fs.readFileSync(f1,'utf8'));const later=Date.now()+60000;
 o.cups[0].teams.push({id:'tX',division:'男子組',group:'國中甲組',team:{name:'新隊',players:[{no:1,name:''},{no:2,name:''}],captain:1,liberos:[],staff:{},locked:false,color:null,liberoColor:null},at:later});
 o.cups[0].refs.forEach(r=>{if(r.name==='陳志明'){r.del=true;r.at=later}});o.cups[0].refs.push({court:'5',label:'第五場地',name:'許大同',at:later});
