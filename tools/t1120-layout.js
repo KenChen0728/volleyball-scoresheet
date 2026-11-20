@@ -1,4 +1,5 @@
 // 11/20 新畫面在各尺寸：首頁、資料夾三個分頁、新增比賽、點開那一場、印登錄單、更多、選場地。量：左右超出、按鈕被蓋住、按鈕小於 44、字小於 12
+const {scDate,scTime,scGet}=require('./scpick.js');
 const {chromium}=require('playwright');const W=ms=>new Promise(r=>setTimeout(r,ms));
 const URL=process.argv[2]||'http://localhost:8782/next/index.html',SHOT=process.env.SHOT||'';
 const SIZES=[[360,640],[375,667],[390,844],[430,932],[844,390],[768,1024],[820,1180],[1180,820],[1366,768],[1920,1080]];
@@ -25,7 +26,7 @@ const measure=async(p,tag)=>{const r=await p.evaluate(()=>{const out=[];const vw
     await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text','男子組球員名單\n範例藍隊A\n王小明1\n範例藍隊B\n陳大文2\n範例橘隊\n李小美3\n範例綠隊\n張小英4\n範例紅隊\n黃小芳5\n範例白隊\n林小華6\n範例黑隊\n吳小玲7');await p.click('[data-act=cupteamsave]');await W(400);
     await measure(p,T+' 隊伍分頁');
     await p.click('[data-act=cuptab][data-v=sched]');await W(300);
-    for(const [tm,ct] of [['09:00','甲'],['09:00','乙'],['10:00','甲']]){await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',todayS());await p.fill('#sc-time',tm);await p.fill('#sc-court',ct);
+    for(const [tm,ct] of [['09:00','甲'],['09:00','乙'],['10:00','甲']]){await p.click('[data-act=scnew]');await W(300);await scDate(p,todayS());await scTime(p,tm);await p.fill('#sc-court',ct);
       const picks=p.locator('.sheet [data-act=scpick]');await picks.nth(ct==='甲'?0:2).click();await W(120);await picks.nth(ct==='甲'?1:3).click();await W(120);
       if(tm==='09:00'&&ct==='甲')await measure(p,T+' 新增比賽');
       await p.click('[data-act=scsave1]:not([data-v])');await W(300);if(await p.locator('[data-act=scsave1][data-force]').count()){await p.click('[data-act=scsave1][data-force]');await W(300)}}

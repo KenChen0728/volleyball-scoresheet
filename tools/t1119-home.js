@@ -1,4 +1,5 @@
 // 11/19 首頁：今天的賽程、賽事資料夾、開始前準備（tools/patch_v108.py）；平板橫放右邊不再空著
+const {scDate,scTime,scGet}=require('./scpick.js');
 const {chromium}=require('playwright');
 const URL=process.argv[2]||'http://localhost:8781/beta/index.html',SHOT=process.env.SHOT||'';
 let pass=0,fail=0;const ok=(n,v,x)=>{if(v)pass++;else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x).slice(0,300))}};
@@ -15,7 +16,7 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   if(SHOT)await p.screenshot({path:SHOT+'/home-empty-'+tag+'.png'});
   await p.click('.hsteps [data-act=cupcreate]');await W(300);await p.locator('.sheet input[type=text]').first().fill('測試盃');await p.locator('.sheet .primary').first().click();await W(400);
   await p.locator('[data-act=cupteam]:not([data-id])').first().click();await W(300);await p.fill('#ct-text','男子組球員名單\n範例藍隊\n王小明1\n範例橘隊\n李小美3');await p.click('[data-act=cupteamsave]');await W(300);
-  await tab(p,'sched');await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',todayS());await p.fill('#sc-time','08:30');await p.fill('#sc-court','室內場 B');
+  await tab(p,'sched');await p.click('[data-act=scnew]');await W(300);await scDate(p,todayS());await scTime(p,'08:30');await p.fill('#sc-court','室內場 B');
   await p.locator('.sheet [data-act=scpick]').nth(0).click();await W(120);await p.locator('.sheet [data-act=scpick]').nth(1).click();await W(120);
   await p.click('[data-act=scsave1][data-v=next]');await W(300);await p.fill('#sc-court','室內場 A');await p.click('[data-act=scsave1]:not([data-v])');await W(300);
   await p.click('.barback');await W(300);await p.locator('[data-act=home]').first().click();await W(400);
