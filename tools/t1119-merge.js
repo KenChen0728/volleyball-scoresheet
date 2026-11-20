@@ -1,4 +1,5 @@
 // 11/19 兩台各自建了同名資料夾，匯入時併進同名的（tools/patch_v110.py）
+const {scDate,scTime,scGet}=require('./scpick.js');
 const {chromium}=require('playwright');const fs=require('fs');
 const URL=process.argv[2]||'http://localhost:8781/beta/index.html';
 let pass=0,fail=0;const ok=(n,v,x)=>{if(v)pass++;else{fail++;console.log('FAIL',n,x===undefined?'':JSON.stringify(x).slice(0,400))}};
@@ -13,7 +14,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));const errs=[];const Y=new Date().ge
   // 平板：兩隊加一場賽程
   const A=await mk();await folder(A,'男子組球員名單\n範例藍隊\n王小明1\n陳大文2\n範例橘隊\n李小美3');
   if(await A.locator('[data-act=cuptab][data-v=sched]').count()){await A.click('[data-act=cuptab][data-v=sched]');await W(200)}
-  await A.click('[data-act=scnew]');await W(300);await A.fill('#sc-date',Y+'-12-05');await A.fill('#sc-time','08:30');await A.fill('#sc-court','甲');
+  await A.click('[data-act=scnew]');await W(300);await scDate(A,Y+'-12-05');await scTime(A,'08:30');await A.fill('#sc-court','甲');
   await A.locator('.sheet [data-act=scpick]').filter({hasText:/範例藍隊/}).click();await W(120);await A.locator('.sheet [data-act=scpick]').filter({hasText:/範例橘隊/}).click();await W(120);
   await A.click('[data-act=scsave1]:not([data-v])');await W(300);
   const [dl]=await Promise.all([A.waitForEvent('download'),A.click('[data-act=cupsave]')]);const F='/tmp/t1119-merge.json';await dl.saveAs(F);

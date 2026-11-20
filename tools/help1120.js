@@ -3,6 +3,7 @@
 // 用法：先在專案根目錄開 python3 -m http.server 8781；node tools/help1120.js [輸出資料夾，預設 /tmp/help1120]
 // 截完跑 python3 tools/help1120_webp.py [輸出資料夾] 存成 tools/help1120/*.webp，patch_v116.py 會包進說明。
 // 分享和觀看用 t1116-list.js 的假後端（下面那段是從那裡複製的）。
+const {scDate,scTime,scGet}=require('./scpick.js');
 const {chromium}=require('playwright');const fs=require('fs'),path=require('path');const flow=require('./flow.js');
 const URL='http://localhost:8781/beta/index.html';
 const O=(process.argv[2]||'/tmp/help1120')+'/';fs.mkdirSync(O,{recursive:true});
@@ -93,13 +94,13 @@ await p.fill('#ct-text','男子組球員名單\n範例藍隊\n王小明 1\n陳�
 await cap('cup2','.sheet',['#ct-text'],0);
 await p.click('[data-act=cupteamsave]');await W(400);
 await tab(p,'sched');
-await p.click('[data-act=scnew]');await W(300);await p.fill('#sc-date',todayS());await p.fill('#sc-time','09:00');await p.fill('#sc-court','甲');
+await p.click('[data-act=scnew]');await W(300);await scDate(p,todayS());await scTime(p,'09:00');await p.fill('#sc-court','甲');
 await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例藍隊/}).click();await W(150);await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例橘隊/}).click();await W(350);
-await cap('cupsch','.sheet',['.scslots','[data-act=scsave1][data-v=next]'],0);
+await cap('cupsch','.sheet',['.scmeta','.scslots','[data-act=scsave1][data-v=next]'],0);
 await p.click('[data-act=scsave1][data-v=next]');await W(300);
 await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例綠隊/}).click();await W(150);await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例紅隊/}).click();await W(150);
-await p.click('[data-act=scsave1][data-v=next]');await W(300);await p.fill('#sc-court','乙');await p.fill('#sc-time','09:00');
-await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例紅隊/}).click();await W(150);await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例綠隊/}).click();await W(150);
+await p.click('[data-act=scsave1][data-v=next]');await W(300);await p.fill('#sc-court','乙');await scTime(p,'11:00');
+await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例紅隊/}).click();await W(150);await p.locator('.sheet [data-act=scpick]').filter({hasText:/範例藍隊/}).click();await W(150);
 await p.click('[data-act=scsave1]:not([data-v])');await W(400);
 await p.click('[data-act=cupcourtf][data-v="甲"]');await W(300);
 await p.locator('[data-act=scopen]').first().click();await W(300);
