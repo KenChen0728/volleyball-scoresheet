@@ -210,8 +210,10 @@ for(const [w,h] of [[360,640],[375,667],[844,390],[1366,768]]){const Q=await pag
   await R.evaluate(()=>__fakeNet(true));await W(1200);
   ok('lock sheet shown on taken-over match',await R.locator('.sheet [data-act=syncback]').count()===1&&await R.locator('.sheet [data-act=close]').count()===0);
   await R.click('.sheet [data-act=syncwatch]');await W(900);ok('watch taker content',await R.locator('.watch').count()===1);
-  await R.click('[data-act=wleave]');await W(200);await R.click('[data-act=wleave2]');await W(400);
-  ok('leaving goes to the match list',await R.locator('.sheet .wlist').count()===1);await R.click('.sheet [data-act=close]');await W(300);
+  ok('reclaim button while watching taker (v126)',await R.locator('[data-act=wback]').count()===1);
+  await R.click('[data-act=wleave]');await W(400);
+  ok('leaving goes back to the reclaim choice (v126)',await R.locator('.sheet [data-act=syncback]').count()===1&&await R.locator('.watch').count()===0);
+  await R.click('.sheet [data-act=synchome]');await W(400);
   const n0=(await evs(R)).length;
   const cont=R.locator('.home [data-act=resume],.home .primary:has-text("繼續記錄")');
   if(await cont.count()){await cont.first().click();await W(500)}else{const any=R.locator('text=繼續記錄');await any.first().click();await W(500)}
