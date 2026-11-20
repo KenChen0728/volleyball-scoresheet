@@ -36,7 +36,7 @@ const measure=async(p,tag)=>{const r=await p.evaluate(()=>{const out=[];const vw
     const ord=(await p.locator('.cupcourts button').allInnerTexts()).join(',');if(ord!=='全部,場地：甲,場地：乙')issues.push(T+'｜場地順序 '+ord);if(SHOT)await p.screenshot({path:SHOT+'/L-sched-'+T+'.png'});
     await p.locator('[data-act=scopen]').first().click();await W(300);await measure(p,T+' 點開那一場');await p.click('.sheet [data-act=close]');await W(200);
     await p.click('[data-act=scprint]');await W(300);await measure(p,T+' 印登錄單');await p.click('.sheet [data-act=scpgo]');await p.waitForSelector('.regprev img',{timeout:30000});await W(300);await measure(p,T+' 登錄單預覽');if(SHOT)await p.screenshot({path:SHOT+'/L-prev-'+T+'.png'});await p.click('.sheet [data-act=close]');await W(200);
-    await p.click('[data-act=cupmore]');await W(300);await measure(p,T+' 更多');await p.click('.sheet [data-act=close]');await W(200);
+    await p.click('[data-act=cupmore]');await W(300);await measure(p,T+' 更多');await p.click('.sheet [data-act=close]');await W(200);await p.click('[data-act=cupsave]');await W(300);await measure(p,T+' 存成檔案');await p.click('.sheet [data-act=close]');await W(200);
     await p.click('[data-act=cuptab][data-v=refs]');await W(300);await measure(p,T+' 裁判分頁');
     await p.click('.barback');await W(300);await p.locator('[data-act=home]').first().click();await W(400);
     await measure(p,T+' 首頁');if(SHOT)await p.screenshot({path:SHOT+'/L-home-'+T+'.png'});
