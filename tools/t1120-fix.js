@@ -64,6 +64,9 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   const wt=await p.locator('.sheet .warning').innerText().catch(()=>'');
   ok('rematch warning',/重複對戰/.test(wt)&&/「白隊」和「藍隊」已經排過一場/.test(wt),wt);
   await p.click('[data-act=scsave1][data-force]');await W(300);c=await cup();ok('saved anyway',c.sched.filter(x=>!x.del).length===2);
+  await p.click('[data-act=scnew]');await W(300);ok('new: last + 1h',await scGet(p,'#sc-time')==='12:00',await scGet(p,'#sc-time'));
+  await scTime(p,'11:50');await pick('黑隊');await pick('白隊');await p.click('[data-act=scsave1][data-v=next]');await W(300);
+  ok('next follows 50-minute gap',await scGet(p,'#sc-time')==='12:40',await scGet(p,'#sc-time'));await p.click('.sheet [data-act=close]');await W(200);
   // 3. 照賽程開始：名冊沒有的號碼
   await p.locator('[data-act=scopen]').first().click();await W(200);await p.click('[data-act=scgo]');await W(600);
   const key=async(...ds)=>{for(const d of ds){await p.click('.kp [data-act=key][data-v="'+d+'"]');await W(120)}};
