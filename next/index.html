@@ -2073,6 +2073,8 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .rkdrawbtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;min-width:48px;padding:2px 6px;border:2px solid #e8870e;background:transparent;color:var(--ink);border-radius:10px}
 .rkdrawbtn b{font-size:15px;font-weight:800}
 .rkdrawbtn small{font-size:11px;color:#c96a00;font-weight:700}
+.rkdrawbtn.done{border-color:var(--line2)}
+.rkdrawbtn.done small{color:var(--muted)}
 .rkdet{min-height:44px;padding:0 12px;font-size:14px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .rkdlist{display:flex;flex-direction:column}
@@ -2698,7 +2700,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='預覽版 1121-0327';
+var BUILD='預覽版 1121-0330';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4426,7 +4428,7 @@ function rankNeedDraw(R){return R.rows.some(function(q){return q.draw})}
 function rankTable(c,div,P,pool){var R=rankPool(c,div,pool),adv=rankAdv(c,div,P.list.length),done=R.games.filter(function(q){return q.done}).length;
   var head='<div class="rkhead"><h2>'+esc(pool.name?poolLabel(pool.name):(P.list.length>1?'未分組':div))+'</h2>'+(rankNeedDraw(R)?'<span class="rktag">需抽籤</span>':'')+'<span class="muted">打完 '+done+'／'+R.games.length+' 場</span></div>';
   var rows=R.rows.map(function(q,ix){var t=schedTeam(c,q.id),st=q.st,pl=st.G>0,cut=adv>0&&ix===adv-1&&ix<R.rows.length-1,note='';
-    var rc=!pl?'–':q.draw?'<button class="rkdrawbtn" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.from+(q.to>q.from?' 到 '+q.to:'')+' 名抽籤，點了填抽籤結果"><b>'+q.from+(q.to>q.from?'–'+q.to:'')+'</b><small>抽籤</small></button>':q.rank+(q.drawn?'<small class="rkdrawn">抽籤</small>':'');
+    var rc=!pl?'–':q.draw?'<button class="rkdrawbtn" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.from+(q.to>q.from?' 到 '+q.to:'')+' 名抽籤，點了填抽籤結果"><b>'+q.from+(q.to>q.from?'–'+q.to:'')+'</b><small>抽籤</small></button>':q.drawn?'<button class="rkdrawbtn done" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.rank+' 名，抽籤決定，點了可以修改"><b>'+q.rank+'</b><small>抽籤</small></button>':q.rank;
     if(q.draw&&adv>0)note=q.from<=adv&&q.to>adv?'<small class="rkwarn">抽籤決定晉級</small>':q.to<=adv?'<small class="rkok">都晉級，抽籤排名次</small>':'';
     else if(R.done&&adv>0&&pl&&q.rank<=adv)note='<small class="rkok">晉級</small>';
     return '<tr class="'+(q.draw?'rkdraw':'')+(cut?' rkcut':'')+'"><td class="rkr">'+rc+'</td><td class="rkn"><strong>'+esc(t?t.team.name:'')+'</strong>'+note+'<button class="rkdet rkdet2" data-act="rkdet" data-id="'+esc(q.id)+'" aria-label="'+esc(t?t.team.name:'')+' 明細">明細 ›</button></td><td><b>'+st.W+'</b></td><td>'+st.G+'</td><td><b>'+st.P+'</b></td><td>'+st.SW+':'+st.SL+(pl?'<small>'+rankFmt(rankRatio(st.SW,st.SL))+'</small>':'')+'</td><td>'+st.PW+':'+st.PL+(pl?'<small>'+rankFmt(rankRatio(st.PW,st.PL))+'</small>':'')+'</td><td class="rkdc"><button class="rkdet" data-act="rkdet" data-id="'+esc(q.id)+'" aria-label="'+esc(t?t.team.name:'')+' 明細">明細</button></td></tr>'}).join('');
