@@ -8,7 +8,7 @@ const measure=async(p,tag)=>{const r=await p.evaluate(()=>{const out=[];const vw
   if(document.documentElement.scrollWidth>vw+1)out.push('頁面可以左右捲 '+document.documentElement.scrollWidth);
   const root=document.querySelector('.sheet')||document;
   root.querySelectorAll('button,[role=tab],input,textarea').forEach(e=>{const rc=e.getBoundingClientRect();if(!rc.width||!rc.height)return;const st=getComputedStyle(e);if(st.visibility==='hidden'||st.display==='none')return;
-    if(rc.right>vw+1||rc.left<-1)out.push('超出畫面：'+(e.textContent||e.id).trim().slice(0,14));
+    if((rc.right>vw+1||rc.left<-1)&&!e.closest('.regprev'))out.push('超出畫面：'+(e.textContent||e.id).trim().slice(0,14));
     if(e.tagName==='BUTTON'&&rc.height<43.5&&!e.closest('.hdots')&&!e.classList.contains('linkbtn'))out.push('按鈕太矮 '+Math.round(rc.height)+'：'+e.textContent.trim().slice(0,12));
     let sc=e.parentElement,hid=false;while(sc&&sc!==document.body){const o=getComputedStyle(sc).overflowY;if((o==='auto'||o==='scroll')&&sc.scrollHeight>sc.clientHeight+1){const q=sc.getBoundingClientRect(),cy=rc.top+rc.height/2;if(cy<q.top||cy>q.bottom){hid=true;break}
       // 捲得開的容器裡，被黏在下面的按鈕蓋住不算（捲過去就看得到）
@@ -29,7 +29,7 @@ const measure=async(p,tag)=>{const r=await p.evaluate(()=>{const out=[];const vw
     for(const [tm,ct] of [['09:00','甲'],['09:00','乙'],['10:00','甲']]){await p.click('[data-act=scnew]');await W(300);await scDate(p,todayS());await scTime(p,tm);await p.fill('#sc-court',ct);
       const picks=p.locator('.sheet [data-act=scpick]');await picks.nth(ct==='甲'?0:2).click();await W(120);await picks.nth(ct==='甲'?1:3).click();await W(120);
       if(tm==='09:00'&&ct==='甲')await measure(p,T+' 新增比賽');
-      if(tm==='09:00'&&ct==='甲'){await p.click('#sc-time');await W(200);await measure(p,T+' 選時間');await p.click('.sheet [data-act=sctin]');await W(150);await measure(p,T+' 自己輸入時間');await p.click('.sheet [data-act=scpkdone]');await W(150);
+      if(tm==='09:00'&&ct==='甲'){await p.click('#sc-time');await W(200);await measure(p,T+' 選時間');await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(150);await measure(p,T+' 自己輸入時間');await p.click('.sheet [data-act=scpkdone]');await W(150);
         await p.click('#sc-date');await W(200);await measure(p,T+' 選日期');if(SHOT)await p.screenshot({path:SHOT+'/L-date-'+T+'.png'});await p.click('.sheet [data-act=scpkdone]');await W(150)}
       await p.click('[data-act=scsave1]:not([data-v])');await W(300);if(await p.locator('[data-act=scsave1][data-force]').count()){await p.click('[data-act=scsave1][data-force]');await W(300)}}
     await measure(p,T+' 賽程分頁');

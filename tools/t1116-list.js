@@ -148,6 +148,24 @@ await R.click('[data-act=sheet][data-v=more]');await W(250);await R.click('.shee
 // 6. Esc：觀看裝置清單先退一層
 await R.click('.sheet .vwbtn');await W(300);await R.keyboard.press('Escape');await W(200);
 ok('esc goes back one level',await R.locator('.sheet .vwbtn').count()===1);
+// 11/21（patch_v126）改名稱打中文：選字中、連線狀態變了也不重畫，輸入框不會被換掉
+await R.click('.sheet .vwbtn');await W(300);await R.locator('.vwrow [data-act=vwren]').first().click();await W(200);
+await R.evaluate(()=>{const i=document.getElementById('vw-name');i.focus();i.dataset.mark='1';i.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));i.value='ㄉㄧ';i.dispatchEvent(new Event('input',{bubbles:true}))});
+await R.evaluate(()=>__fakeNet(false));await W(400);await R.evaluate(()=>__fakeNet(true));await W(900);
+ok('no re-render while typing chinese (v126)',await R.evaluate(()=>{const i=document.getElementById('vw-name');return !!i&&i.dataset.mark==='1'&&i.value==='ㄉㄧ'}));
+await R.evaluate(()=>{const i=document.getElementById('vw-name');i.value='第二裁判';i.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));i.dispatchEvent(new Event('input',{bubbles:true}))});await W(300);
+await R.click('.sheet [data-act=vwsave]');await W(400);ok('chinese name saved',await R.locator('.vwrow:has-text("第二裁判")').count()>=1);
+await R.click('.sheet [data-act=vwback]');await W(200);
+// 11/21（patch_v126）觀看中被移除 → 取消移除後自己回來
+const vu2=await uidOf(V);
+await R.click('.sheet .vwbtn');await W(300);
+await R.locator('.vwrow').filter({hasNot:R.locator('text=柱子上的手機')}).filter({has:R.locator('[data-act=vwrm]')}).first().locator('[data-act=vwrm]').click().catch(()=>{});await W(200);
+if(await R.locator('.sheet [data-act=vwrm2]').count()){await R.click('.sheet [data-act=vwrm2]');await W(1200);
+  const bannedV=!!(T.m[code].b&&T.m[code].b[vu2]);
+  if(bannedV){ok('watching device denied',/無法觀看/.test(await V.locator('main').innerText().catch(()=>'')),await V.locator('main').innerText().catch(()=>''));
+    await R.click('.sheet [data-act=vwun]');await W(11000);ok('watching device comes back by itself (v126)',await V.locator('.board,.wmsg').first().innerText().then(t=>!/無法觀看/.test(t)).catch(()=>false),await V.locator('main').innerText().catch(()=>''))}
+  else{await R.click('.sheet [data-act=vwun]').catch(()=>{});await W(800)}}
+await R.click('.sheet [data-act=vwback]').catch(()=>{});await W(200);
 // 7. 更換代碼
 await R.click('.sheet .vwbtn');await W(300);await R.click('.sheet [data-act=vwnew]');await W(200);
 ok('renew asks first',/所有觀看裝置都會中斷/.test(await R.locator('.sheet').innerText()));
@@ -165,5 +183,21 @@ for(const [w,h] of [[360,640],[375,667],[844,390],[768,1024],[1366,768]]){const 
   ok(w+'x'+h+' list fits',r.hx<=0&&r.sw<=0&&!r.bad.length,r);
   if(SHOT)await Q.screenshot({path:SHOT+'/l-list-'+w+'x'+h+'.png'});await Q.close()}
 {const Q=await page(360,640);await Q.goto(URL);await W(400);}
+// 11/21（patch_v126）記錄台沒斷線但停住（寫不出去）：觀看端 15 秒後出現「接手記錄」
+{const R2=await page();await R2.goto(URL);await W(400);await ab(R2);await R2.evaluate(()=>{localStorage.clear()});await R2.reload();await W(400);await ab(R2);
+ await flow.start(R2,{serve:'t1'}).catch(()=>{});await W(300);
+ await R2.click('[data-act=sheet][data-v=more]');await W(250);await R2.click('.sheet [data-act=syncopen]');await W(400);await R2.click('[data-act=syncstart]').catch(()=>{});await W(1500);
+ const c3=(await R2.locator('.synccode b').innerText().catch(()=>'')).replace(/\s/g,'');
+ if(/^[2-9A-Z]{6}$/.test(c3)){await R2.click('.sheet [data-act=close]').catch(()=>{});await W(300);
+  const Q2=await page();await Q2.goto(URL+'?watch='+c3);await W(1500);await ab(Q2);
+  if(!await Q2.locator('.sheet .wrow').count()){await Q2.locator('text=觀看比賽').first().click();await W(800)}
+  const r3=await Q2.locator('.wrow').first().innerText().catch(()=>'');ok('list row shows set 1 0:0, not 尚未開始 (v126)',/第 1 局 0:0/.test(r3),r3);
+  await Q2.locator('.wrow [data-act=watchrecent]').first().click();await W(1200);
+  ok('watcher sees board after set start before first serve (v126)',await Q2.locator('.wview .pcourt').count()===1,await Q2.locator('main').innerText().catch(()=>''));
+  ok('watcher: no take row while scorer alive',await Q2.locator('[data-act=wtake]').count()===0);
+  await R2.evaluate(()=>{window.__VB_FB.update=function(){return new Promise(function(){})}});
+  await W(19000);ok('take row after 15 s without heartbeat (v126)',await Q2.locator('[data-act=wtake]').count()===1,await Q2.locator('body').innerText().then(t=>t.slice(0,200)));
+  await Q2.close()}else ok('share code for heartbeat test',false,c3);
+ await R2.close()}
 ok('no page errors',!errs.length,errs);
 console.log('t1116-list',pass,'ok',fail,'fail');await b.close();process.exit(fail?1:0)})();

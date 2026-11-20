@@ -40,6 +40,22 @@ const pdfInfo=f=>{const t=fs.readFileSync(f).toString('latin1');const m=/\/Type\
   ok('preview 3 pages',await p.locator('.regprev img').count()===3&&/預覽（3 張）/.test(await p.locator('.sheet h2').innerText()));
   if(SHOT)await p.screenshot({path:SHOT+'/reg-prev.png'});
   const pv=await p.evaluate(()=>{const i=document.querySelector('.regprev img');return {w:i.naturalWidth,h:i.naturalHeight,cw:i.clientWidth}});ok('preview image landscape',pv.w>pv.h&&pv.cw>200,pv);
+  // 11/21：下面「‹ 第 1／3 張 ›」；點圖全螢幕、兩指放大、換張
+  ok('page bar',/第 1／3 張/.test(await p.locator('#regpn').innerText())&&await p.locator('.sheet .rgpbar [data-d="-1"]').isDisabled());
+  await p.click('.sheet .rgpbar [data-d="1"]');await W(700);ok('arrow scrolls strip',/第 2／3 張/.test(await p.locator('#regpn').innerText()),await p.locator('#regpn').innerText());
+  await p.locator('.regimg').nth(1).click();await W(300);ok('fullscreen opens on page 2',await p.locator('.rgv').count()===1&&/第 2／3 張/.test(await p.locator('#rgfpn').innerText()));
+  if(SHOT)await p.screenshot({path:SHOT+'/reg-full.png'});
+  await p.click('.rgv [data-act=rgz][data-v="1"]');await W(200);ok('zoom 150%',/150%/.test(await p.locator('.rgv .whbar').innerText())&&await p.evaluate(()=>document.querySelector('.rgv .whin').getBoundingClientRect().width>innerWidth*1.4));
+  await p.click('.rgv [data-act=rgpg][data-d="1"]');await W(200);ok('next page resets zoom',/第 3／3 張/.test(await p.locator('#rgfpn').innerText())&&/100%/.test(await p.locator('.rgv .whbar').innerText()));
+  // 兩指放大（模擬兩隻手指）
+  const cdp=await ctx.newCDPSession(p);const tp=(type,pts)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:pts.map((q,i)=>({x:q[0],y:q[1],id:i}))});
+  await tp('touchStart',[[150,400],[240,400]]);for(const d of [60,90,120]){await tp('touchMove',[[195-d,400],[195+d,400]]);await W(40)}await tp('touchEnd',[]);await W(200);
+  const pz=await p.locator('.rgv .whbar span').innerText();ok('pinch zoom',parseInt(pz)>200,pz);
+  await tp('touchStart',[[300,400]]);await tp('touchMove',[[100,410]]);await tp('touchEnd',[]);await W(200);ok('no page swipe while zoomed',/第 3／3 張/.test(await p.locator('#rgfpn').innerText()));
+  await p.click('.rgv [data-act=rgz][data-v="-1"]');await p.click('.rgv [data-act=rgz][data-v="-1"]');await p.click('.rgv [data-act=rgz][data-v="-1"]').catch(()=>{});await W(200);
+  for(let i=0;i<4;i++)if(!/100%/.test(await p.locator('.rgv .whbar').innerText())){await p.click('.rgv [data-act=rgz][data-v="-1"]').catch(()=>{});await W(120)}
+  await tp('touchStart',[[100,400]]);await tp('touchMove',[[200,402]]);await tp('touchMove',[[300,404]]);await tp('touchEnd',[]);await W(250);ok('swipe changes page',/第 2／3 張/.test(await p.locator('#rgfpn').innerText()),await p.locator('#rgfpn').innerText());
+  await p.keyboard.press('Escape');await W(200);ok('Esc closes fullscreen only',await p.locator('.rgv').count()===0&&await p.locator('.regprev').count()===1);
   await p.click('.sheet [data-act=scpback]');await W(200);ok('back to list',await p.locator('.sheet [data-act=scptog]').count()===2);
   await p.click('.sheet [data-act=scpgo]');await p.waitForSelector('.regprev img',{timeout:30000});await W(200);
   const [dl]=await Promise.all([p.waitForEvent('download',{timeout:30000}),p.click('.sheet [data-act=scpsave]')]);

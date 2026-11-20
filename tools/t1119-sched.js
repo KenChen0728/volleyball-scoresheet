@@ -108,10 +108,10 @@ const Y=new Date().getFullYear();
   // 6b. 時間衝突：同場地同時間、同一隊同時間 → 提醒，可以照存
   await p.click('[data-act=scnew]');await W(300);await scDate(p,Y+'-12-05');await scTime(p,'08:30');await p.fill('#sc-court','室內場 A');await pick('紅隊');
   await p.click('[data-act=scsave1]:not([data-v])');await W(300);let wt=await p.locator('.sheet').innerText();
-  ok('conflict warned',/時間衝突/.test(wt)&&/場地：室內場 A」已經有女子組第 1 場（藍隊 vs 橘隊）/.test(wt),wt.slice(0,500));
+  ok('conflict warned',/時間衝突/.test(wt)&&/女子組第 1 場.*藍隊 vs 橘隊（同時間同場地）/.test(wt),wt.slice(0,500));
   await p.click('[data-act=scwarnno]');await W(200);ok('back to edit keeps fields',await scGet(p,'#sc-time')==='08:30'&&await p.locator('.sheet [data-act=scsave1]:not([data-force])').count()>=1);
   await p.fill('#sc-court','室內場 C');await pick('藍隊');await p.click('[data-act=scsave1]:not([data-v])');await W(300);wt=await p.locator('.sheet').innerText();
-  ok('same team same time warned',/「藍隊」這個時間在女子組第 1 場也有比賽/.test(wt)&&!/場地：室內場 C/.test(wt),wt.slice(0,500));
+  ok('same team same time warned',/「藍隊」同時間有比賽/.test(wt)&&!/同時間同場地/.test(wt),wt.slice(0,500));
   await p.click('[data-act=scsave1][data-force]');await W(300);c=await cup();ok('save anyway works',c.sched.filter(x=>!x.del).length===8&&await p.locator('.sheet').count()===0);
   await p.click('[data-act=cupcourtf][data-v=""]');await W(300);await p.locator('[data-act=scopen]:has-text("室內場 C")').click();await W(200);await p.click('.sheet [data-act=scdel]');await W(150);await p.click('[data-act=scdel2]');await W(300);
   // 6c. 分頁：隊伍照隊名排；裁判分頁不分組
