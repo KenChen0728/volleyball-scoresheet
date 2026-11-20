@@ -37,7 +37,7 @@ WA.concat(WB).forEach((n,i)=>team('女子組',n,[1,2,3,4,5,6,7,8].map(x=>x+i*10)
 const sched=[],matches=[];let ord=0;
 function game(div,date,time,court,a,b,sets,ff){const A=teams[a],B=teams[b],it={id:uid('rks'),at:T0,date,time,court,division:div,t1:A.id,t2:B.id,n1:'',n2:'',ord:++ord};
   if(sets||ff){const m=match({division:div,date,time,court},A,B,sets,ff);matches.push(m);it.mid=m.id}sched.push(it)}
-function tbd(div,date,time,court,n1,n2){sched.push({id:uid('rks'),at:T0,date,time,court,division:div,t1:'',t2:'',n1,n2,ord:++ord})}
+function tbd(div,date,time,court,r1,r2,stage){sched.push({id:uid('rks'),at:T0,date,time,court,division:div,t1:'',t2:'',n1:'',n2:'',r1,r2,stage,ord:++ord})}
 // 男子組：四隊單循環，六場都打完。山貓、海豚同勝場同積分同局數比同分數比，看對戰（山貓贏）
 game('男子組','2026-12-05','08:00','甲','山貓隊','海豚隊',[[25,20],[25,20]]);
 game('男子組','2026-12-05','09:00','甲','飛鷹隊','雪豹隊',[[25,20],[18,25],[15,12]]);
@@ -54,8 +54,10 @@ game('女子組','2026-12-06','09:00','乙','綠繡眼隊','白鷺隊',null,null
 game('女子組','2026-12-05','11:00','乙','紅隼隊','黃鸝隊',[[25,20],[25,20]]);
 game('女子組','2026-12-05','13:00','乙','黃鸝隊','灰鶴隊',[[25,20],[25,20]]);
 game('女子組','2026-12-05','14:00','乙','灰鶴隊','紅隼隊',[[25,20],[25,20]]);
-// 複賽：隊伍待定（不算進預賽積分）
-tbd('女子組','2026-12-06','10:00','乙','A組第一','B組第二');tbd('女子組','2026-12-06','11:00','乙','B組第一','A組第二');
+// 複賽：隊伍待定，存成「A 組第 1 名」這種參照（不算進預賽積分）
+tbd('女子組','2026-12-06','10:00','乙','g|A|1','g|B|2','複賽');tbd('女子組','2026-12-06','11:00','乙','g|B|1','g|A|2','複賽');
+// 冠亞賽：上面兩場的勝隊（還沒打，所以顯示「第 N 場勝隊」）
+const s14=sched[sched.length-2].id,s15=sched[sched.length-1].id;tbd('女子組','2026-12-06','14:00','乙','w|'+s14,'w|'+s15,'冠亞賽');
 const cup={id:CUP,name:'積分測試盃',createdAt:new Date(T0).toISOString(),at:T0,teams:teamList,refs:[],sched};
 fs.mkdirSync(path.dirname(OUT),{recursive:true});
 fs.writeFileSync(OUT,JSON.stringify({app:'volleyball-scoresheet',version:1,matches,cups:[cup]}));
