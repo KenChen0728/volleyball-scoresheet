@@ -59,10 +59,16 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   const nd=await scGet(p,'#sc-date');ok('next month day 5',/-05$/.test(nd)&&nd>todayS(),nd);
   await scDate(p,todayS());await scTime(p,'10:00');await p.fill('#sc-court','甲');
   const pick=async n=>{await p.locator('.sheet [data-act=scpick]').filter({hasText:new RegExp('^\\s*'+n)}).first().click();await W(150)};
-  await pick('藍隊');await pick('白隊');await p.click('[data-act=scsave1][data-v=next]');await W(300);
+  await pick('藍隊');await pick('白隊');
+  await p.locator('.scslot').nth(0).click();await W(150);
+  const fc=await p.evaluate(()=>{const e=document.querySelectorAll('.scslot')[0],cs=getComputedStyle(e),t=document.createElement('i');t.style.color='var(--ok)';document.body.appendChild(t);const okc=getComputedStyle(t).color;t.remove();return {b:cs.borderTopColor,okc,cur:e.classList.contains('cur')}});
+  ok('tap filled slot shows green (A6)',fc.cur&&fc.b===fc.okc,fc);
+  await p.click('[data-act=scsave1][data-v=next]');await W(300);
   await pick('白隊');await pick('藍隊');await p.click('[data-act=scsave1]:not([data-v])');await W(300);
   const wt=await p.locator('.sheet .warning').innerText().catch(()=>'');
-  ok('rematch warning',/重複對戰/.test(wt)&&/「白隊」和「藍隊」已經排過一場/.test(wt),wt);
+  ok('rematch warning',/重複對戰/.test(wt)&&/同兩隊/.test(wt)&&wt.split('\n').filter(l=>/第 1 場/.test(l)).length===1,wt);
+  ok('back-to-edit button visible (A8)',await p.evaluate(()=>{const b=document.querySelector('.sheet [data-act=scwarnno]');if(!b)return false;const r=b.getBoundingClientRect(),sh=document.querySelector('.sheet');sh.scrollTop=sh.scrollHeight;const r2=b.getBoundingClientRect();return r2.bottom<=innerHeight&&r2.top>=0}));
+  ok('team list hidden while warning',await p.locator('.sheet .scteams').count()===0);
   await p.click('[data-act=scsave1][data-force]');await W(300);c=await cup();ok('saved anyway',c.sched.filter(x=>!x.del).length===2);
   await p.click('[data-act=scnew]');await W(300);ok('new: last + 1h',await scGet(p,'#sc-time')==='12:00',await scGet(p,'#sc-time'));
   await scTime(p,'11:50');await pick('黑隊');await pick('白隊');await p.click('[data-act=scsave1][data-v=next]');await W(300);
@@ -116,6 +122,9 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   if(!await p.locator('[data-act=cuptab]').count()){await p.locator('text=/賽事與紀錄/').first().click().catch(()=>{});await W(300);await p.locator('[data-act=cupopen]').first().click();await W(300)}
   if(SHOT)await p.screenshot({path:SHOT+'/f-reload.png'});
   await tab('sched');await p.locator('.scrow').nth(1).click();await W(700);
+  ok('fill note above tabs, also on other tab (A13)',await p.evaluate(()=>{const n=document.querySelector('.bookfill'),t=document.querySelector('.rtabs');return !!(n&&t)}));
+  console.log('TABS',await p.evaluate(()=>[...document.querySelectorAll('.rtabs [data-act]')].map(b=>b.getAttribute('data-act')+':'+b.getAttribute('data-v')+':'+b.innerText).join(' ')));
+  const t1b=p.locator('.rtabs [data-v=s1]');if(await t1b.count()){await t1b.click();await W(300);ok('fill note on 各局 tab',await p.locator('.bookfill').count()===1)}
   const bf=p.locator('.bookfill');ok('fill-names note on finished match',await bf.count()===1&&/2 位/.test(await bf.innerText()),await p.locator('main').innerText().then(t=>t.slice(0,300)));
   if(SHOT)await p.screenshot({path:SHOT+'/f-fill.png',fullPage:true});
   await p.click('[data-act=bookfill]');await W(400);
