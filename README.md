@@ -79,6 +79,8 @@ git push
 
 ## 測試版（`beta/`）
 
+11/23 起只有兩個版本：正式版（網站根目錄）和測試版（`beta/`）。新功能先放測試版，使用者實測後說「上線」才換正式版。
+
 給朋友先試新功能用：https://kenchen0728.github.io/volleyball-scoresheet/beta/
 
 - 由 `tools/beta.py` 從 `index.html` 產生，比賽資料另存在 `nanshe-scoresheet-beta`，不會動到正式版的比賽
@@ -326,7 +328,7 @@ git push
 ## 第一批正式版（11/20 凌晨準備，還沒上線）
 - 使用者 11/20 01:1x 決定：連線功能（分享比賽、觀看比賽、接手記錄）等實機測完再上，其他功能先上正式版。
 - 建置：patch_v97～v117 → tools/patch_nosync.py（SYNC_ON=false，藏起分享、觀看的入口、使用說明拿掉「分享和觀看」、不載 Firebase）→ build.py。
-- 預覽：https://kenchen0728.github.io/volleyball-scoresheet/next/ （tools/next.py，資料另外存 nanshe-scoresheet-next，不碰正式版）。
+- 預覽版（/next/）11/23 拿掉，只留正式版和測試版：`next/index.html` 改成轉到 `../beta/` 的小頁面，舊網址打開不會壞。之前在預覽版輸入的資料還在那支手機的 `nanshe-scoresheet-next`，測試版看不到；`tools/next.py` 留著不用。
 - 正式版的檔案放在分支 first-batch（index.html、sw.js、version.json）。上線：
   git checkout main && git checkout first-batch -- index.html sw.js version.json && git commit -m "正式版：第一批" && git push
 - 退回：分支 backup/before-first-batch（上線前的 main），git checkout backup/before-first-batch -- index.html sw.js version.json 再 commit、push。
