@@ -1,4 +1,5 @@
 tools/all.json
+# all.json 用 node tools/mk-allfixture.js 產生（虛構名字）
 tools/one.json
 tools/style1112/fix*.json
 # 測試腳本暫時產生的副本（模擬安全區等），不要放進版本
