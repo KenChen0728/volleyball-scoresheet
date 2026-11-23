@@ -27,14 +27,14 @@ for(const [w,h,touch] of SIZES){const tag=w+'x'+h;
   // 1. 時間數字鍵
   await p.click('[data-act=scnew]');await W(300);await p.click('#sc-time');await W(200);await p.click('.sheet [data-act=scpkdone]');await W(150);await p.click('#sc-time');await W(200);
   await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(200);
-  ok(tag+' own keypad, no text input',await p.locator('.sheet .sctkp button').count()===12&&await p.locator('.sheet input#sc-tin').count()===0);
+  ok(tag+' own keypad, no text input',await p.locator('.sheet .sctkp button').count()===11&&await p.locator('.sheet [data-act=sctok]').count()===0&&await p.locator('.sheet input#sc-tin').count()===0);
   const kp=await p.evaluate(()=>{const sh=document.querySelector('.sheet').getBoundingClientRect();return [...document.querySelectorAll('.sheet .sctkp button,.sheet .scpbtns button')].map(e=>{const r=e.getBoundingClientRect();const t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
     return {t:e.innerText,w:Math.round(r.width),h:Math.round(r.height),inSheet:r.left>=sh.left-1&&r.right<=sh.right+1&&r.top>=0&&r.bottom<=innerHeight+1,top:!!t&&(t===e||e.contains(t)),one:e.scrollWidth<=e.clientWidth+1&&r.height<64}})});
   ok(tag+' keypad buttons inside sheet, not covered, ≥44, one line',kp.every(k=>k.inSheet&&k.top&&k.w>=44&&k.h>=44&&k.one),kp.filter(k=>!(k.inSheet&&k.top&&k.w>=44&&k.h>=44&&k.one)));
   for(const d of '0930'){await p.click('.sheet [data-act=sctk][data-v="'+d+'"]');await W(50)}
   ok(tag+' display 09:30',/09:30/.test(await p.locator('.sheet .sctdisp').innerText()));
   if(SHOT)await p.screenshot({path:SHOT+'/v129-time-'+tag+'.png'});
-  await p.click('.sheet [data-act=sctok]');await W(200);ok(tag+' time set 09:30',(await p.getAttribute('#sc-time','data-v'))==='09:30');
+  await p.click('.sheet [data-act=scpkdone]');await W(200);ok(tag+' time set 09:30',(await p.getAttribute('#sc-time','data-v'))==='09:30');
   // v131：打不出不存在的時間、完成也會套用、打一半提示
   const dis=async()=>p.locator('.sheet .sctkp [data-act=sctk][disabled]').evaluateAll(es=>es.map(e=>e.dataset.v).sort().join(''));
   await p.click('#sc-time');await W(200);await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(200);

@@ -2203,7 +2203,7 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .sctdisp .muted{font-size:13px}
 .sctkp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .sctkp>button{min-height:48px;padding:0;font-family:var(--num);font-size:20px;font-weight:700;white-space:nowrap}
-.sctkp>button.primary{font-family:inherit;font-size:16px}
+.sctkp>button.sctkdel{grid-column:span 2}
 .sctkp>button[aria-disabled="true"]{opacity:.5}
 .sctbd{align-self:flex-start}
 .scslots{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
@@ -2707,7 +2707,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.23.1';
+var BUILD='測試版 2026.11.23.2';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4619,11 +4619,9 @@ function scTkFmt(b){var d=(b+'____').slice(0,4).replace(/_/g,'–');return d.sli
 function scTkOk(b,d){var n=b.length;if(n>=4)return false;if(n===0)return d<=2;if(n===1)return b[0]==='2'?d<=3:true;if(n===2)return d<=5;return true}
 function scTkCheck(b){if(!b)return '請打四個數字';if(b.length<4)return '還差 '+(4-b.length)+' 個數字，例如 1517 是 15:17';var h=+b.slice(0,2),m=+b.slice(2);return h>23||m>59?'時間有誤：時 00～23、分 00～59':''}
 function scTkHtml(x){var b=x.tbuf||'',k='',i;
-  for(i=1;i<=5;i++)k+='<button data-act="sctk" data-v="'+i+'"'+(scTkOk(b,i)?'':' disabled')+'>'+i+'</button>';
-  k+='<button data-act="sctkdel" aria-label="刪除"'+(b?'':' disabled')+'>⌫</button>';
-  [6,7,8,9,0].forEach(function(n){k+='<button data-act="sctk" data-v="'+n+'"'+(scTkOk(b,n)?'':' disabled')+'>'+n+'</button>'});
-  k+='<button class="primary" data-act="sctok"'+(b.length===4?'':' aria-disabled="true"')+'>確定</button>';
-  return '<div class="sctin"><div class="sctdisp" role="status" aria-label="打的時間 '+(b||'還沒打')+'"><b>'+scTkFmt(b)+'</b><span class="muted">打四個數字，例如 1517</span></div><div class="sctkp">'+k+'</div>'+(x.tinErr?'<p class="cuperr" role="alert">'+esc(x.tinErr)+'</p>':'')+'</div>'}
+  [1,2,3,4,5,6,7,8,9,0].forEach(function(n){k+='<button data-act="sctk" data-v="'+n+'"'+(scTkOk(b,n)?'':' disabled')+'>'+n+'</button>'});
+  k+='<button class="sctkdel" data-act="sctkdel" aria-label="刪除"'+(b?'':' disabled')+'>⌫</button>'; // 11/23 拿掉「確定」，按下面的「完成」
+  return '<div class="sctin"><div class="sctdisp" role="status" aria-label="打的時間 '+(b||'還沒打')+'"><b>'+scTkFmt(b)+'</b><span class="muted">打四個數字，例如 1517，再按「完成」</span></div><div class="sctkp">'+k+'</div>'+(x.tinErr?'<p class="cuperr" role="alert">'+esc(x.tinErr)+'</p>':'')+'</div>'}
 /* 時間滾輪：沒填時間就從 08:00 開始（滑了、按完成才算填） */
 function scWv(x){var m=String(x.f.time||'').match(/^(\d{2}):(\d{2})$/);return m?{h:m[1],m:m[2]}:{h:x.hh||'08',m:'00'}}
 function scWcol(k,v,n){var it='',i;for(i=0;i<n;i++){var p=scPad(i);it+='<button class="scwi" id="scw-'+k+p+'" role="option" tabindex="-1" aria-selected="'+(p===v)+'" data-act="scwpick" data-k="'+k+'" data-v="'+p+'">'+p+'</button>'}
@@ -4705,7 +4703,7 @@ function schedAct(act,b){
 }
 app.addEventListener('input',function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute('data-sc'),x=ui.cupSheet;if(k&&x&&x.f){x.f[k]=t.value;if(k==='n1'||k==='n2')x.f['r'+k.slice(1)]=''}});
 document.addEventListener('keydown',function(e){var x=ui.cupSheet;if(!x||!x.tin||x.pk!=='time'||e.isComposing||e.metaKey||e.ctrlKey||e.altKey)return;var q=null; // 電腦：鍵盤也能打
-  if(/^[0-9]$/.test(e.key))q='[data-act="sctk"][data-v="'+e.key+'"]';else if(e.key==='Backspace')q='[data-act="sctkdel"]';else if(e.key==='Enter')q='[data-act="sctok"]';
+  if(/^[0-9]$/.test(e.key))q='[data-act="sctk"][data-v="'+e.key+'"]';else if(e.key==='Backspace')q='[data-act="sctkdel"]';else if(e.key==='Enter')q='[data-act="scpkdone"]';
   if(q){var bt=app.querySelector(q);if(bt&&!bt.disabled){e.preventDefault();bt.click()}}});
 function cupNav(c){return '<div class="hcupnav">'+[['sched','賽程'],['rank','積分'],['teams','隊伍']].map(function(q){return '<button data-act="cupopen" data-from="home" data-tab="'+q[0]+'" data-id="'+esc(c.id)+'">'+q[1]+'</button>'}).join('')+'</div>'}
 function cupHomeHtml(){

@@ -9,7 +9,7 @@ async function scTime(p,hm){ // 11/21 滾輪：點中間的數字（已經有時
   await p.click('#sc-time');await W(150);const [h,m]=hm.split(':');
   if(!(await scGet(p,'#sc-time'))){await p.click('.sheet [data-act=scpkdone]');await W(120);await p.click('#sc-time');await W(150)}
   await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(120);
-  await scType(p,h+m);await p.click('.sheet [data-act=sctok]');await W(150);
+  await scType(p,h+m);await p.click('.sheet [data-act=scpkdone]');await W(150);
 }
 // 11/23 直接打時間改用自己的數字鍵：一個一個點
 async function scType(p,digits){for(const d of String(digits)){await p.click('.sheet [data-act=sctk][data-v="'+d+'"]');await W(60)}}
