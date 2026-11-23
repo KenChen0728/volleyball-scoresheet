@@ -14,7 +14,7 @@ ok('home count',(await p.locator('.bkrow').innerText()).includes('有 4 場還�
 await p.click('.herobtns [data-act=history]');await W(80);
 ok('no backup-all',await p.locator('[data-act=rpall]').count()===0);
 ok('select link',await p.locator('.shead [data-act=bksel]').innerText()==='選擇');
-ok('section button',(await p.locator('.histtools [data-act=bksel]').innerText()).includes('選擇要備份的比賽'));
+ok('section button',(await p.locator('.histtools [data-act=bksel]').innerText()).trim()==='備份');
 // 進入選擇模式
 await p.click('.shead [data-act=bksel]');await W(60);
 ok('mode on',await p.locator('.bkpick').count()===1);ok('folders hidden',await p.locator('.cupcard').count()===0);

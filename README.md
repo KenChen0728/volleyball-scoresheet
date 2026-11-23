@@ -360,3 +360,11 @@ git push
 - tools/patch_v128.py 時間滾輪（24 小時、每分鐘一格，點中間的數字直接打）、日曆圓圈、登錄單「VS」、登錄單預覽全螢幕（兩指放大、‹ 第幾張 ›、左右滑）、看整張兩指放大、存檔「尚未建立」、
   記錄表各局拖框、說明字精簡；自動測試時畫面出錯會丟成 pageerror（使用者照舊回主畫面）。測試 tools/t1121-misc.js、t1119-reg.js、t1120-fix.js
 - 使用說明：patch_v116.py 的卡片文字更新、新增「分組」；截圖 tools/help1120.js 和 `HELPSHOT=/tmp/help1120 node tools/t1120-rank.js`，再跑 tools/help1120_webp.py
+
+## 11/23 語音實測後四項（測試版，patch_v129）
+- 原始檔不見時用 `python3 tools/src-from-beta.py` 從測試版倒推（已驗證倒推再產生和原本一模一樣）；只更新測試版用 `python3 tools/beta-from-src.py`，不會動到正式版的 index.html、sw.js、version.json。
+- 時間直接打：改用自己的數字鍵（1～5、⌫／6～9、0、確定），打的時候滾輪收起來；電腦可以用鍵盤打。
+- 「賽事與紀錄」：按鈕「備份」「匯入」，說明字各一句。
+- 賽程列比分一局一行（`.scsets b{display:inline}`），平板以上隊名 19px。
+- 手機各局拖框：開始拖時把下面那塊換成整局的圖，移動不會露出空白，放開照舊重畫。
+- 測試：`tools/t1123-v129.js`（手機、平板直放橫放、筆電）。
