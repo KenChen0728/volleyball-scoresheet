@@ -56,9 +56,9 @@ const todayS=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMont
   await p.evaluate(()=>document.querySelector('.sheet [data-act=scwstep][data-k=h][data-d="-1"]').click());await W(400);
   await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(150);ok('tap center number opens own keypad (v129)',await p.locator('.sheet .sctkp [data-act=sctk]').count()===10&&await p.locator('.sheet input#sc-tin,.sheet .sctin input').count()===0);
   ok('確定 on one line (v129)',await p.locator('.sheet .sctkp [data-act=sctok]').evaluate(e=>e.getBoundingClientRect().height<60&&e.scrollWidth<=e.clientWidth+1));
-  const sc=require('./scpick.js');await sc.scType(p,'2599');ok('typed shows 25:99',/25:99/.test(await p.locator('.sheet .sctdisp').innerText()));await p.click('.sheet [data-act=sctok]');await W(150);
-  ok('bad custom time rejected',/四個數字/.test(await p.locator('.sheet').innerText())&&await scGet(p,'#sc-time')==='15:02');
-  for(let i=0;i<4;i++){await p.click('.sheet [data-act=sctkdel]');await W(40)}await p.keyboard.type('1517');await p.keyboard.press('Enter');await W(150);ok('custom time 1517',await scGet(p,'#sc-time')==='15:17'&&await p.locator('.scpk').count()===0);
+  const sc=require('./scpick.js');await sc.scType(p,'2');ok('after 2 the 5 is disabled (v131)',await p.locator('.sheet [data-act=sctk][data-v="5"]').isDisabled());await p.click('.sheet [data-act=sctok]',{force:true});await W(150);
+  ok('bad custom time rejected',/還差 3 個數字/.test(await p.locator('.sheet').innerText())&&await scGet(p,'#sc-time')==='15:02');
+  for(let i=0;i<4;i++){const d=p.locator('.sheet [data-act=sctkdel]');if(await d.isDisabled())break;await d.click();await W(40)}await p.keyboard.type('1517');await p.keyboard.press('Enter');await W(150);ok('custom time 1517',await scGet(p,'#sc-time')==='15:17'&&await p.locator('.scpk').count()===0);
   await p.click('#sc-time');await W(150);await p.click('.sheet [data-act=sctnone]');await W(150);ok('時間未定',await scGet(p,'#sc-time')==='');
   await p.click('#sc-time');await W(150);await p.click('.sheet [data-act=scpkdone]');await W(150);ok('done with no time takes 08:00',await scGet(p,'#sc-time')==='08:00');
   await p.click('#sc-time');await W(150);await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(120);await require('./scpick.js').scType(p,'1517');await p.click('.sheet [data-act=sctok]');await W(150);

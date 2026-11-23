@@ -2707,7 +2707,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 1123-0843';
+var BUILD='測試版 2026.11.23.1';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2721,12 +2721,12 @@ function savePrefs(){try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch(
    一局正在打、正在打字、面板開著時先不出現，免得打斷記錄。每按一下都已經存好，重新載入後回到同一個畫面 */
 var BUILD_ID=String(BUILD).replace(/^\D+/,'');
 var upd={to:'',later:false,last:0,live:false,going:false,done:'',retry:''},updEl=null;
-try{var updTry=sessionStorage.getItem(KEY+'-updto');sessionStorage.removeItem(KEY+'-updto');if(updTry){if(updTry===BUILD_ID)upd.done=updTry;else upd.retry=updTry}}catch(e){}
+try{var updTry=sessionStorage.getItem(KEY+'-updto');sessionStorage.removeItem(KEY+'-updto');if(updTry){if(updTry===BUILD_ID||/^\d{4}-\d{4}$/.test(updTry))upd.done=BUILD_ID;else upd.retry=updTry}}catch(e){}
 function updCheck(force){
   if(!/^https?:$/.test(location.protocol)||!window.fetch||navigator.onLine===false)return;
   var now=Date.now();if(!force&&now-upd.last<60000)return;upd.last=now;
   fetch('version.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(v){
-    var b=v&&typeof v.build==='string'&&/^\d{4}-\d{4}$/.test(v.build)?v.build:'';if(!b)return;
+    var b=v&&typeof v.ver==='string'&&/^\d{4}\.\d{2}\.\d{2}\.\d+$/.test(v.ver)?v.ver:'';if(!b)return; // 11/23 起看 ver（年.月.日.第幾版），build 留給舊手機
     var to=b===BUILD_ID?'':b;if(to===upd.to)return;
     upd.to=to;upd.later=false;updSync();if(view==='home')render();
   }).catch(function(){});
@@ -4615,10 +4615,13 @@ function scPicker(x){var f=x.f,h='<div class="scpk">';
 }
 /* 11/23 直接打時間：自己的數字鍵（不跳手機鍵盤），打四個數字按確定 */
 function scTkFmt(b){var d=(b+'____').slice(0,4).replace(/_/g,'–');return d.slice(0,2)+':'+d.slice(2)}
+/* 下一位可以打哪些數字：時 00～23、分 00～59 */
+function scTkOk(b,d){var n=b.length;if(n>=4)return false;if(n===0)return d<=2;if(n===1)return b[0]==='2'?d<=3:true;if(n===2)return d<=5;return true}
+function scTkCheck(b){if(!b)return '請打四個數字';if(b.length<4)return '還差 '+(4-b.length)+' 個數字，例如 1517 是 15:17';var h=+b.slice(0,2),m=+b.slice(2);return h>23||m>59?'時間有誤：時 00～23、分 00～59':''}
 function scTkHtml(x){var b=x.tbuf||'',k='',i;
-  for(i=1;i<=5;i++)k+='<button data-act="sctk" data-v="'+i+'"'+(b.length>=4?' disabled':'')+'>'+i+'</button>';
+  for(i=1;i<=5;i++)k+='<button data-act="sctk" data-v="'+i+'"'+(scTkOk(b,i)?'':' disabled')+'>'+i+'</button>';
   k+='<button data-act="sctkdel" aria-label="刪除"'+(b?'':' disabled')+'>⌫</button>';
-  [6,7,8,9,0].forEach(function(n){k+='<button data-act="sctk" data-v="'+n+'"'+(b.length>=4?' disabled':'')+'>'+n+'</button>'});
+  [6,7,8,9,0].forEach(function(n){k+='<button data-act="sctk" data-v="'+n+'"'+(scTkOk(b,n)?'':' disabled')+'>'+n+'</button>'});
   k+='<button class="primary" data-act="sctok"'+(b.length===4?'':' aria-disabled="true"')+'>確定</button>';
   return '<div class="sctin"><div class="sctdisp" role="status" aria-label="打的時間 '+(b||'還沒打')+'"><b>'+scTkFmt(b)+'</b><span class="muted">打四個數字，例如 1517</span></div><div class="sctkp">'+k+'</div>'+(x.tinErr?'<p class="cuperr" role="alert">'+esc(x.tinErr)+'</p>':'')+'</div>'}
 /* 時間滾輪：沒填時間就從 08:00 開始（滑了、按完成才算填） */
@@ -4662,7 +4665,8 @@ function schedAct(act,b){
       var tk=scTarget(x)||'t2',ok2=tk==='t1'?'t2':'t1';f[tk]=id;f[tk==='t1'?'r1':'r2']='';f[tk==='t1'?'n1':'n2']='';x.just=tk;x.slot=f[ok2]?'':ok2} return true; // 兩格都滿就換掉右邊
     case 'scclr': if(x&&x.f){x.warn=null;x.slot=b.getAttribute('data-v');x.just='';x.saved=''} return true; // 點格子：選這一格（填好的可以換隊，不會取消）
     case 'scdate': case 'sctime': if(x&&x.f){var pk=act==='scdate'?'date':'time';x.pk=x.pk===pk?null:pk;x.cal='';x.tin=false;x.tinErr='';x.hh=''} return true;
-    case 'scpkdone': if(x){if(x.pk==='time'&&x.f&&!x.f.time){var w0=scWv(x);x.f.time=w0.h+':'+w0.m;x.warn=null}x.pk=null} return true;
+    case 'scpkdone': if(x){if(x.pk==='time'&&x.tin&&x.tbuf){var te=scTkCheck(x.tbuf);if(te){x.tinErr=te;return true}x.f.time=x.tbuf.slice(0,2)+':'+x.tbuf.slice(2);x.tin=false;x.tbuf='';x.tinErr='';x.warn=null}
+      x.tin=false;if(x.pk==='time'&&x.f&&!x.f.time){var w0=scWv(x);x.f.time=w0.h+':'+w0.m;x.warn=null}x.pk=null} return true;
     case 'scwstep': if(x&&x.f){var wk=b.getAttribute('data-k'),wn=wk==='h'?24:60,wd=Number(b.getAttribute('data-d'));scWset(x,wk,scPad((Number(scWv(x)[wk])+wd+wn)%wn));x.wsmooth=wk;x.wdir=wd} return true;
     case 'scwpick': if(x&&x.f){var pk2=b.getAttribute('data-k'),pv=b.getAttribute('data-v');if(pv===scWv(x)[pk2]&&x.f.time){x.tin=true;x.tbuf='';x.tinErr=''}else{scWset(x,pk2,pv);x.wsmooth=pk2;x.wdir=0}} return true;
     case 'sccal': if(x){var ym2=x.cal||String(x.f.date||today()).slice(0,7),d3=new Date(+ym2.slice(0,4),+ym2.slice(5,7)-1+Number(b.getAttribute('data-v')),1);x.cal=d3.getFullYear()+'-'+scPad(d3.getMonth()+1)} return true;
@@ -4671,10 +4675,10 @@ function schedAct(act,b){
     case 'scmm': if(x){var oh=String(x.f.time||'').match(/^(\d{2}):/),hh2=oh?oh[1]:x.hh;if(!hh2){x.tinErr='先點上面的「時」';x.tin=false;return true}x.f.time=hh2+':'+b.getAttribute('data-v');x.pk=null;x.warn=null} return true;
     case 'sctin': if(x){x.tin=!x.tin;x.tinErr=''} return true; // 舊的「自己輸入」按鈕（滾輪版改成點中間的數字）
     case 'sctnone': if(x){x.f.time='';x.pk=null;x.warn=null} return true;
-    case 'sctk': if(x&&x.tin){x.tbuf=((x.tbuf||'')+b.getAttribute('data-v')).slice(0,4);x.tinErr=''} return true;
+    case 'sctk': if(x&&x.tin&&scTkOk(x.tbuf||'',+b.getAttribute('data-v'))){x.tbuf=((x.tbuf||'')+b.getAttribute('data-v')).slice(0,4);x.tinErr=''} return true;
     case 'sctkdel': if(x&&x.tin){x.tbuf=(x.tbuf||'').slice(0,-1);x.tinErr=''} return true;
     case 'sctok': if(x){var tv=String(x.tbuf||''),tq=tv.match(/^(\d{2})(\d{2})$/);
-      if(!tq||+tq[1]>23||+tq[2]>59){x.tinErr='請打四個數字，例如 1517 是 15:17';return true}x.f.time=scPad(+tq[1])+':'+tq[2];x.pk=null;x.tin=false;x.tbuf='';x.tinErr='';x.warn=null} return true;
+      if(!tq||+tq[1]>23||+tq[2]>59){x.tinErr=scTkCheck(tv)||'時間有誤：時 00～23、分 00～59';return true}x.f.time=scPad(+tq[1])+':'+tq[2];x.pk=null;x.tin=false;x.tbuf='';x.tinErr='';x.warn=null} return true;
     case 'sctbd': if(x)x.tbd=true; return true;
     case 'scstage': if(x&&x.f){x.f.stage=b.getAttribute('data-v');x.warn=null} return true;
     case 'scref': if(x&&x.f){var rv=b.getAttribute('data-v'),f3=x.f,tk3=scTarget(x)||'t2',n3=tk3==='t1'?'1':'2',ok3=tk3==='t1'?'t2':'t1';

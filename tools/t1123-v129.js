@@ -35,6 +35,15 @@ for(const [w,h,touch] of SIZES){const tag=w+'x'+h;
   ok(tag+' display 09:30',/09:30/.test(await p.locator('.sheet .sctdisp').innerText()));
   if(SHOT)await p.screenshot({path:SHOT+'/v129-time-'+tag+'.png'});
   await p.click('.sheet [data-act=sctok]');await W(200);ok(tag+' time set 09:30',(await p.getAttribute('#sc-time','data-v'))==='09:30');
+  // v131：打不出不存在的時間、完成也會套用、打一半提示
+  const dis=async()=>p.locator('.sheet .sctkp [data-act=sctk][disabled]').evaluateAll(es=>es.map(e=>e.dataset.v).sort().join(''));
+  await p.click('#sc-time');await W(200);await p.click('.sheet .scwlist[data-wk=h] .scwi[aria-selected=true]');await W(200);
+  ok(tag+' first digit only 0-2',await dis()==='3456789',await dis());
+  await p.click('.sheet [data-act=sctk][data-v="2"]');await W(60);ok(tag+' after 2: only 0-3',await dis()==='456789',await dis());
+  await p.click('.sheet [data-act=sctk][data-v="1"]');await W(60);ok(tag+' minute tens 0-5',await dis()==='6789',await dis());
+  await p.click('.sheet [data-act=scpkdone]');await W(200);ok(tag+' 完成 with 2 digits asks for more',/還差 2 個數字/.test(await p.locator('.sheet').innerText())&&await p.locator('.sheet .sctkp').count()===1);
+  await p.click('.sheet [data-act=sctk][data-v="4"]');await W(60);await p.click('.sheet [data-act=sctk][data-v="5"]');await W(60);
+  await p.click('.sheet [data-act=scpkdone]');await W(200);ok(tag+' 完成 applies typed 21:45',(await p.getAttribute('#sc-time','data-v'))==='21:45'&&await p.locator('.sheet .sctkp').count()===0);
   await p.keyboard.press('Escape');await W(200);await p.keyboard.press('Escape');await W(200);
   // 4. 拖框（只有手機直放有）
   if(w<600&&h>w){await p.click('[data-act=cupdiv][data-v=男子組]').catch(()=>{});await W(200);
