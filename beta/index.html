@@ -2204,6 +2204,12 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .sctkp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .sctkp>button{min-height:48px;padding:0;font-family:var(--num);font-size:20px;font-weight:700;white-space:nowrap}
 .sctkp>button.sctkdel{grid-column:span 2}
+.betanote{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;background:var(--card);color:var(--ink);border:2px solid var(--ok);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.betanote b{font-size:17px}.betanote p{margin:0;font-size:14px;line-height:1.5;color:var(--muted)}
+.betanote .row{display:flex;gap:8px;flex-wrap:wrap}.betanote .row>*{flex:1 1 140px;min-height:44px}
+.betanote a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:var(--r);font-weight:700}
+.hero .betanote p{max-width:none}.hero:has(.betanote){justify-content:flex-start}
+@media (max-height:500px){.betanote{padding:8px 10px;gap:6px}.betanote p{display:none}.betanote b{font-size:15px}}
 .sctkp>button[aria-disabled="true"]{opacity:.5}
 .sctbd{align-self:flex-start}
 .scslots{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
@@ -2707,7 +2713,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.23.2';
+var BUILD='測試版 2026.11.23.3';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4830,8 +4836,15 @@ function homeHtml(){
   real.forEach(function(x){var t=prefs.bk&&prefs.bk[x.m.id];if(t>lastBk)lastBk=t});
   if(real.length)body+='<div class="bkrow"><span class="muted">'+(nb?'有 '+nb+' 場還沒備份，備份在「賽事與紀錄」。':'都備份過了'+(lastBk?'（上次 '+shortTime(lastBk)+'）':'')+'。')+'</span></div>';
   body+=inst+(offlineReady?'<p class="offok">已可離線使用</p>':'')+updLink()+'<div class="landshare"><button data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'本機記錄，其他裝置輸入代碼即可觀看')+'</small></button><button data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small data-wsm>輸入代碼或掃描 QR code，觀看其他記錄台</small></button></div><div class="homefoot"><button data-act="settings">'+GEAR+'設定</button><button class="aboutbtn" data-act="about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>關於這個程式</button></div><button class="verbtn" data-act="ver">版本 '+BUILD+'　© 2026 Ken Chen</button>'+(ui.diag?'<div class="diag">'+esc(diagText())+'</div>':'');
-  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div><h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>賽事與紀錄</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button><button class="herosub" data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'本機記錄，其他裝置輸入代碼即可觀看')+'</small></button><button class="herosub" data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small data-wsm>輸入代碼或掃描 QR code，觀看其他記錄台</small></button></div></section><div class="homebody">'+body+'</div></div>';
+  return '<div class="home"><section class="hero">'+BIGCOURT+'<div class="heroball">'+BALL+'</div>'+betaNoteHtml()+'<h1>排球<br>記錄表</h1><p>按發球、按得分，記錄表自動寫好。</p><button class="primary herocta'+(g.live.length?' second':'')+'" data-act="new">開始新比賽</button><div class="herobtns"><button data-act="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" fill="currentColor"/></svg>賽事與紀錄</button><button data-act="helpopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.1 14.2a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm1.4-5.1c-.7.5-.9.8-.9 1.6h-2c0-1.5.5-2.2 1.6-3 .7-.5 1-.8 1-1.4 0-.6-.5-1-1.2-1-.8 0-1.3.5-1.4 1.3H8.6c.1-1.9 1.4-3.1 3.5-3.1 2 0 3.3 1.1 3.3 2.7 0 1.2-.6 1.9-1.9 2.9z" fill="currentColor"/></svg>使用教學</button><button class="herosub" data-act="shareopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM7.8 7.8l1.4 1.4a4 4 0 0 0 0 5.6l-1.4 1.4a6 6 0 0 1 0-8.4zm8.4 0a6 6 0 0 1 0 8.4l-1.4-1.4a4 4 0 0 0 0-5.6zM5 5l1.4 1.4a8 8 0 0 0 0 11.2L5 19A10 10 0 0 1 5 5zm14 0a10 10 0 0 1 0 14l-1.4-1.4a8 8 0 0 0 0-11.2z" fill="currentColor"/></svg>分享比賽<small>'+(share?shareSmall():'本機記錄，其他裝置輸入代碼即可觀看')+'</small></button><button class="herosub" data-act="watchopen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-5 0-9 4.6-10 7 1 2.4 5 7 10 7s9-4.6 10-7c-1-2.4-5-7-10-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" fill="currentColor"/></svg>觀看比賽<small data-wsm>輸入代碼或掃描 QR code，觀看其他記錄台</small></button></div></section><div class="homebody">'+body+'</div></div>';
 }
+/* 11/23 測試版和正式版一樣時，提醒改用正式版 */
+var betaNote={on:false,hide:false,asked:false};
+function betaNoteCheck(){if(betaNote.asked||!/\/beta\//.test(location.pathname)||!window.fetch||!/^https?:$/.test(location.protocol))return;betaNote.asked=true;
+  try{if(sessionStorage.getItem(KEY+'-betanote')==='hide')betaNote.hide=true}catch(e){}
+  fetch('../version.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(v){if(v&&v.ver&&v.ver===BUILD_ID){betaNote.on=true;if(view==='home')render()}}).catch(function(){})}
+function betaNoteHtml(){betaNoteCheck();if(!betaNote.on||betaNote.hide)return '';
+  return '<div class="betanote" role="status"><b>目前沒有測試中的功能</b><p>請改用正式版。測試版的比賽不會帶過去，要的話先備份，再到正式版匯入。</p><div class="row"><a class="btn primary" href="../">前往正式版</a><button data-act="betanotehide">繼續用測試版</button></div></div>'}
 function importAskHtml(){
   var a=ui.importAsk;if(!a||!a.length)return '';
   var one=a.length===1?db.matches.filter(function(x){return x.id===a[0].id})[0]:null;
@@ -6968,6 +6981,7 @@ app.addEventListener('click',function(e){
     case 'settings': ui.about='settings'; break;
     case 'leavedel': ui.sheet={type:'delmatch',back:ui.sheet}; break;
     case 'aboutclose': ui.about=null; break;
+    case 'betanotehide': betaNote.hide=true;try{sessionStorage.setItem(KEY+'-betanote','hide')}catch(e){} break;
     case 'helpopen': ui.help={group:helpGroup(s),i:0}; break;
     case 'helpmenu': ui.help={group:null,i:0}; break;
     case 'helpgroup': ui.help={group:b.getAttribute('data-v'),i:0,menu:true}; break;
