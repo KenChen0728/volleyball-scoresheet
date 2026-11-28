@@ -2852,7 +2852,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.10';
+var BUILD='測試版 2026.11.28.11';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -5178,12 +5178,12 @@ function autoSlot(t){
   return reg<MAX_PLAYERS?{kind:'reg',no:null,idx:reg}:null;
 }
 function rowHtml(k,t,kind,p,idx){
-  var late=t.locked&&ui.late&&ui.late[k],sl=t.locked&&!(late&&kind==='reg')?null:ui.slot[k], e=ui.entry[k];
+  var late=t.locked&&ui.late&&ui.late[k],sl=t.locked&&!late?null:ui.slot[k], e=ui.entry[k];
   var on=!!sl&&sl.kind===kind&&(p?sl.no===p.no:(sl.no===null&&sl.idx===idx));
   var txt=on&&e!==''?e:(p?p.no:'');
   var cap=!!p&&t.captain===p.no&&!(on&&e!=='');
   var lj=(kind==='lib'&&p&&t.liberoColor)?jersey(t.liberoColor).j:null;
-  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 列'+(p?' '+p.no+' 號':'空')+'"'+(t.locked&&!(late&&kind==='reg'&&!p)?' disabled':'')+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button>'+
+  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 列'+(p?' '+p.no+' 號':'空')+'"'+(t.locked&&!(late&&!p)?' disabled':'')/* 11/28 補登自由：自由格也能補 */+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button>'+
     '<input id="pn-'+k+'-'+kind+idx+'" aria-label="姓名" value="'+esc(p?p.name:'')+'" data-kind="pname" data-team="'+k+'" data-no="'+(p?p.no:'')+'"'+(p&&(!t.locked||late)?'':' disabled')+'></div>';
 }
 function rosterHtml(s,m){
@@ -5260,7 +5260,7 @@ function kpHtml(s){
 function footHtml(k,t,s){
   /* 11/28 比賽開始後也能補登（不設開關，按的時候確認）；只能新增一般球員，原本的號碼不能改 */
   if(t.locked){if(ui.late&&ui.late[k])return '<div class="muted">補登中：點空白的號碼格輸入背號</div>';
-    return regularCount(t)<MAX_PLAYERS?'<button class="lateadd" data-act="sheet" data-v="lateask" data-team="'+k+'">＋ 補登球員</button>':'<div class="muted">名單已滿 '+MAX_PLAYERS+' 位</div>'}
+    return regularCount(t)<MAX_PLAYERS||t.liberos.length<MAX_LIBEROS?'<button class="lateadd" data-act="sheet" data-v="lateask" data-team="'+k+'">＋ 補登球員</button>':'<div class="muted">名單已滿 '+MAX_PLAYERS+' 位</div>'}
   var miss=validate(t).filter(function(c){return !c.ok});
   return '<div class="muted">'+(miss.length?'還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
 }
@@ -6660,7 +6660,7 @@ function sheetHtml(s,m){
     h=xpSheet(s,x);
   }else if(x.type==='sync'){h=syncSheetHtml(x,true);if(x.stop||x.vw)stepBack='';
   }else if(x.type==='lateask'){
-    h='<h2>補登 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 球員？</h2><p>比賽已經開始。補上的球員會加進名單，之後可以替補上場。</p><p class="muted">只能新增，原本的號碼不能改。</p>'+
+    h='<h2>補登 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 球員？</h2><p>比賽已經開始。補上的球員會加進名單，之後可以替補上場；自由球員就點下面自由球員的空格。</p><p class="muted">只能新增，原本的號碼不能改。</p>'+
       '<button class="primary" data-act="lateok" data-team="'+k+'">補登</button><button class="ghost" data-act="close">取消</button>';
   }else if(x.type==='libwrong'){
     var lwc=s.sets[s.setNo],lrs=lwc.libRows[k]||[],lr=lrs[lrs.length-1]||{};
