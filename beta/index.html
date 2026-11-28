@@ -2324,20 +2324,17 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .watch .wrem li{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:22px}
 .watch .wrem li .tpill{font-size:20px}
 @media (max-height:700px){.watch .wsc>b{font-size:clamp(56px,12vh,120px)}.watch .wsrvc b{font-size:32px}.watch .wsrvc svg{width:26px;height:26px}.watch .wsets{font-size:28px}}
-/* 11/28 晚 自由、隊長字放框外（只限觀看畫面） */
-.watch .wview .lc .lno,.watch .wview .capbox span{display:none}
-.watch .wview .lc.empty{display:none}
-.watch .wview .strip .ls::before,.watch .wview .strip::after{writing-mode:vertical-rl;font-size:15px;font-weight:800;line-height:1.05;letter-spacing:.05em;color:var(--ink);align-self:center}
-.watch .wview .strip .ls::before{content:"自由"}
-.watch .wview .strip.nolib .ls::before{content:none}
-.watch .wview .strip::after{content:"隊長";order:1}
-.watch .wview .strip>.capbox{order:2}
-.watch .wview .strip>.ls{order:0;margin-right:auto}
-.watch .wview .strip.mir,.watch .wview .strip.mir .ls{flex-direction:row} /* 右隊也是「字在號碼左邊」：隊長 6 … 自由 20 15，不會把「隊長」看成 20 的 */
-.watch .wview .strip.mir::after{order:0}.watch .wview .strip.mir>.capbox{order:1}
-.watch .wview .strip.mir>.ls{order:2;margin-right:0;margin-left:auto}
-.watch .wview .strip{gap:4px}
-.watch .wview .lc b,.watch .wview .capbox b{font-size:clamp(30px,4.6vh,42px)}
+/* 11/28 晚 自由、隊長字放框外（只限觀看畫面）：字橫寫在格子上面；自由固定兩格，沒有的用淡虛線空框 */
+.watch .wview .strips{padding-top:20px}
+.watch .wview .strip{gap:6px}
+.watch .wview .lc .lno{display:none}
+.watch .wview .ls,.watch .wview .capbox{position:relative}
+.watch .wview .ls::before,.watch .wview .capbox span{position:absolute;left:0;right:0;top:-20px;text-align:center;font-size:15px;font-weight:800;line-height:18px;color:var(--ink);white-space:nowrap;opacity:1}
+.watch .wview .ls::before{content:"自由"}
+.watch .wview .lc.empty{visibility:visible;display:flex;background:transparent;border:2px dashed var(--line);opacity:.7}
+.watch .wview .lc.empty b{visibility:hidden}
+.watch .wview .capbox{overflow:visible}
+.watch .wview .lc b,.watch .wview .capbox b{font-size:clamp(26px,4vh,36px)}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2832,7 +2829,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.5';
+var BUILD='測試版 2026.11.28.6';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
