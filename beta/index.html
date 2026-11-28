@@ -2306,24 +2306,24 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 /* 記錄台：補登、換錯了 */
 .lateadd{min-height:44px;width:100%}
 .libwr{display:block;margin-top:6px}
-/* 11/28 晚 觀看畫面上方 */
-.wtop{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
-.wtn{--c:var(--t1);--o:var(--t1-on);display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:34px;padding:0 8px;border-radius:8px;background:var(--c);color:var(--o)}
-.wtn.t2{--c:var(--t2);--o:var(--t2-on)}
-.wtn .wab{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:800;background:var(--o);color:var(--c);flex:none}
-.wtn strong{font-size:16px;font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.wsets{font-family:var(--num);font-size:clamp(30px,4.6vh,44px);font-weight:800;line-height:1;padding:2px 10px;border-radius:8px;background:var(--box,#3A4048);color:#fff}
-.wsc{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px}
-.wsc>b{text-align:center;font-family:var(--num);font-weight:800;line-height:.95;font-size:clamp(64px,min(14vh,24vw),170px)}
-.wsrvc{--c:var(--t1-j);--o:var(--t1-jt);display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:var(--c);color:var(--o);box-shadow:0 0 0 2px var(--ink);font-family:var(--num);font-weight:900;line-height:1}
-.wsrvc.t2{--c:var(--t2-j);--o:var(--t2-jt)}
-.wsrvc svg{width:32px;height:32px;flex:none}.wsrvc b{font-size:40px}.wsrvc i{font-style:normal;font-size:26px}
-.wrem{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:31;width:340px;max-width:calc(100% - 24px);padding:16px;border:4px solid #FFD21F;border-radius:14px;background:var(--panel);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;text-align:center}
-.wrem h2{margin:0;font-size:28px}
-.wrem ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.wrem li{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:22px}
-.wrem li .tpill{font-size:20px}
-@media (max-height:700px){.wsc>b{font-size:clamp(56px,12vh,120px)}.wsrvc b{font-size:32px}.wsrvc svg{width:26px;height:26px}.wsets{font-size:28px}}
+/* 11/28 晚 觀看畫面上方（全部限定 .watch：記錄台平板版也有 .wtop，不加會把平板版面弄亂） */
+.watch .wtop{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+.watch .wtn{--c:var(--t1);--o:var(--t1-on);display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:34px;padding:0 8px;border-radius:8px;background:var(--c);color:var(--o)}
+.watch .wtn.t2{--c:var(--t2);--o:var(--t2-on)}
+.watch .wtn .wab{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:800;background:var(--o);color:var(--c);flex:none}
+.watch .wtn strong{font-size:16px;font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.watch .wsets{font-family:var(--num);font-size:clamp(30px,4.6vh,44px);font-weight:800;line-height:1;padding:2px 10px;border-radius:8px;background:var(--box,#3A4048);color:#fff}
+.watch .wsc{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px}
+.watch .wsc>b{text-align:center;font-family:var(--num);font-weight:800;line-height:.95;font-size:clamp(64px,min(14vh,24vw),170px)}
+.watch .wsrvc{--c:var(--t1-j);--o:var(--t1-jt);display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:var(--c);color:var(--o);box-shadow:0 0 0 2px var(--ink);font-family:var(--num);font-weight:900;line-height:1}
+.watch .wsrvc.t2{--c:var(--t2-j);--o:var(--t2-jt)}
+.watch .wsrvc svg{width:32px;height:32px;flex:none}.watch .wsrvc b{font-size:40px}.watch .wsrvc i{font-style:normal;font-size:26px}
+.watch .wrem{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:31;width:340px;max-width:calc(100% - 24px);padding:16px;border:4px solid #FFD21F;border-radius:14px;background:var(--panel);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;text-align:center}
+.watch .wrem h2{margin:0;font-size:28px}
+.watch .wrem ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.watch .wrem li{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:22px}
+.watch .wrem li .tpill{font-size:20px}
+@media (max-height:700px){.watch .wsc>b{font-size:clamp(56px,12vh,120px)}.watch .wsrvc b{font-size:32px}.watch .wsrvc svg{width:26px;height:26px}.watch .wsets{font-size:28px}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2818,7 +2818,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.3';
+var BUILD='測試版 2026.11.28.4';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
