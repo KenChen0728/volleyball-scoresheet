@@ -2306,6 +2306,24 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 /* 記錄台：補登、換錯了 */
 .lateadd{min-height:44px;width:100%}
 .libwr{display:block;margin-top:6px}
+/* 11/28 晚 觀看畫面上方 */
+.wtop{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+.wtn{--c:var(--t1);--o:var(--t1-on);display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:34px;padding:0 8px;border-radius:8px;background:var(--c);color:var(--o)}
+.wtn.t2{--c:var(--t2);--o:var(--t2-on)}
+.wtn .wab{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:800;background:var(--o);color:var(--c);flex:none}
+.wtn strong{font-size:16px;font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.wsets{font-family:var(--num);font-size:clamp(30px,4.6vh,44px);font-weight:800;line-height:1;padding:2px 10px;border-radius:8px;background:var(--box,#3A4048);color:#fff}
+.wsc{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px}
+.wsc>b{text-align:center;font-family:var(--num);font-weight:800;line-height:.95;font-size:clamp(64px,min(14vh,24vw),170px)}
+.wsrvc{--c:var(--t1-j);--o:var(--t1-jt);display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:var(--c);color:var(--o);box-shadow:0 0 0 2px var(--ink);font-family:var(--num);font-weight:900;line-height:1}
+.wsrvc.t2{--c:var(--t2-j);--o:var(--t2-jt)}
+.wsrvc svg{width:32px;height:32px;flex:none}.wsrvc b{font-size:40px}.wsrvc i{font-style:normal;font-size:26px}
+.wrem{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:31;width:340px;max-width:calc(100% - 24px);padding:16px;border:4px solid #FFD21F;border-radius:14px;background:var(--panel);box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;text-align:center}
+.wrem h2{margin:0;font-size:28px}
+.wrem ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.wrem li{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:22px}
+.wrem li .tpill{font-size:20px}
+@media (max-height:700px){.wsc>b{font-size:clamp(56px,12vh,120px)}.wsrvc b{font-size:32px}.wsrvc svg{width:26px;height:26px}.wsets{font-size:28px}}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2800,7 +2818,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.2';
+var BUILD='測試版 2026.11.28.3';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -3478,6 +3496,7 @@ function watchData(code,v){
   var s=reduce(list),old=wt.s,mid=list[0].matchId;
   if(wt.mid&&wt.mid!==mid){old=null;lastRot=null} // 記錄台換了一場
   wt.mid=mid;
+  wtRemind(s,!old);
   wt.s=s;wt.len=list.length;wt.list=list;wt.state='ok';
   var TT=matchTitle(s);wt.court=courtLabel(s.info&&s.info.court);watchedSave(code,TT[0]+' 對 '+TT[1],wt.court);
   render();
@@ -3500,6 +3519,24 @@ function watchMsg(){
   return '<div class="wmsg"><h2>'+m[0]+'</h2><p class="muted">'+m[1]+'</p>'+(st!=='load'?'<button data-act="wretry">重新輸入代碼</button>':'')+'</div>';
 }
 /* 11/28 觀看畫面改版：二裁、一裁站遠遠看，字和格子以遠看為準 */
+/* 11/28 提醒教練：二裁要跟教練說「暫停用完」「替補第 5、6 次」 */
+function wtRemind(s,first){
+  var n=s.setNo,c=s.sets[n];if(!c||!c.started)return;
+  wt.seen=wt.seen||{};var add=[];
+  ['t1','t2'].forEach(function(k){
+    var to=c.timeouts[k].length,sb=c.subCount[k],items=[];
+    if(to>=2)items.push(['T2','暫停 2 次（用完）']);
+    if(sb>=5)items.push(['S5','替補 5 次']);
+    if(sb>=6)items.push(['S6','替補 6 次（用完）']);
+    items.forEach(function(q){var key=(wt.mid||'')+'|'+n+'|'+k+'|'+q[0];if(wt.seen[key])return;wt.seen[key]=1;if(!first)add.push({k:k,t:q[1],key:key})});
+  });
+  if(wt.remind&&(c.live||c.rally!==wt.remind.rally))wt.remind=null; // 下一次發球就收起來
+  if(add.length&&!wtR1()){var cur=wt.remind&&wt.remind.rally===c.rally?wt.remind.list:[];wt.remind={rally:c.rally,list:cur.concat(add)}}
+}
+function wtRemindHtml(s){
+  if(!wt||!wt.remind||!s||wtR1())return '';
+  return '<div class="wrem" role="alertdialog" aria-label="提醒教練"><h2>提醒教練</h2><ul>'+wt.remind.list.map(function(x){return '<li><span class="tpill '+x.k+'">'+esc(tName(s,x.k))+'</span><b>'+esc(x.t)+'</b></li>'}).join('')+'</ul><button class="primary" data-act="wremok">知道了</button></div>';
+}
 function wtR1(){return prefs.wside==='r1'} // 站在一裁那邊：左右對調（記錄台、二裁同一邊，看到的一樣）
 function wtSetRows(s,L,R){var rows='';for(var n=1;n<=3;n++){var x=s.sets[n];if(!x.started)continue;rows+='<tr><th>第 '+n+' 局</th><td>'+x.score[L]+'</td><td>'+x.score[R]+'</td></tr>'}
   return rows?'<table class="wsett"><thead><tr><th></th><th><span class="tpill '+L+'">'+esc(tName(s,L))+'</span></th><th><span class="tpill '+R+'">'+esc(tName(s,R))+'</span></th></tr></thead><tbody>'+rows+'</tbody></table>':''}
@@ -3533,7 +3570,10 @@ function watchBoard(s){
   var wtm=wt&&wt.timer&&Date.now()<wt.timer.end?wt.timer:null;
   var tm=wtm?'<div class="tbar '+wtm.team+'"><span>'+esc(tName(s,wtm.team))+' '+esc(wtm.label||'暫停')+'</span><b data-wtm>'+wtText(wtm)+'</b></div>':'';
   var ban=win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'<small>記錄台確認中</small></p>':'';
-  return '<div class="wview sv-'+sv+'" inert><div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局'+(sv==='a'?srvA:'')+'</div>'+setBox(s,R)+sideScore(s,R)+(sv==='b'?srvB:'')+'</div>'+ban+tm+
+  var tn=function(k){return '<div class="wtn '+k+'"><span class="wab">'+(s.sets[1].left===k?'A':'B')+'</span><strong>'+esc(tName(s,k))+'</strong></div>'};
+  var srvC=c.serving?'<div class="wsrvc '+c.serving+'" role="img" aria-label="'+esc(tName(s,c.serving))+' '+srv+' 號發球">'+(lf?'<i>◀</i>':'')+BALL+'<b>'+srv+'</b>'+(lf?'':'<i>▶</i>')+'</div>':'<div></div>';
+  return '<div class="wview" inert><div class="wtop">'+tn(L)+'<b class="wsets" aria-label="局數 '+sw[L]+' 比 '+sw[R]+'">'+sw[L]+' : '+sw[R]+'</b>'+tn(R)+'</div>'+
+    '<div class="wsc"><b class="'+L+'">'+c.score[L]+'</b>'+srvC+'<b class="'+R+'">'+c.score[R]+'</b></div>'+ban+tm+
     '<div class="pcourt" role="group" aria-label="球場，記錄台在'+(r1?'上方':'下方')+'">'+cells+'</div><div class="strips">'+libStrip(s,L,false,true)+libStrip(s,R,true,true)+'</div><div class="wcounts">'+cnt(L)+cnt(R)+'</div></div>';
 }
 function watchHtml(){
@@ -3552,7 +3592,7 @@ function watchHtml(){
     '<p class="subhint">請於死球時與記錄員確認記錄台已無法使用。</p><ul class="takelist"><li>本機僅有背號，可記錄得分、發球、暫停、替補、自由球員與場上隊長。</li><li>代碼不變，其他觀看裝置將顯示本機的紀錄。</li><li>原記錄台恢復連線時，可收回記錄並合併這段紀錄。</li></ul>'+
     (share&&share.code!==wt.code&&!share.take?'<p class="note">本機原有的分享（代碼 '+esc(share.code)+'）將停止。</p>':'')+(wt.take.err?'<p class="warning" role="alert">'+esc(wt.take.err)+'</p>':'')+
     '<button class="primary" data-act="wtakego">接手記錄</button><button class="ghost" data-act="wtakeno">取消</button>')+'</div>':'';
-  return '<div class="watch"><div class="wshell">'+head+trow+note+'<main class="page wpage">'+(s?watchBoard(s):watchMsg())+'</main></div>'+wp+'</div>'+ask+tk;
+  return '<div class="watch"><div class="wshell">'+head+trow+note+'<main class="page wpage">'+(s?watchBoard(s):watchMsg())+'</main></div>'+wp+wtRemindHtml(s)+'</div>'+ask+tk;
 }
 function watchAskHtml(){
   if(!ui.watchAsk)return '';var x=ui.watchAsk,rc=watchedList(),cs=qsCan();
@@ -3583,7 +3623,8 @@ function syncAct(act,b){
     case 'wleave': if(share&&share.lost&&wt&&share.code===wt.code){var lm=db.matches.filter(function(q){return q.id===share.mid})[0];watchLeave();if(lm){db.currentId=lm.id;ui.page=firstPage(reduce(lm.events));view='setup';syncLockCheck()}return true}
       if(wt)wt.ask=true; return true;
     case 'wstay': if(wt)wt.ask=false; return true;
-    case 'wside': prefs.wside=b.getAttribute('data-v')==='r1'?'r1':'';savePrefs();lastRot=null; return true;
+    case 'wremok': if(wt)wt.remind=null; return true;
+    case 'wside': if(b.getAttribute('data-v')==='r1'&&wt)wt.remind=null; prefs.wside=b.getAttribute('data-v')==='r1'?'r1':'';savePrefs();lastRot=null; return true;
     case 'wleave2': watchLeave();ui.watchAsk={v:''}; return true;
     case 'wretry': var oc=wt?wt.code:'';watchLeave();ui.watchAsk={v:oc}; return true;
     case 'shareopen': ui.shareAsk={}; if(share)fbLoad(); return true;
