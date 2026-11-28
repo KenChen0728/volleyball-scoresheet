@@ -2689,7 +2689,7 @@ function importChoices(m,s,k){
   var cups=db.cups.slice().sort(function(a,b){return ((b.id===m.cup)-(a.id===m.cup))||((b.name===s.info.name)-(a.name===s.info.name))||String(b.createdAt||'').localeCompare(String(a.createdAt||''))});
   var all=[];
   cups.forEach(function(c){liveTeams(c).forEach(function(x){var n=x.team.name.trim();if(!n||n===oth)return;all.push({name:n,team:x.team,date:'',division:x.division||'',group:x.group||'',src:c.name})})});
-  pastTeams(m.id).forEach(function(p){if(p.name===oth||all.some(function(q){return q.name===p.name}))return;p.src='先前比賽';all.push(p)});
+  pastTeams(m.id).forEach(function(p){if(p.name===oth||all.some(function(q){return q.name===p.name&&(q.division||'')===(p.division||'')}))return;p.src='先前比賽';all.push(p)});
   all.forEach(function(p){p.tier=(dv&&p.division&&p.division!==dv)?0:groupTier(p.group,mg)});
   var fit=all.filter(function(p){return p.tier>0}),list=(ui.impAll?all:fit).slice();
   list.sort(function(a,b){return (a.tier===1?0:a.tier===2?1:2)-(b.tier===1?0:b.tier===2?1:2)});
@@ -2746,9 +2746,9 @@ function pastTeams(excludeId){
     var s=safeReduce(m);
     if(!s||s.info.sample)return;
     ['t1','t2'].forEach(function(k){
-      var t=s.teams[k], key=t.name.trim();
-      if(!key||!t.players.length||seen[key])return;
-      seen[key]=1;
+      var t=s.teams[k], key=t.name.trim(), sk=key+'|'+(s.info.division||''); // 11/29 同名分組別：男女組同名各留一份
+      if(!key||!t.players.length||seen[sk])return;
+      seen[sk]=1;
       t=Object.assign({},t,{players:t.entry||t.players});delete t.entry;
       if(t.regLib){t=Object.assign({},t,{liberos:t.regLib});delete t.regLib}
       list.push({name:key,team:t,date:s.info.date||'',division:s.info.division||'',group:s.info.group||''});
@@ -2873,7 +2873,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.29.1';
+var BUILD='測試版 2026.11.29.3';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -6881,7 +6881,7 @@ function sheetHtml(s,m){
     var ic=importChoices(m,s,k),list=ic.list;
     h='<h2>載入隊伍'+(ic.label&&!ui.impAll?'（'+esc(ic.label)+'）':'')+'</h2>'+(list.length?'':'<p class="muted">這一組還沒有建好的隊伍。可以在主畫面的「賽事資料夾」先加入各隊名單。</p>')+list.map(function(p,i){
       if(ui.pending===p.name)return '<div class="warning">載入「'+esc(p.name)+'」會取代目前的 '+t.players.length+' 人名單。<div class="row" style="margin-top:8px"><button class="danger" data-act="import-yes" data-team="'+k+'" data-i="'+i+'">取代</button><button data-act="import-cancel">取消</button></div></div>';
-      return '<button class="imp" data-act="import-pick" data-team="'+k+'" data-i="'+i+'"><span>'+esc(p.name)+'</span><small>'+[p.team.players.length+' 人',ui.impAll?[normGroup(p.group),p.division].filter(Boolean).join(''):'',p.date?esc(p.date.slice(5)):''].filter(Boolean).join('・')+'</small></button>';
+      return '<button class="imp" data-act="import-pick" data-team="'+k+'" data-i="'+i+'"><span>'+esc(p.name)+'</span><small>'+[p.team.players.length+' 人',[normGroup(p.group),p.division].filter(Boolean).join(''),p.date?esc(p.date.slice(5)):'',p.src&&p.src!=='先前比賽'?esc(p.src):''].filter(Boolean).join('・')+'</small></button>';
     }).join('')+(ic.hidden>0&&!ui.impAll?'<button data-act="impall">顯示其他組別的隊伍（'+ic.hidden+' 隊）</button>':'')+(ui.impAll&&ic.label?'<button data-act="impall">只看'+esc(ic.label)+'</button>':'')+'<button class="ghost" data-act="close">關閉</button>';
   }
   return '<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+(stepBack!==null?stepBack:(x.back?BACK_BTN:''))+h+'</div>';
