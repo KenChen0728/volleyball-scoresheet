@@ -2830,7 +2830,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='2026.11.28.6';
+var BUILD='2026.11.28.7';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -3367,7 +3367,7 @@ function syncState(){if(!share)return ['off',''];
   return ['ok',share.take?'接手記錄中・已同步':'已同步，觀看裝置為最新狀態'];
 }
 function shareSmall(){return share.take?'接手記錄中・代碼 '+share.code:share.lost?'其他裝置接手中・代碼 '+share.code:'分享中・代碼 '+share.code}
-function shareTitle(){var sm=shareMatch(),q=sm&&safeReduce(sm);if(!q)return '';var T=matchTitle(q),ct=courtLabel(q.info&&q.info.court);return (ct?ct+'　':'')+T[0]+' 對 '+T[1]}
+function shareTitle(){var sm=shareMatch(),q=sm&&safeReduce(sm);if(!q)return '';var T=matchTitle(q),ct=courtLabel(q.info&&q.info.court);return (ct?ct+'　':'')+T[0]+' VS '+T[1]}
 function syncSheetHtml(x,inMatch){
   var st=syncState(),h='<div class="shd"><h2>分享比賽</h2><button data-act="close">關閉</button></div>',tt=share?shareTitle():'';
   if(!share)return h+'<p class="subhint">本機記錄，其他裝置輸入代碼即可觀看比分、發球與站位（僅供觀看，無法修改）。</p><p class="muted">代碼每天換一次。需要網路，姓名不會上傳。</p><button class="primary" data-act="syncstart">開始分享</button>';
@@ -3510,7 +3510,7 @@ function watchData(code,v){
   wt.mid=mid;
   wtRemind(s,!old);
   wt.s=s;wt.len=list.length;wt.list=list;wt.state='ok';
-  var TT=matchTitle(s);wt.court=courtLabel(s.info&&s.info.court);watchedSave(code,TT[0]+' 對 '+TT[1],wt.court);
+  var TT=matchTitle(s);wt.court=courtLabel(s.info&&s.info.court);watchedSave(code,TT[0]+' VS '+TT[1],wt.court);
   render();
 }
 function wtAlive(){if(!wt||!wt.on)return false;return !(wt.u&&Date.now()-(wt.u-(sy.off||0))>15000)}
@@ -3561,7 +3561,7 @@ function watchResult(s,w,pending,L){
 /* 還沒開始、局與局之間：局間休息倒數（跟記錄台一樣從上一局結束算 3 分鐘） */
 function watchWait(s,L){
   var n=s.setNo,R=other(L),pv=s.sets[n-1],sw=setsWon(s);
-  if(!s.sets[1].started)return '<div class="wmsg"><h2>'+esc(tName(s,L))+' 對 '+esc(tName(s,R))+'</h2><p class="muted">等第 1 局開始</p></div>';
+  if(!s.sets[1].started)return '<div class="wmsg"><h2>'+esc(tName(s,L))+' VS '+esc(tName(s,R))+'</h2><p class="muted">等第 1 局開始</p></div>';
   var dl=pv&&pv.endAt?new Date(pv.endAt).getTime()+180000:0;
   return '<div class="wwait"><div class="wwt"><span class="tpill '+L+'">'+esc(tName(s,L))+'</span><b>'+sw[L]+' : '+sw[R]+'</b><span class="tpill '+R+'">'+esc(tName(s,R))+'</span></div>'+
     (dl?'<div class="wbrk"><small>局間休息</small><b data-cd="'+dl+'">'+cdText(dl)+'</b></div>':'')+'<p class="wnext">等第 '+n+' 局開始</p>'+wtSetRows(s,L,R)+'</div>';
@@ -4011,7 +4011,7 @@ function wlSync(){
   if(!fb){if(navigator.onLine!==false&&!fbErr)fbLoad();return}
   cs.forEach(function(c){if(wl[c])return;var e=wl[c]={o:undefined,on:null,s:null,deny:false,offs:[],pres:false};
     ['o','on','s'].forEach(function(k){e.offs.push(fb.on('m/'+c+'/'+k,function(v){if(wl[c]!==e)return;
-      if(k==='s'){var o=null;try{o=v?JSON.parse(v):null}catch(x){}e.s=o;if(o)watchedSet(c,o.a+' 對 '+o.b,o.c)}else e[k]=v;e.deny=false;wlPaint()},
+      if(k==='s'){var o=null;try{o=v?JSON.parse(v):null}catch(x){}e.s=o;if(o)watchedSet(c,o.a+' VS '+o.b,o.c)}else e[k]=v;e.deny=false;wlPaint()},
       function(){if(wl[c]!==e)return;e.deny=true;e.denyAt=Date.now();wlPaint()}))});
     wlPresence(c)});
 }
@@ -4041,7 +4041,7 @@ function watchSmall(){var rc=watchedList();if(!rc.length)return '輸入代碼或
   return '比賽清單 '+rc.length+' 場'+(live?'・進行中 '+live+' 場':'')}
 function wsmPaint(){var t=watchSmall();[].forEach.call(document.querySelectorAll('[data-wsm]'),function(el){if(el.textContent!==t)el.textContent=t})}
 function wlRow(r){
-  var e=wl[r.c]||{},s=e.s,title=(s&&s.c)||r.ct||'',teams=s?s.a+' 對 '+s.b:r.t||'',st,cls='';
+  var e=wl[r.c]||{},s=e.s,title=(s&&s.c)||r.ct||'',teams=s?s.a+' VS '+s.b:r.t||'',st,cls='';
   if(e.deny){st='記錄台已停止本機的觀看權限';cls='bad'}
   else if(e.o===undefined)st=fb||navigator.onLine!==false?'讀取中…':'沒有網路';
   else if(e.o===null){st='找不到這個代碼：記錄台可能已停止分享或已更換代碼';cls='bad'}
@@ -4320,7 +4320,7 @@ function elapsed(from,to){
 setInterval(function(){var ftx=document.querySelector('.ftoast');if(ftx&&!(ui.toast&&Date.now()<ui.toast.until))ftx.remove();if(ui.toast&&Date.now()>ui.toast.until){ui.toast=null;if(view==='setup'&&ui.page==='play'&&!ui.liveSheet&&!ui.pen&&!ui.sub&&!ui.sheet&&!document.querySelector('.sheet.setend'))render()}var c=document.querySelectorAll('[data-cd]');for(var j=0;j<c.length;j++)c[j].textContent=cdText(Number(c[j].getAttribute('data-cd')));var a=document.querySelectorAll('[data-el]');for(var i=0;i<a.length;i++)a[i].textContent=elapsed(a[i].getAttribute('data-el'))},1000);
 function barHtml(s){
   var over=matchOver(s),c=s.sets[s.setNo],started=s.sets[1].started,title;
-  if(over)title=tName(s,s.sets[1].left||'t1')+' 對 '+tName(s,other(s.sets[1].left||'t1'));
+  if(over)title=tName(s,s.sets[1].left||'t1')+' VS '+tName(s,other(s.sets[1].left||'t1'));
   else if(ui.page==='play'&&c.started)title='第 '+s.setNo+' 局';
   else title={info:'比賽資料',refs:'裁判',roster:'名單',toss:'第 '+s.setNo+' 局挑邊',lineup:'第 '+s.setNo+' 局陣容'}[ui.page]||'第 '+s.setNo+' 局';
   var back=(!started||over)?'<button class="barback" data-act="'+(ui.from==='history'?'history':ui.from==='cup'?'cupback':'home')+'">‹ '+(ui.from==='history'?'賽事與紀錄':ui.from==='cup'?'資料夾':'主畫面')+'</button>':'';
@@ -4370,14 +4370,14 @@ function resumeRow(m,s){
   var sdel=smp&&ui.delMode==='del';if(sdel)smp=false; // 練習也能刪除：問法和一般比賽一樣，刪掉不進最近刪除
   if(ui.delMatch===m.id&&sdel)return '<div class="rrow ask"><span>刪除這場練習？之後可以在「使用教學」再開一場練習。</span><div class="row"><button data-act="del-no">取消</button><button data-act="del-yes" data-id="'+esc(m.id)+'">刪除</button></div></div>';
   smp=!!s.info.sample;
-  if(ui.delMatch===m.id)return '<div class="rrow ask"><span>'+(smp?'重新開始練習？這場練習會清掉，換成一場新的。':'刪除「'+esc(T[0])+' 對 '+esc(T[1])+'」？會移到「賽事與紀錄」最下面的「最近刪除」，'+TRASH_DAYS+' 天內可以救回。'+(backedUp(m)?'':'這場還沒備份。'))+'</span><div class="row"><button data-act="del-no">取消</button><button data-act="'+(smp?'smpnew':'del-yes')+'" data-id="'+esc(m.id)+'">'+(smp?'重新開始':'刪除')+'</button></div></div>';
-  return '<div class="rrow hasdel'+(smp?' smp':'')+'"><button class="rmain" data-act="open" data-id="'+esc(m.id)+'"><strong>'+esc(T[0])+' 對 '+esc(T[1])+(s.info.sample?' <i class="pill">練習</i>':'')+'</strong><span class="muted">'+(started?'第 '+s.setNo+' 局，局數 '+setsText(s):'還沒開賽，接著準備')+'</span>'+(started&&c.started?'<b class="rscore">'+c.score[T[2]]+':'+c.score[T[3]]+'</b>':'')+'<em>'+(started?'繼續記錄':'繼續準備')+'</em></button>'+(smp?'<span class="rcdels"><button class="rcdel" data-act="del-ask" data-id="'+esc(m.id)+'">'+AGAIN_IC+'重新開始</button><button class="rcdel" data-act="del-ask" data-v="smpdel" data-id="'+esc(m.id)+'">'+TRASH_IC+'刪除</button></span>':'<button class="rcdel" data-act="del-ask" data-id="'+esc(m.id)+'">'+TRASH_IC+'刪除</button>')+'</div>';
+  if(ui.delMatch===m.id)return '<div class="rrow ask"><span>'+(smp?'重新開始練習？這場練習會清掉，換成一場新的。':'刪除「'+esc(T[0])+' VS '+esc(T[1])+'」？會移到「賽事與紀錄」最下面的「最近刪除」，'+TRASH_DAYS+' 天內可以救回。'+(backedUp(m)?'':'這場還沒備份。'))+'</span><div class="row"><button data-act="del-no">取消</button><button data-act="'+(smp?'smpnew':'del-yes')+'" data-id="'+esc(m.id)+'">'+(smp?'重新開始':'刪除')+'</button></div></div>';
+  return '<div class="rrow hasdel'+(smp?' smp':'')+'"><button class="rmain" data-act="open" data-id="'+esc(m.id)+'"><strong>'+esc(T[0])+' VS '+esc(T[1])+(s.info.sample?' <i class="pill">練習</i>':'')+'</strong><span class="muted">'+(started?'第 '+s.setNo+' 局，局數 '+setsText(s):'還沒開賽，接著準備')+'</span>'+(started&&c.started?'<b class="rscore">'+c.score[T[2]]+':'+c.score[T[3]]+'</b>':'')+'<em>'+(started?'繼續記錄':'繼續準備')+'</em></button>'+(smp?'<span class="rcdels"><button class="rcdel" data-act="del-ask" data-id="'+esc(m.id)+'">'+AGAIN_IC+'重新開始</button><button class="rcdel" data-act="del-ask" data-v="smpdel" data-id="'+esc(m.id)+'">'+TRASH_IC+'刪除</button></span>':'<button class="rcdel" data-act="del-ask" data-id="'+esc(m.id)+'">'+TRASH_IC+'刪除</button>')+'</div>';
 }
 function shortTime(ms){var d=new Date(ms);return (d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
 function backedUp(m){var a=(prefs.bk&&prefs.bk[m.id])||0,b=prefs.lastBackup||0,e=m.events[m.events.length-1],t=e?new Date(e.at).getTime():0;return Math.max(a,b)>=t}
 function historyRow(m,s,del){
   var T=matchTitle(s),w=setsWon(s),aw=w[T[2]]>w[T[3]];
-  if(del&&ui.delMatch===m.id)return '<div class="rrow ask"><span>刪除「'+esc(T[0])+' 對 '+esc(T[1])+'」？記錄表會一起消失。</span><div class="row"><button data-act="del-no">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div></div>';
+  if(del&&ui.delMatch===m.id)return '<div class="rrow ask"><span>刪除「'+esc(T[0])+' VS '+esc(T[1])+'」？記錄表會一起消失。</span><div class="row"><button data-act="del-no">取消</button><button class="danger" data-act="del-yes" data-id="'+esc(m.id)+'">確定刪除</button></div></div>';
   if(del)return historyRow(m,s);
   return '<button class="hrow card" data-act="open" data-from="history" data-id="'+esc(m.id)+'"><span class="muted">'+esc(s.info.date||'')+(s.info.game?'　第 '+esc(s.info.game)+' 場':'')+(s.info.sample?'　練習':'')+'</span><span class="hnames"><span'+(aw?' class="win"':'')+'>'+esc(T[0])+'</span><b>'+setsText(s)+'</b><span'+(aw?'':' class="win"')+'>'+esc(T[1])+'</span></span><span class="hgo" aria-hidden="true">打開 ›</span></button>';
 }
@@ -4937,7 +4937,7 @@ function cupSheetHtml(){
   if(x.type==='name')h='<h2>'+(x.edit?'資料夾改名':'新增賽事資料夾')+'</h2><label for="cup-name">賽事名稱<input id="cup-name" type="text" maxlength="40" value="'+esc(x.edit&&c?c.name:'')+'" placeholder="例如：校際盃"></label>'+err+'<button class="primary" data-act="cupnamesave">儲存</button><button class="ghost" data-act="close">取消</button>';
   else if(x.type==='team')h='<h2>'+(x.id?'修改隊伍名單':'加入隊伍名單（'+esc(cupView.div)+'）')+'</h2><label for="ct-name">隊名<input id="ct-name" type="text" maxlength="30" value="'+esc(x.name||'')+'"></label><div class="ctdiv"><span>男女組</span><div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="ctdiv" data-v="'+d+'" aria-pressed="'+((x.div||CUP_DIVS[0])===d)+'">'+d+'</button>'}).join('')+'</div></div><label for="ct-group">組別<input id="ct-group" type="text" maxlength="12" list="grp-list" autocomplete="off" placeholder="例如：國中甲組（可以不填）" value="'+esc(x.group||'')+'"></label>'+groupDatalist()+'<label for="ct-text">名單<textarea id="ct-text" class="cupta" rows="9" placeholder="1 王小明\n7 陳大文\n林小華\n教練 王教練">'+esc(x.text||'')+'</textarea></label><p class="muted">一行一位，例如「7 陳大文」；沒有背號就只打姓名。可以整段貼上。</p>'+err+'<div class="row"><label class="ghost-file">選 CSV 檔<input id="cup-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label><button data-act="cuptpl">下載範本</button></div><button class="primary" data-act="cupteamsave">儲存</button>'+(x.id?(x.ask?'<button class="danger" data-act="cupteamdel2">確定刪除這一隊</button>':'<button class="dellink" data-act="cupteamdel">刪除這一隊</button>'):'')+'<button class="ghost" data-act="close">取消</button>';
   else if(x.type==='new'){var ts=c.teams.filter(function(t){return t.division===cupView.div&&(!cupView.grp||normGroup(t.group)===cupView.grp)});h='<h2>開新比賽（'+esc((cupView.grp?cupView.grp+' ':'')+cupView.div)+'）</h2><p class="muted">'+(ts.length?'點兩隊，名單會自動帶入。也可以不選，之後再填。':'這一組還沒有隊伍，可以先開賽再填名單。')+'</p>'+ts.map(function(t){var i=x.pick.indexOf(t.id);return '<button class="imp" data-act="cuppick" data-id="'+esc(t.id)+'" aria-pressed="'+(i>=0)+'"><span>'+esc(t.team.name)+'</span><small>'+(i>=0?(i?'第二隊':'第一隊'):t.team.players.length+' 人')+'</small></button>'}).join('')+'<button class="primary" data-act="cupstart">開始</button><button class="ghost" data-act="close">取消</button>'}
-  else if(x.type==='add'){var fr=db.matches.map(function(m){return {m:m,s:safeReduce(m)}}).filter(function(q){return q.s&&!q.m.cup&&!q.s.info.sample});fr.sort(function(a,b){return (b.s.info.name===c.name)-(a.s.info.name===c.name)});h='<h2>把舊比賽加進來</h2>'+(fr.length?fr.map(function(q){var T=matchTitle(q.s);return '<button class="imp" data-act="cupaddm" data-id="'+esc(q.m.id)+'"><span>'+esc(T[0])+' 對 '+esc(T[1])+'</span><small>'+esc((q.s.info.date||'').slice(5))+' '+esc(q.s.info.division||'')+'</small></button>'}).join(''):'<p class="muted">沒有其他比賽可以加入。</p>')+'<button class="ghost" data-act="close">完成</button>'}
+  else if(x.type==='add'){var fr=db.matches.map(function(m){return {m:m,s:safeReduce(m)}}).filter(function(q){return q.s&&!q.m.cup&&!q.s.info.sample});fr.sort(function(a,b){return (b.s.info.name===c.name)-(a.s.info.name===c.name)});h='<h2>把舊比賽加進來</h2>'+(fr.length?fr.map(function(q){var T=matchTitle(q.s);return '<button class="imp" data-act="cupaddm" data-id="'+esc(q.m.id)+'"><span>'+esc(T[0])+' VS '+esc(T[1])+'</span><small>'+esc((q.s.info.date||'').slice(5))+' '+esc(q.s.info.division||'')+'</small></button>'}).join(''):'<p class="muted">沒有其他比賽可以加入。</p>')+'<button class="ghost" data-act="close">完成</button>'}
   else if(x.type==='start')h='<h2>開始新比賽</h2><p class="muted">這場要放進哪個盃賽？之後在「資料」頁也能改。</p>'+db.cups.map(function(c){var on=x.pick===c.id;return '<button class="imp" data-act="newpick" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span>'+esc(c.name)+'</span><small>'+cupRows(c.id).length+' 場比賽</small></button>'}).join('')+'<button class="imp" data-act="newpick" data-id="" aria-pressed="'+(!x.pick)+'"><span>不屬於任何盃賽</span><small></small></button>'+(function(){var pc=x.pick?db.cups.filter(function(q){return q.id===x.pick})[0]:null,td=pc?schedTodo(pc):[],nos=pc?schedNos(pc):{};
     if(!td.length)return '<button class="primary" data-act="newgo">開始</button>';
     return '<h3 class="scpick">照賽程開始（'+esc(schedDay(td[0].date))+'）</h3>'+td.map(function(it){return '<button class="imp" data-act="scgo" data-from="start" data-cup="'+esc(pc.id)+'" data-id="'+esc(it.id)+'"><span>'+schedSideHtml(schedSide(pc,it,'t1'))+' vs '+schedSideHtml(schedSide(pc,it,'t2'))+'</span><small>'+esc(it.division)+'第 '+nos[it.id]+' 場・'+esc(it.time||'')+(it.court?'・場地：'+esc(it.court):'')+'</small></button>'}).join('')+'<button data-act="newgo">不照賽程，開新的一場</button>'})()+'<button class="ghost" data-act="close">取消</button>';
@@ -5076,7 +5076,7 @@ function restoreMatch(id){
 function trashHtml(){
   if(!db.trash.length)return '';
   var now=Date.now(),rows=db.trash.map(function(m){
-    var s=safeReduce(m),T=s?matchTitle(s):null,dt=new Date(m.deletedAt).getTime(),left=Math.max(1,TRASH_DAYS-Math.floor((now-dt)/864e5)),name=T?esc(T[0])+' 對 '+esc(T[1]):'資料有問題的比賽';
+    var s=safeReduce(m),T=s?matchTitle(s):null,dt=new Date(m.deletedAt).getTime(),left=Math.max(1,TRASH_DAYS-Math.floor((now-dt)/864e5)),name=T?esc(T[0])+' VS '+esc(T[1]):'資料有問題的比賽';
     if(ui.trashAsk===m.id)return '<div class="rrow ask"><span>永久刪除「'+name+'」？刪了就救不回來。</span><div class="row"><button data-act="trashno">取消</button><button class="danger" data-act="trashdel" data-id="'+esc(m.id)+'">永久刪除</button></div></div>';
     return '<div class="trow"><div class="ttx"><strong>'+name+(s?'　<b>'+setsText(s)+'</b>':'')+'</strong><span class="muted">'+(s&&s.info.date?esc(s.info.date)+' 的比賽・':'')+shortTime(dt)+' 刪除・還留 '+left+' 天</span></div>'+
       '<div class="tbtns"><button data-act="trashback" data-id="'+esc(m.id)+'">救回</button><button data-act="trashask" data-id="'+esc(m.id)+'">永久刪除</button></div></div>'}).join('');
@@ -7121,7 +7121,7 @@ app.addEventListener('click',function(e){
       db.matches=db.matches.filter(function(x){var q=safeReduce(x);return !(q&&q.info.sample&&!matchOver(q))});
       makeSample(); var snw=db.matches[0]; db.currentId=snw.id; save(); resetUi(); ui.page=firstPage(reduce(snw.events)); view='setup'; break;
     case 'trashback': var tbm=db.trash.filter(function(x){return x.id===b.getAttribute('data-id')})[0],tbs=tbm&&safeReduce(tbm);
-      if(tbm&&restoreMatch(tbm.id)){var tbt=tbs?matchTitle(tbs):null;ui.selMsg='已救回'+(tbt?'「'+tbt[0]+' 對 '+tbt[1]+'」':'這場比賽')+'，在'+(tbs&&matchOver(tbs)?'「打完的比賽」':'主畫面的「進行中」')}
+      if(tbm&&restoreMatch(tbm.id)){var tbt=tbs?matchTitle(tbs):null;ui.selMsg='已救回'+(tbt?'「'+tbt[0]+' VS '+tbt[1]+'」':'這場比賽')+'，在'+(tbs&&matchOver(tbs)?'「打完的比賽」':'主畫面的「進行中」')}
       ui.trashAsk=null; save(); break;
     case 'trashask': ui.trashAsk=b.getAttribute('data-id'); break;
     case 'trashno': ui.trashAsk=null; break;
