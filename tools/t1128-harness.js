@@ -77,7 +77,7 @@ await pt('t1');await pt('t2');await pt('t2');
 if(process.env.PRE){await require(process.env.PRE)({R,W,KEY,ab});}
 await R.click('[data-act=sheet][data-v=more]');await W(250);await R.click('.sheet [data-act=syncopen]');await W(250);await R.click('[data-act=syncstart]');await W(900);
 const code=(await R.locator('.synccode b').innerText()).replace(/\s/g,'');await R.click('.sheet [data-act=close]');await W(200);
-const V=await page(+(process.env.VW||390),+(process.env.VH||844),Object.assign(process.env.DARK?{colorScheme:'dark'}:{},process.env.UA?{userAgent:process.env.UA}:{}));await watchVia(V,code);
+const V=await page(+(process.env.VW||390),+(process.env.VH||844),Object.assign(process.env.DARK?{colorScheme:'dark'}:{},process.env.UA?{userAgent:process.env.UA}:{},process.env.DPR?{deviceScaleFactor:+process.env.DPR}:{}));await watchVia(V,code);
 const OUT=process.env.OUT||'/tmp/w';fs.mkdirSync(OUT,{recursive:true});
 const shot=async(n)=>{await W(400);await V.screenshot({path:OUT+'/'+n+'.png'})};
 module.exports={};
