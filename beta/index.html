@@ -2233,6 +2233,82 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
   .sheet.scsheet>*{flex:none}
   .sheet.scsheet>.scteams{flex:1 1 auto;min-height:96px;overflow:auto;padding:2px;margin:-2px;overscroll-behavior:contain}
 }
+/* ===== 11/28 觀看畫面：二裁、一裁站遠遠看 ===== */
+.watch .wtbar{gap:6px;padding-top:max(2px,env(safe-area-inset-top,0px));padding-bottom:2px}
+.watch .wtbar .wleave{min-height:40px;padding:0 10px;font-size:14px}
+.watch .wtbar .wcode{font-size:12px;line-height:1.15;font-weight:700;color:var(--muted)}
+.watch .wcode b{font-size:14px;color:var(--ink)}.watch .wcode small{font-size:11px}
+.watch .wside{flex:none;margin-left:auto;gap:0}
+.watch .wside button{min-height:40px;padding:0 9px;font-size:13px}
+.watch .wtbar .wst{flex:0 1 auto;font-size:12px}
+.wdown{flex:none;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#C62828;color:#fff;font-size:15px;font-weight:700}
+.wdown b{font-size:24px;font-weight:900}
+.watch .wpage{padding-top:6px}
+.watch .wpage>.wview{margin-block:0;flex:1 1 auto;min-height:0}
+.watch .wview{gap:8px;max-width:760px}
+.watch .wview .board{row-gap:6px}
+.watch .wview .ss b{font-size:clamp(48px,min(12vh,16vw),140px)}
+.watch .wview.sv-a .ss b{font-size:clamp(48px,min(12vh,15.5vw),140px)}
+.watch .wview.sv-b .board{grid-template-columns:minmax(0,1fr) 54px 64px 54px minmax(0,1fr)}
+.watch .wview.sv-a .board{grid-template-columns:minmax(0,1fr) 52px 100px 52px minmax(0,1fr)}
+.watch .wview .setbox{padding:4px 0}
+.watch .wview .setbox small{font-size:15px;font-weight:800}
+.watch .wview .setbox b{font-size:clamp(40px,6vh,64px)}
+.watch .wview .mid{font-size:17px}
+.wsrva,.wsrvb{--c:var(--t1-j);--o:var(--t1-jt);display:flex;align-items:center;justify-content:center;background:var(--c);color:var(--o);border-radius:8px;box-shadow:0 0 0 2px var(--ink);font-weight:900;font-family:var(--num);line-height:1}
+.wsrva.t2,.wsrvb.t2{--c:var(--t2-j);--o:var(--t2-jt)}
+.wsrva{margin-top:4px;padding:4px 4px;gap:2px;width:100%}
+.wsrva b{font-size:40px}.wsrva i{font-style:normal;font-size:26px}
+.wsrvb{grid-row:3;gap:8px;padding:4px 10px;min-height:56px}
+.wsrvb.lf{grid-column:1/4}.wsrvb.rt{grid-column:3/6}
+.wsrvb svg{width:40px;height:40px;flex:none}
+.wsrvb b{font-size:46px}.wsrvb span{font-size:20px;font-family:inherit}
+.watch .wview .pcourt{flex:1 1 auto;grid-template-rows:repeat(3,minmax(clamp(48px,min(9vh,20vw),120px),1fr));gap:5px}
+.watch .wview .strips,.watch .wview .wcounts,.watch .wview .board,.watch .wview .tbar,.watch .wview .wban{flex:none}
+.watch .wview .pc.srv{outline:8px solid #FFD21F;outline-offset:-8px;box-shadow:inset 0 0 0 12px #12324F}
+.watch .wview .pcourt .pc .ball{transform:none;width:30%;height:auto;max-width:64px;right:6px;bottom:6px}
+.watch .wview .tbar{padding:8px 16px;font-size:24px;border-radius:8px}
+.watch .wview .tbar b{font-size:60px}
+.watch .wview .tbar{box-shadow:0 0 0 2px var(--ink)} /* 黑色、深藍球衣在深色底也看得到邊 */
+@media (max-height:700px){ /* 小手機：發球條、暫停條、計數縮一點，球場才放得下 */
+  .watch .wview{gap:5px}
+  .wsrvb{min-height:42px}.wsrvb b{font-size:34px}.wsrvb svg{width:30px;height:30px}.wsrvb span{font-size:16px}
+  .watch .wview .tbar{padding:4px 12px;font-size:19px}.watch .wview .tbar b{font-size:42px}
+  .watch .wcnt b{font-size:34px}.watch .wcnt small{font-size:15px}
+  .watch .wview .setbox small{font-size:13px}.watch .wview .setbox b{font-size:34px}
+}
+.watch .wview .wban{font-size:26px;padding:8px}
+.wban small{display:block;font-size:14px}
+.watch .wview .lc,.watch .wview .capbox{width:clamp(46px,min(8vh,12.5vw),84px);height:clamp(46px,min(8vh,12.5vw),84px)}
+.watch .wview .lc b,.watch .wview .capbox b{font-size:clamp(28px,4.2vh,40px)}
+.watch .wview .capbox span,.watch .wview .lc .lno{font-size:14px}
+.watch .wcounts{gap:10px}
+.watch .wcnt{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border-width:3px;border-style:solid;border-radius:10px}
+.watch .wcnt>div{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0}
+.watch .wcnt>.wsb{border-left:2px solid var(--line)}
+.watch .wcnt small{font-size:18px;font-weight:800;color:inherit;flex-basis:auto}
+.watch .wcnt b{font-size:clamp(40px,6vh,60px);line-height:1;font-family:var(--num)}
+.watch .wcnt>p{grid-column:1/-1;margin:0;text-align:center;font-size:15px}
+.wres,.wwait{margin:auto;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:stretch;gap:14px;text-align:center}
+.wres-h{margin:0;font-size:30px;font-weight:900}
+.wres-h small{display:block;margin-top:6px;font-size:18px;font-weight:800;color:#C62828}
+.wres-w{--c:var(--t1-j);--o:var(--t1-jt);background:var(--c);color:var(--o);border-radius:12px;padding:14px 10px;box-shadow:0 0 0 2px var(--ink)}
+.wres-w.t2{--c:var(--t2-j);--o:var(--t2-jt)}
+.wres-w b{display:block;font-size:36px;font-weight:900}
+.wres-w span{display:block;font-size:30px;font-weight:900;font-family:var(--num)}
+.wsett{width:100%;border-collapse:collapse;font-size:22px}
+.wsett th,.wsett td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.wsett td{font-family:var(--num);font-size:30px;font-weight:800}
+.wsett thead th{font-size:16px}
+.wwt{display:flex;align-items:center;justify-content:center;gap:10px;font-size:20px;font-weight:800}
+.wwt b{font-family:var(--num);font-size:40px}
+.wbrk{display:flex;flex-direction:column;align-items:center;padding:10px;border:3px solid var(--line);border-radius:12px}
+.wbrk small{font-size:22px;font-weight:800}
+.wbrk b{font-family:var(--num);font-size:clamp(72px,16vh,140px);line-height:1}
+.wnext{margin:0;font-size:20px;font-weight:700;color:var(--muted)}
+/* 記錄台：補登、換錯了 */
+.lateadd{min-height:44px;width:100%}
+.libwr{display:block;margin-top:6px}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2654,6 +2730,20 @@ function courtPlayer(c,k,pos){return (c.cur[k]||c.lineups[k])[courtIdx(c,k,pos)]
 function canPause(c){return !c.live}
 function canLib(c,k){return canPause(c)&&!c.replayLock&&(c.libRally[k]===null||c.libRally[k]<c.rally)}
 /* 自由球員現在不能換的原因（點球員選單裡灰掉的「換自由」「換回」下面寫出來） */
+/* 11/28 自由球員點錯：同一個死球裡剛換過，可以整筆取消（不是第二次替換，規則 19.3.2.1 的隔一球不適用）。
+   只找這隊這局最後一次自由球員替換；之後這隊有替補、修正陣容等會牽動站位的動作，就不提供（避免取消後對不起來） */
+function libSameBall(c,k){return c.started&&!c.live&&!c.replayLock&&c.libRally[k]!==null&&c.libRally[k]>=c.rally}
+function libMistake(s,m,k){
+  var c=s.sets[s.setNo];if(!m||!libSameBall(c,k))return null;
+  var dead={},live=[],ok=['INFO_SET','TEAM_COLOR_SET','LIBERO_COLOR_SET','STAFF_SET','PLAYER_NAME_SET','TEAM_NAME_SET','SETTER_SET','TIMEOUT','PLAYER_ADDED'],lib=['LIBERO_IN','LIBERO_OUT','LIBERO_SWAP'];
+  m.events.forEach(function(e){if(e.type==='UNDO')dead[e.data.target]=1});
+  m.events.forEach(function(e){if(!dead[e.id]&&e.type!=='UNDO')live.push(e)});
+  for(var i=live.length-1;i>=0;i--){var e=live[i],d=e.data||{};
+    if(lib.indexOf(e.type)>=0&&d.team===k)return d.set===s.setNo&&!d.grp?e:null;
+    if(ok.indexOf(e.type)>=0)continue;
+    if(d.team&&d.team!==k&&(e.type==='SUB'||lib.indexOf(e.type)>=0||e.type==='GAME_CAPTAIN_SET'))continue;
+    return null}
+  return null}
 function libWait(c,k){return c.replayLock?'判公正後要先發球，發完才能換':c.libRally[k]!==null&&c.libRally[k]>=c.rally?'剛換過自由球員，要打完一球才能再換':'現在不能換自由球員'}
 function actingCap(c,t,k){var u=c.cur[k]||c.lineups[k];if(u.indexOf(t.captain)>=0)return t.captain;if(u.indexOf(c.gameCaptain[k])>=0)return c.gameCaptain[k];var o=(t.capOrder||[]).filter(function(n){return u.indexOf(n)>=0})[0];return o==null?null:o}
 function subOptions(s,k,idx,exc){
@@ -2703,7 +2793,7 @@ function firstNeed(s){
   for(var i=0;i<2;i++){var ms=validate(s.teams[ks[i]]).filter(function(v){return !v.ok});if(ms.length)return {team:ks[i],item:ms[0]}}
   return null;
 }
-function goPage(p){ui.page=p;ui.sheet=null;ui.liveSheet=false;ui.rtab=null;ui.sel=null;ui.luTeam=null;ui.slot={t1:null,t2:null};ui.entry={t1:'',t2:''};ui.msg={t1:'',t2:''};ui.cs=false}
+function goPage(p){ui.late=null;ui.page=p;ui.sheet=null;ui.liveSheet=false;ui.rtab=null;ui.sel=null;ui.luTeam=null;ui.slot={t1:null,t2:null};ui.entry={t1:'',t2:''};ui.msg={t1:'',t2:''};ui.cs=false}
 
 /* ========== 介面狀態（不存檔、不算事件） ========== */
 var view='home';
@@ -2713,7 +2803,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.23.3';
+var BUILD='測試版 2026.11.28.1';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -2808,15 +2898,28 @@ function platform(){var u=navigator.userAgent;if(/iPhone|iPad|iPod/.test(u)||(/M
 /* 離線版準備好時告訴使用者 */
 var offlineReady=false;
 if(location.protocol!=='file:'&&'serviceWorker' in navigator){try{navigator.serviceWorker.ready.then(function(){offlineReady=true;if(view==='home')render()}).catch(function(){})}catch(e){}}
-/* 比賽中螢幕不休眠 */
-var wake=null,wantWake=false;
+/* 比賽中螢幕不休眠
+   11/28 使用者：二裁手機架著沒操作，過一陣子螢幕就關了。原本只在打開時要一次「螢幕常亮」，被系統收回（切 App、要求失敗、iPhone 主畫面 App）就沒再要。
+   改成：每 10 秒、每次點畫面都檢查，沒有就再要；iPhone 另外播一段看不見的靜音小影片（舊版 iOS 主畫面 App 的常亮會失效）；不支援的瀏覽器也用影片 */
+var wake=null,wantWake=false,nsv=null,NOSLEEP='data:video/mp4;base64,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AAAAGnNncGQBAAAAcm9sbAAAAAIAAAAB//8AAAAcc2JncAAAAAByb2xsAAAAAQAAABEAAAABAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY2MC4xNi4xMDAAAAAIZnJlZQAABDVtZGF0AAACugYF//+23EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NCByMzEwOCAzMWUxOWY5IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyMyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTEgZGVibG9jaz0xOi0zOi0zIGFuYWx5c2U9MHgzOjB4MyBtZT1oZXggc3VibWU9MiBwc3k9MSBwc3lfcmQ9Mi4wMDowLjcwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MCA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0wIHRocmVhZHM9MSBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgc3RpdGNoYWJsZT0xIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTEga2V5aW50PTI1MCBrZXlpbnRfbWluPTEwIHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9MTAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4yMACAAAAAE2WIhAAXzn/o/8JVP7vA3XBP/+HeAgBMYXZjNjAuMzEuMTAyAAIwQA4AAAAJQZokGILZz/7gAAAACUGeQkIKZz+mgQEYIAcAAAAJAZ5hRBPOf6uAARggBwAAAAkBnmNEE85/q4EBGCAHAAAACkGaaDRMQWzn/uEBGCAHAAAAC0GehkURLBTOf6aBAAAACQGepUQTzn+rgQEYIAcAAAAJAZ6nRBPOf6uAARggBwAAAApBmqw0TEFs5/7gARggBwAAAAtBnspFFSwUzn+mgQEYIAcAAAAJAZ7pRBPOf6uAAAAACQGe60QTzn+rgAEYIAcAAAAKQZrwNExBXOf+4QEYIAcAAAALQZ8ORRUsFM5/poEBGCAHAAAACQGfLUQTzn+rgQAAAAkBny9EE85/q4ABGCAHAAAACkGbMzRMQTzn/uABGCAHAAAAC0GfUUUVLBPOf6uBARggBwAAAAkBn3JEE85/q4ABGCAHARggBw==';
+function nsVideo(on){
+  try{
+    if(on){if(!nsv){nsv=document.createElement('video');nsv.muted=true;nsv.defaultMuted=true;nsv.setAttribute('muted','');nsv.setAttribute('playsinline','');nsv.setAttribute('webkit-playsinline','');nsv.loop=true;nsv.setAttribute('aria-hidden','true');nsv.setAttribute('tabindex','-1');
+        nsv.style.cssText='position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1';nsv.src=NOSLEEP;document.body.appendChild(nsv)}
+      if(nsv.paused){var p=nsv.play();if(p&&p.catch)p.catch(function(){})}}
+    else if(nsv&&!nsv.paused)nsv.pause();
+  }catch(e){}
+}
 function syncAwake(want){
   wantWake=want;
-  if(!('wakeLock' in navigator))return;
-  if(want&&!wake&&document.visibilityState==='visible'){wake='pending';navigator.wakeLock.request('screen').then(function(l){wake=l;l.addEventListener('release',function(){wake=null})}).catch(function(){wake=null})}
+  var hasWL='wakeLock' in navigator;
+  if(want&&hasWL&&!wake&&document.visibilityState==='visible'){wake='pending';navigator.wakeLock.request('screen').then(function(l){if(!wantWake){try{l.release()}catch(e){}wake=null;return}wake=l;l.addEventListener('release',function(){if(wake===l)wake=null})}).catch(function(){wake=null;if(wantWake)nsVideo(true)})}
   else if(!want&&wake&&wake!=='pending'){try{wake.release()}catch(e){}wake=null}
+  nsVideo(want&&(!hasWL||platform()==='ios'));
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&wantWake)syncAwake(true)});
+setInterval(function(){if(wantWake&&document.visibilityState==='visible'&&(!wake||(nsv&&nsv.paused&&platform()==='ios')))syncAwake(true)},10000);
+document.addEventListener('pointerdown',function(){if(wantWake)syncAwake(true)},true); // 點一下畫面就再要一次（有些瀏覽器要點過才給）
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 var app=document.getElementById('app');
@@ -3399,24 +3502,49 @@ function watchMsg(){
     bad:['無法讀取本場資料','請記錄台更新至最新版本。'],deny:['無法觀看','記錄台已停止本機的觀看權限。記錄台取消移除後會自動恢復。'],offline:['本機沒有網路','請連線後重新整理。'],loadfail:['連線元件載入失敗','請確認網路後重新整理。']}[st]||['連線中…',''];
   return '<div class="wmsg"><h2>'+m[0]+'</h2><p class="muted">'+m[1]+'</p>'+(st!=='load'?'<button data-act="wretry">重新輸入代碼</button>':'')+'</div>';
 }
+/* 11/28 觀看畫面改版：二裁、一裁站遠遠看，字和格子以遠看為準 */
+function wtR1(){return prefs.wside==='r1'} // 站在一裁那邊：左右對調（記錄台、二裁同一邊，看到的一樣）
+function wtSetRows(s,L,R){var rows='';for(var n=1;n<=3;n++){var x=s.sets[n];if(!x.started)continue;rows+='<tr><th>第 '+n+' 局</th><td>'+x.score[L]+'</td><td>'+x.score[R]+'</td></tr>'}
+  return rows?'<table class="wsett"><thead><tr><th></th><th><span class="tpill '+L+'">'+esc(tName(s,L))+'</span></th><th><span class="tpill '+R+'">'+esc(tName(s,R))+'</span></th></tr></thead><tbody>'+rows+'</tbody></table>':''}
+/* 比賽結束：記錄台按確定之前（最後一分剛打完）就先顯示，標「記錄台確認中」；記錄台按復原，這裡跟著變回比賽中 */
+function watchResult(s,w,pending,L){
+  var sw=setsWon(s),a=sw[w]+(pending?1:0),b=sw[other(w)];
+  return '<div class="wres" role="status"><p class="wres-h">比賽結束'+(pending?'<small>記錄台確認中</small>':'')+'</p><div class="wres-w '+w+'"><b>'+esc(tName(s,w))+'</b><span>以 '+a+' : '+b+' 獲勝</span></div>'+wtSetRows(s,L,other(L))+
+    (pending?'':'<p class="muted">記錄台開始下一場時，會自動切換。</p>')+'</div>';
+}
+/* 還沒開始、局與局之間：局間休息倒數（跟記錄台一樣從上一局結束算 3 分鐘） */
+function watchWait(s,L){
+  var n=s.setNo,R=other(L),pv=s.sets[n-1],sw=setsWon(s);
+  if(!s.sets[1].started)return '<div class="wmsg"><h2>'+esc(tName(s,L))+' 對 '+esc(tName(s,R))+'</h2><p class="muted">等第 1 局開始</p></div>';
+  var dl=pv&&pv.endAt?new Date(pv.endAt).getTime()+180000:0;
+  return '<div class="wwait"><div class="wwt"><span class="tpill '+L+'">'+esc(tName(s,L))+'</span><b>'+sw[L]+' : '+sw[R]+'</b><span class="tpill '+R+'">'+esc(tName(s,R))+'</span></div>'+
+    (dl?'<div class="wbrk"><small>局間休息</small><b data-cd="'+dl+'">'+cdText(dl)+'</b></div>':'')+'<p class="wnext">等第 '+n+' 局開始</p>'+wtSetRows(s,L,R)+'</div>';
+}
 function watchBoard(s){
-  var n=s.setNo,c=s.sets[n],over=matchOver(s),win=!over&&setWinner(s);
-  if(!s.sets[1].started||!c.started){var T=matchTitle(s),sw=setsWon(s);
-    return '<div class="wmsg"><h2>'+esc(T[0])+' 對 '+esc(T[1])+'</h2>'+(n>1?'<p class="wsets">局數 '+sw[T[2]]+' : '+sw[T[3]]+'</p>':'')+'<p class="muted">等第 '+n+' 局開始</p></div>'}
-  var L=c.left,R=other(L),cells='';
+  var n=s.setNo,c=s.sets[n],over=matchOver(s),win=!over&&setWinner(s),sw=setsWon(s),r1=wtR1();
+  var base=c.left||s.sets[1].left||'t1',L=r1?other(base):base,R=other(L);
+  if(over)return watchResult(s,sw.t1>sw.t2?'t1':'t2',false,L);
+  if(win&&sw[win]+1>=2)return watchResult(s,win,true,L);
+  if(!s.sets[1].started||!c.started)return watchWait(s,L);
+  var cells='';
   for(var i=0;i<3;i++){cells+=playCell(s,L,LEFT_CELLS[i][0])+playCell(s,L,LEFT_CELLS[i][1]);if(i===0)cells+='<div class="net" aria-hidden="true"></div>';cells+=playCell(s,R,RIGHT_CELLS[i][0])+playCell(s,R,RIGHT_CELLS[i][1])}
-  var srv=courtPlayer(c,c.serving,0);
-  var srvm=c.serving?'<div class="srvmark '+(c.serving===L?'lf':'rt')+' '+c.serving+'" aria-label="'+esc(tName(s,c.serving))+' 發球 '+srv+' 號"><i>'+(c.serving===L?'◀':'')+'</i><span>'+BALL+'</span><b>'+srv+'</b><i>'+(c.serving===L?'':'▶')+'</i></div>':'';
-  var cnt=function(k){var ex=c.subs[k].length-c.subCount[k];return '<div class="wcnt '+k+'"><span>暫停 <b>'+c.timeouts[k].length+'</b></span><span>替補 <b>'+c.subCount[k]+'</b></span>'+(ex?'<small>例外替補 '+ex+'</small>':'')+'</div>'};
+  var srv=courtPlayer(c,c.serving,0),lf=c.serving===L,sv=prefs.wsrv==='a'?'a':'b';
+  /* 發球：底色用發球隊的球衣顏色，字自動配深淺（深色球衣放在深色底也看得清楚）。a：放在中間「第 N 局」下面；b：放在發球隊比分下面整條 */
+  var srvA=c.serving?'<div class="wsrva '+c.serving+'" aria-hidden="true"><i>'+(lf?'◀':'')+'</i><b>'+srv+'</b><i>'+(lf?'':'▶')+'</i></div>':'';
+  var srvB=c.serving?'<div class="wsrvb '+c.serving+' '+(lf?'lf':'rt')+'" role="img" aria-label="'+esc(tName(s,c.serving))+' '+srv+' 號發球">'+BALL+'<b>'+srv+'</b><span>號發球</span></div>':'';
+  var cnt=function(k){var ex=c.subs[k].length-c.subCount[k];return '<div class="wcnt '+k+'"><div class="wto"><small>暫停</small><b>'+c.timeouts[k].length+'</b></div><div class="wsb"><small>替補</small><b>'+c.subCount[k]+'</b></div>'+(ex?'<p>例外替補 '+ex+'</p>':'')+'</div>'};
   var wtm=wt&&wt.timer&&Date.now()<wt.timer.end?wt.timer:null;
   var tm=wtm?'<div class="tbar '+wtm.team+'"><span>'+esc(tName(s,wtm.team))+' '+esc(wtm.label||'暫停')+'</span><b data-wtm>'+wtText(wtm)+'</b></div>':'';
-  var ban=over?'<p class="wban">比賽結束 '+setsWon(s)[L]+' : '+setsWon(s)[R]+'<small>記錄台開始下一場時將自動切換</small></p>':win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'</p>':'';
-  return '<div class="wview" inert><div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+ban+tm+
-    '<div class="pcourt" role="group" aria-label="球場，記錄台在下方">'+cells+'</div><div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div><div class="wcounts">'+cnt(L)+cnt(R)+'</div></div>';
+  var ban=win?'<p class="wban">第 '+n+' 局結束 '+c.score[L]+' : '+c.score[R]+'<small>記錄台確認中</small></p>':'';
+  return '<div class="wview sv-'+sv+'" inert><div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">第 '+n+' 局'+(sv==='a'?srvA:'')+'</div>'+setBox(s,R)+sideScore(s,R)+(sv==='b'?srvB:'')+'</div>'+ban+tm+
+    '<div class="pcourt" role="group" aria-label="球場，記錄台在'+(r1?'上方':'下方')+'">'+cells+'</div><div class="strips">'+libStrip(s,L,false,true)+libStrip(s,R,true,true)+'</div><div class="wcounts">'+cnt(L)+cnt(R)+'</div></div>';
 }
 function watchHtml(){
   var st=watchStatus(),s=wt&&wt.state==='ok'?wt.s:null;
-  var head='<header class="wtbar"><button class="wleave" data-act="wleave">‹ 離開</button><span class="wcode">'+(wt&&wt.court&&s?'<b>'+esc(wt.court)+'</b><small>代碼 '+esc(wt.code)+'</small>':'代碼 '+esc(wt?wt.code:''))+'</span><span class="wst '+st[0]+'" role="status">'+esc(st[1])+'</span></header>';
+  /* 11/28 上方縮小；多一個「二裁側／一裁側」；斷線時整條紅色，遠看就知道 */
+  var side=s?'<div class="seg wside" role="group" aria-label="我站的位置">'+[['r2','二裁側'],['r1','一裁側']].map(function(q){return '<button data-act="wside" data-v="'+q[0]+'" aria-pressed="'+((wtR1()?'r1':'r2')===q[0])+'">'+q[1]+'</button>'}).join('')+'</div>':'';
+  var down=st[0]==='bad'&&st[1]?'<div class="wdown" role="alert"><b>已斷線</b><span>'+esc(st[1])+'</span></div>':'';
+  var head='<header class="wtbar"><button class="wleave" data-act="wleave">‹ 離開</button><span class="wcode">'+(wt&&wt.court&&s?'<b>'+esc(wt.court)+'</b><small>'+esc(wt.code)+'</small>':esc(wt?wt.code:''))+'</span>'+side+'<span class="wst '+st[0]+'" role="status">'+(st[0]==='bad'?'':esc(st[0]==='ok'?'● 同步中':st[1]))+'</span></header>'+down;
   var ask=wt&&wt.ask?'<div class="scrim" data-act="wstay"></div><div class="sheet" role="dialog" aria-modal="true"><h2>離開觀看？</h2><p class="muted">回到比賽清單，隨時可以再點「觀看」。</p><button class="primary" data-act="wleave2">離開</button><button class="ghost" data-act="wstay">繼續觀看</button></div>':'';
   var wp=s&&wt.timer&&!wt.timer.label&&Date.now()<wt.timer.end&&wt.timer.end-Date.now()<=5000?'<div class="tpop wpop" role="alert"><div>'+esc(tName(s,wt.timer.team))+' 暫停剩下</div><b data-wtm>'+wtText(wt.timer)+'</b></div>':'';
   /* 記錄台離線：可以由這台接手（被接手的原本那台看自己的代碼時，按鈕是「接回來」） */
@@ -3458,6 +3586,7 @@ function syncAct(act,b){
     case 'wleave': if(share&&share.lost&&wt&&share.code===wt.code){var lm=db.matches.filter(function(q){return q.id===share.mid})[0];watchLeave();if(lm){db.currentId=lm.id;ui.page=firstPage(reduce(lm.events));view='setup';syncLockCheck()}return true}
       if(wt)wt.ask=true; return true;
     case 'wstay': if(wt)wt.ask=false; return true;
+    case 'wside': prefs.wside=b.getAttribute('data-v')==='r1'?'r1':'';savePrefs();lastRot=null; return true;
     case 'wleave2': watchLeave();ui.watchAsk={v:''}; return true;
     case 'wretry': var oc=wt?wt.code:'';watchLeave();ui.watchAsk={v:oc}; return true;
     case 'shareopen': ui.shareAsk={}; if(share)fbLoad(); return true;
@@ -3941,7 +4070,7 @@ function paint(){
 function draw(){
   document.documentElement.classList.toggle('nohint',prefs.hints===false);
   upd.live=false;
-  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);var wfl=wsv?flipPrep(wsv):null;app.innerHTML=watchHtml();fitNums();flipRun(wfl);syncAwake(!!wsv&&!matchOver(wsv));return}
+  if(view==='watch'){var wsv=wt&&wt.state==='ok'?wt.s:null;if(wsv)applyColors(wsv);var wfl=wsv?flipPrep(wsv):null;app.innerHTML=watchHtml();fitNums();flipRun(wfl);syncAwake(!!wt&&!/^(none|gone|deny|bad|offline|loadfail)$/.test(wt.state||''));return}
   if(view==='home'&&!introChecked){introChecked=true;if(prefs.introDay!==today()&&!(navigator.webdriver&&!/[?&]intro\b/.test(location.search))){prefs.introDay=today();savePrefs();ui.about='intro'}} // 每天第一次打開（停在主畫面時）跳說明頁；自動測試不跳（網址加 ?intro 才跳）
   if(view==='home'||view==='history'||view==='cup'){
     var roll=['.home','.homebody','.page'],keep=roll.map(function(q){var e=app.querySelector(q);return e?e.scrollTop:0});
@@ -4971,13 +5100,13 @@ function autoSlot(t){
   return reg<MAX_PLAYERS?{kind:'reg',no:null,idx:reg}:null;
 }
 function rowHtml(k,t,kind,p,idx){
-  var sl=t.locked?null:ui.slot[k], e=ui.entry[k];
+  var late=t.locked&&ui.late&&ui.late[k],sl=t.locked&&!(late&&kind==='reg')?null:ui.slot[k], e=ui.entry[k];
   var on=!!sl&&sl.kind===kind&&(p?sl.no===p.no:(sl.no===null&&sl.idx===idx));
   var txt=on&&e!==''?e:(p?p.no:'');
   var cap=!!p&&t.captain===p.no&&!(on&&e!=='');
   var lj=(kind==='lib'&&p&&t.liberoColor)?jersey(t.liberoColor).j:null;
-  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 列'+(p?' '+p.no+' 號':'空')+'"'+(t.locked?' disabled':'')+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button>'+
-    '<input id="pn-'+k+'-'+kind+idx+'" aria-label="姓名" value="'+esc(p?p.name:'')+'" data-kind="pname" data-team="'+k+'" data-no="'+(p?p.no:'')+'"'+(p&&!t.locked?'':' disabled')+'></div>';
+  return '<div class="rr '+k+'"><button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="num'+(p?' fill':'')+(on?' on':'')+'" data-act="slot" data-team="'+k+'" data-kind="'+kind+'" data-no="'+(p?p.no:'')+'" data-i="'+idx+'" aria-label="'+(kind==='lib'?'自由球員':'球員')+'第 '+(idx+1)+' 列'+(p?' '+p.no+' 號':'空')+'"'+(t.locked&&!(late&&kind==='reg'&&!p)?' disabled':'')+'><b'+(cap?' class="circ"':'')+'>'+txt+'</b></button>'+
+    '<input id="pn-'+k+'-'+kind+idx+'" aria-label="姓名" value="'+esc(p?p.name:'')+'" data-kind="pname" data-team="'+k+'" data-no="'+(p?p.no:'')+'"'+(p&&(!t.locked||late)?'':' disabled')+'></div>';
 }
 function rosterHtml(s,m){
   var a=s.teams.t1,b=s.teams.t2,A=s.sets[1].left,h='';
@@ -5051,7 +5180,9 @@ function kpHtml(s){
     '<button class="add" data-act="add" data-team="'+k+'">'+(sl.no===null&&sl.kind==='reg'?'下一格':'確定')+'</button></div></div>';
 }
 function footHtml(k,t,s){
-  if(t.locked)return '<div class="muted">已開局，名單不能再改</div>';
+  /* 11/28 比賽開始後也能補登（不設開關，按的時候確認）；只能新增一般球員，原本的號碼不能改 */
+  if(t.locked){if(ui.late&&ui.late[k])return '<div class="muted">補登中：點空白的號碼格輸入背號</div>';
+    return regularCount(t)<MAX_PLAYERS?'<button class="lateadd" data-act="sheet" data-v="lateask" data-team="'+k+'">＋ 補登球員</button>':'<div class="muted">名單已滿 '+MAX_PLAYERS+' 位</div>'}
   var miss=validate(t).filter(function(c){return !c.ok});
   return '<div class="muted">'+(miss.length?'還缺：'+miss.map(function(c){return c.short}).join('、'):'名單齊全')+'</div>';
 }
@@ -5158,20 +5289,20 @@ function sideScore(s,k){
   return '<div class="ss '+k+'"><span class="tn">'+(A===k?'A ':'B ')+esc(tName(s,k))+'</span><b>'+c.score[k]+'</b></div>';
 }
 function setBox(s,k){return '<div class="setbox '+k+'"><small>局數</small><b>'+setsWon(s)[k]+'</b></div>'}
-function libStrip(s,k,mir){
+function libStrip(s,k,mir,plain){
   var c=s.sets[s.setNo],t=s.teams[k],out=c.libOut[k],can=canLib(c,k),wait=canPause(c)&&!can,lj=t.liberoColor?jersey(t.liberoColor).j:null;
   var slots=[0,1].map(function(i){
     var no=t.liberos[i];
     if(no==null)return '<div class="lc '+k+' empty" aria-hidden="true"><span class="lno">L'+(i+1)+'</span><b class="none">無</b></div>';
     var inC=c.cur[k].indexOf(no)>=0,gone=c.expelled[k].indexOf(no)>=0||s.matchOut[k].indexOf(no)>=0,on=ui.lib&&ui.lib.team===k&&ui.lib.no===no,act='libcell',sm='',dis=false,cls='';
     if(gone){sm='不能上';act='libaway';cls=' away'}
-    else if(inC){act='libback';dis=!can;
-      return '<button class="lc '+k+' outp" data-act="libback" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="'+out.no+' 號被自由球員 L'+(i+1)+' '+no+' 號換下'+(can?'，點一下換回':wait?'，下一球可換':'')+'"><span>換下</span><b>'+out.no+'</b></button>'}
-    else if(!can){dis=true}
+    else if(inC){act='libback';dis=!can;if(dis&&libSameBall(c,k)&&!plain){act='libwrong';dis=false}
+      return '<button class="lc '+k+' outp" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="'+out.no+' 號被自由球員 L'+(i+1)+' '+no+' 號換下'+(can?'，點一下換回':wait?'，下一球可換':'')+'"><span>換下</span><b>'+out.no+'</b></button>'}
+    else if(!can){if(libSameBall(c,k)&&!plain)act='libwrong';else dis=true}
     return '<button'+(lj?' style="--j:'+lj+';--jt:'+jerseyText(lj)+'"':'')+' class="lc '+k+cls+(on?' sel':'')+'" data-act="'+act+'" data-team="'+k+'" data-no="'+no+'"'+(dis?' disabled':'')+' aria-label="自由球員 L'+(i+1)+' '+no+' 號'+(sm?' '+sm:'')+'"><span class="lno">L'+(i+1)+'</span><b>'+no+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</button>';
   });
   var cap=actingCap(c,t,k),capOn=c.cur[k].indexOf(t.captain)>=0,noCap=t.captain===null;
-  var cb='<button class="capbox '+k+(noCap||cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+(noCap?' 還沒有隊長，點一下指定':' 場上隊長 '+(cap==null?'未指定':cap+' 號'))+'"><span class="lno">隊長</span><b'+(cap!=null?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
+  var cb='<button class="capbox '+k+(noCap||cap==null?' need':capOn?' fixed':'')+'" data-act="gcappick" data-team="'+k+'"'+(capOn?' data-on="1"':'')+' aria-label="'+esc(tName(s,k))+(noCap?' 還沒有隊長，點一下指定':' 場上隊長 '+(cap==null?'未指定':cap+' 號'))+'"><span class="lno">隊長</span><b'+(cap!=null&&!plain?' class="circ"':'')+'>'+(cap==null?'?':cap)+'</b></button>';
   return '<div class="strip '+k+(mir?' mir':'')+(t.liberos.length?'':' nolib')+'"><div class="ls">'+slots.join('')+'</div>'+cb+'</div>';
 }
 function teamTools(s,k){
@@ -6428,13 +6559,14 @@ function sheetHtml(s,m){
       stepBack='<button class="sheetback" data-act="pmback">‹ 返回</button>';
     }else if(pL){
       var lwhy=!lOk?'換回、換自由：'+libWait(pc,k):!free.length?'換自由：沒有另一位自由球員可以換':'';
+      if(!lOk&&libSameBall(pc,k))lwhy+='<button class="linkbtn libwr" data-act="libwrong" data-team="'+k+'">剛剛換錯人了？</button>';
       h=head+'<div class="pm3">'+big('pmlout','換回',lOk&&!!pc.libOut[k])+big(free.length===1?'pmlswap':'pmstep','換自由',lOk&&free.length>0,free.length===1?' data-no="'+free[0]+'"':' data-v="swap"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div>'+(lwhy?'<p class="pmwhy">'+lwhy+'</p>':'')+
         '<button class="linkbtn" data-act="redopen" data-team="'+k+'">不能繼續：重新指定自由球員</button><button data-act="close">關閉</button>';
     }else{
       var lAv=!pc.libOut[k]&&back&&free.length>0&&lOk;
       var lwhy=lAv?'':!back?(x.pos===0?'I 號位要發球，不能換自由球員':'前排的人不能換自由球員'):pc.libOut[k]?'自由球員已經在場上，一次只能一位':!t.liberos.length?'這隊沒有登錄自由球員':!free.length?'沒有可以上場的自由球員':libWait(pc,k);
       h=head+'<div class="pm3">'+big(free.length===1?'pmlin':'pmstep','換自由',lAv,free.length===1?' data-no="'+free[0]+'"':' data-v="lib"')+
-        big('pmstep',!sOk&&eOk?'例外替補':'替補',sOk||eOk,' data-v="'+(sOk?'sub':'exc')+'"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div>'+(lwhy?'<p class="pmwhy">換自由：'+lwhy+'</p>':'')+
+        big('pmstep',!sOk&&eOk?'例外替補':'替補',sOk||eOk,' data-v="'+(sOk?'sub':'exc')+'"')+big('pmpen','判罰',penOk,' data-no="'+pno+'"')+'</div>'+(lwhy?'<p class="pmwhy">換自由：'+lwhy+'</p>':'')+(!lAv&&back&&libSameBall(pc,k)?'<button class="linkbtn libwr" data-act="libwrong" data-team="'+k+'">剛剛換錯人了？</button>':'')+
         (function(){var sts=s.setters[k]||[],isS=sts.indexOf(pno)>=0,full=!isS&&sts.length>=2;return '<button class="pmset" data-act="pmsetter" data-team="'+k+'" data-no="'+pno+'"'+(full?' disabled':'')+'><span class="stmk">舉</span>'+(isS?'取消舉球員':'設為舉球員')+'</button>'+(full?'<p class="muted">已經有兩位舉球員（'+sts.join('、')+' 號），要先取消一位。</p>':'')})()+
         '<button data-act="close">關閉</button>';
     }
@@ -6448,6 +6580,15 @@ function sheetHtml(s,m){
   }else if(x.type==='export'||x.type==='export2'){
     h=xpSheet(s,x);
   }else if(x.type==='sync'){h=syncSheetHtml(x,true);if(x.stop||x.vw)stepBack='';
+  }else if(x.type==='lateask'){
+    h='<h2>補登 <span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 球員？</h2><p>比賽已經開始。補上的球員會加進名單，之後可以替補上場。</p><p class="muted">只能新增，原本的號碼不能改。</p>'+
+      '<button class="primary" data-act="lateok" data-team="'+k+'">補登</button><button class="ghost" data-act="close">取消</button>';
+  }else if(x.type==='libwrong'){
+    var lwc=s.sets[s.setNo],lrs=lwc.libRows[k]||[],lr=lrs[lrs.length-1]||{};
+    var ltx=lr.enter==='R'?lr.rep+' 號換回，自由球員 '+lr.lib+' 號下場':lr.rep!=null?'自由球員 '+lr.lib+' 號換下 '+lr.rep+' 號':'自由球員換成 '+lr.lib+' 號';
+    h='<h2><span class="tpill '+k+'">'+esc(tName(s,k))+'</span> 是不是換錯了？</h2><p>剛才：'+esc(ltx)+'</p><p class="muted">按「是，換錯了」會取消剛才那次，記錄表不會留下，分數不變。接著再點正確的人。</p>'+
+      '<button class="primary" data-act="libundo" data-team="'+k+'" data-v="'+esc(x.id||'')+'">是，換錯了</button><button data-act="close">不是</button>'+
+      '<p class="muted">真的要再換一次：規則規定兩次自由球員替換之間要打完一球（規則 19.3.2.1）。</p>';
   }else if(x.type==='more'){
     var mc=s.sets[s.setNo],mL=mc.left,mR=other(mL);
     var mb=function(act,v,ti,dis){return '<button class="mbtn" data-act="'+act+'" data-v="'+v+'"'+(dis?' disabled':'')+'><strong>'+ti+'</strong></button>'};
@@ -6941,7 +7082,7 @@ app.addEventListener('click',function(e){
       if(!sm){makeSample();sm=db.matches[0]}
       db.currentId=sm.id; save(); resetUi(); ui.page=firstPage(reduce(sm.events)); view='setup'; break;
     case 'page': if(b.getAttribute('aria-disabled')==='true'){ui.toast={t:b.getAttribute('data-why')||'這一步還不能用',until:Date.now()+3000};break} // 11/13 還不能按的步驟點了說原因
-      ui.page=b.getAttribute('data-v'); ui.sheet=null; ui.liveSheet=false; ui.rtab=null; ui.sel=null; ui.luTeam=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; break;
+      ui.late=null; ui.page=b.getAttribute('data-v'); ui.sheet=null; ui.liveSheet=false; ui.rtab=null; ui.sel=null; ui.luTeam=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; break;
     case 'div': dispatch('INFO_SET',{field:'division',value:s.info.division===b.getAttribute('data-v')?'':b.getAttribute('data-v')}); break;
     case 'key':
       ui.msg[k]='';
@@ -7241,6 +7382,9 @@ app.addEventListener('click',function(e){
     case 'toyes': k=ui.toAsk; ui.toAsk=null; dispatch('TIMEOUT',{set:n,team:k}); ui.timer={team:k,end:Date.now()+30000,shown:false,closed:false}; break;
     case 'tmclose': if(ui.timer)ui.timer.closed=true; break;
     case 'tmend': ui.timer=null; break;
+    case 'lateok': ui.late=ui.late||{}; ui.late[k]=true; ui.sheet=null; ui.slot={t1:null,t2:null}; ui.entry={t1:'',t2:''}; ui.msg={t1:'',t2:''}; ui.slot[k]=autoSlot(s.teams[k]); break;
+    case 'libwrong': var lwe=libMistake(s,m,k); ui.lib=null; ui.sub=null; if(!lwe){ui.sheet=null;ui.toast={t:libWait(c,k),until:Date.now()+3000};break} ui.sheet={type:'libwrong',team:k,id:lwe.id}; break;
+    case 'libundo': var lwu=libMistake(s,m,k); ui.sheet=null; ui.lib=null; if(lwu&&lwu.id===b.getAttribute('data-v')){dispatch('UNDO',{target:lwu.id});ui.toast={t:'已取消剛才的自由球員替換，可以重新換',until:Date.now()+3500}} break;
     case 'libback': ui.lib=null; ui.sub=null; dispatch('LIBERO_OUT',{set:n,team:k}); break;
     case 'libcell': if(c.libOut[k]&&canLib(c,k)){ui.lib=null;ui.sub=null;dispatch('LIBERO_SWAP',{set:n,team:k,lib:no});break}
       ui.sub=null; ui.lib=(ui.lib&&ui.lib.no===no&&ui.lib.team===k)?null:{team:k,no:no}; break;
