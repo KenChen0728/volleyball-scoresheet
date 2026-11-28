@@ -17,7 +17,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));const errs=[];
   await p.locator('[data-act=cupopen]').filter({hasText:'積分測試盃'}).first().click();await W(400);
   await p.click('[data-act=cuptab][data-v=rank]');await W(400);
   const hd=await p.locator('.rktable thead').innerText().catch(()=>'' );
-  ok('B2 欄位',['名次','隊名','勝','場','積分','勝局:敗局','局數比','得分:失分','得失分比'].every(k=>hd.includes(k)),hd);
+  ok('B2 欄位',['名次','隊名','場次','勝','敗','剩','積分','勝局:敗局','局數比','得分:失分','得失分比'].every(k=>hd.includes(k)),hd);
   ok('B2 手機上隊名下面有「明細 ›」',await p.locator('.rksec tbody tr').first().locator('[data-act=rkdet]:visible').filter({hasText:'明細'}).count()>=1);
   const rows=()=>p.locator('.rksec tbody tr').evaluateAll(tr=>tr.map(r=>[...r.cells].map(c=>c.innerText.replace(/\s+/g,' ').trim())));
   const names=R=>R.map(r=>r[1].split(' ')[0]);

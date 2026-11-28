@@ -15,4 +15,5 @@ python3 tools/patch_v141.py
 python3 tools/patch_v142.py
 python3 tools/patch_v143.py
 python3 tools/patch_v144.py
+python3 tools/patch_v145.py
 python3 tools/beta-from-src.py
