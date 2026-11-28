@@ -6,4 +6,5 @@ git checkout -q 6a26c7d -- beta/index.html; git checkout -q HEAD -- beta/version
 python3 tools/src-from-beta.py >/dev/null
 python3 tools/patch_v134.py
 python3 tools/patch_v135.py
+python3 tools/patch_v136.py
 python3 tools/beta-from-src.py
