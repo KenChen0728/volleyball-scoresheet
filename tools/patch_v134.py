@@ -80,7 +80,7 @@ function watchBoard(s){
   var srv=courtPlayer(c,c.serving,0),lf=c.serving===L,sv=prefs.wsrv==='a'?'a':'b';
   /* 發球：底色用發球隊的球衣顏色，字自動配深淺（深色球衣放在深色底也看得清楚）。a：放在中間「第 N 局」下面；b：放在發球隊比分下面整條 */
   var srvA=c.serving?'<div class="wsrva '+c.serving+'" aria-hidden="true"><i>'+(lf?'◀':'')+'</i><b>'+srv+'</b><i>'+(lf?'':'▶')+'</i></div>':'';
-  var srvB=c.serving?'<div class="wsrvb '+c.serving+' '+(lf?'lf':'rt')+'" role="img" aria-label="'+esc(tName(s,c.serving))+' '+srv+' 號發球">'+BALL+'<b>'+srv+'</b><span>號發球</span></div>':'';
+  var srvB=c.serving?'<div class="wsrvb '+c.serving+' '+(lf?'lf':'rt')+'" role="img" aria-label="'+esc(tName(s,c.serving))+' '+srv+' 號發球">'+'<i>'+(lf?'◀':'')+'</i>'+BALL+'<b>'+srv+'</b><span>號發球</span><i>'+(lf?'':'▶')+'</i></div>':'';
   var cnt=function(k){var ex=c.subs[k].length-c.subCount[k];return '<div class="wcnt '+k+'"><div class="wto"><small>暫停</small><b>'+c.timeouts[k].length+'</b></div><div class="wsb"><small>替補</small><b>'+c.subCount[k]+'</b></div>'+(ex?'<p>例外替補 '+ex+'</p>':'')+'</div>'};
   var wtm=wt&&wt.timer&&Date.now()<wt.timer.end?wt.timer:null;
   var tm=wtm?'<div class="tbar '+wtm.team+'"><span>'+esc(tName(s,wtm.team))+' '+esc(wtm.label||'暫停')+'</span><b data-wtm>'+wtText(wtm)+'</b></div>':'';
@@ -168,26 +168,23 @@ one("</style>","""/* ===== 11/28 觀看畫面：二裁、一裁站遠遠看 ====
 .wdown{flex:none;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#C62828;color:#fff;font-size:15px;font-weight:700}
 .wdown b{font-size:24px;font-weight:900}
 .watch .wpage{padding-top:6px}
-.watch .wpage>.wview{margin-block:0;flex:1 1 auto;min-height:0}
 .watch .wview{gap:8px;max-width:760px}
 .watch .wview .board{row-gap:6px}
 .watch .wview .ss b{font-size:clamp(48px,min(12vh,16vw),140px)}
 .watch .wview.sv-a .ss b{font-size:clamp(48px,min(12vh,15.5vw),140px)}
-.watch .wview.sv-b .board{grid-template-columns:minmax(0,1fr) 54px 64px 54px minmax(0,1fr)}
+.watch .wview.sv-b .board{grid-template-columns:minmax(0,1fr) 50px 76px 50px minmax(0,1fr)}
 .watch .wview.sv-a .board{grid-template-columns:minmax(0,1fr) 52px 100px 52px minmax(0,1fr)}
 .watch .wview .setbox{padding:4px 0}
-.watch .wview .setbox small{font-size:15px;font-weight:800}
-.watch .wview .setbox b{font-size:clamp(40px,6vh,64px)}
+.watch .wview .setbox small{font-size:13px;font-weight:800}
+.watch .wview .setbox b{font-size:clamp(30px,4.6vh,46px)}
 .watch .wview .mid{font-size:17px}
 .wsrva,.wsrvb{--c:var(--t1-j);--o:var(--t1-jt);display:flex;align-items:center;justify-content:center;background:var(--c);color:var(--o);border-radius:8px;box-shadow:0 0 0 2px var(--ink);font-weight:900;font-family:var(--num);line-height:1}
 .wsrva.t2,.wsrvb.t2{--c:var(--t2-j);--o:var(--t2-jt)}
 .wsrva{margin-top:4px;padding:4px 4px;gap:2px;width:100%}
 .wsrva b{font-size:40px}.wsrva i{font-style:normal;font-size:26px}
-.wsrvb{grid-row:3;gap:8px;padding:4px 10px;min-height:56px}
-.wsrvb.lf{grid-column:1/4}.wsrvb.rt{grid-column:3/6}
-.wsrvb svg{width:40px;height:40px;flex:none}
-.wsrvb b{font-size:46px}.wsrvb span{font-size:20px;font-family:inherit}
-.watch .wview .pcourt{flex:1 1 auto;grid-template-rows:repeat(3,minmax(clamp(48px,min(9vh,20vw),120px),1fr));gap:5px}
+.wsrvb{grid-row:3;grid-column:1/-1;justify-self:center;gap:8px;padding:4px 14px;min-height:52px}
+.wsrvb svg{width:34px;height:34px;flex:none}
+.wsrvb b{font-size:42px}.wsrvb span{font-size:18px;font-family:inherit}.wsrvb i{font-style:normal;font-size:30px;line-height:1}
 .watch .wview .strips,.watch .wview .wcounts,.watch .wview .board,.watch .wview .tbar,.watch .wview .wban{flex:none}
 .watch .wview .pc.srv{outline:8px solid #FFD21F;outline-offset:-8px;box-shadow:inset 0 0 0 12px #12324F}
 .watch .wview .pcourt .pc .ball{transform:none;width:30%;height:auto;max-width:64px;right:6px;bottom:6px}
@@ -196,10 +193,10 @@ one("</style>","""/* ===== 11/28 觀看畫面：二裁、一裁站遠遠看 ====
 .watch .wview .tbar{box-shadow:0 0 0 2px var(--ink)} /* 黑色、深藍球衣在深色底也看得到邊 */
 @media (max-height:700px){ /* 小手機：發球條、暫停條、計數縮一點，球場才放得下 */
   .watch .wview{gap:5px}
-  .wsrvb{min-height:42px}.wsrvb b{font-size:34px}.wsrvb svg{width:30px;height:30px}.wsrvb span{font-size:16px}
+  .wsrvb{min-height:40px}.wsrvb b{font-size:32px}.wsrvb svg{width:26px;height:26px}.wsrvb span{font-size:15px}.wsrvb i{font-size:24px}
   .watch .wview .tbar{padding:4px 12px;font-size:19px}.watch .wview .tbar b{font-size:42px}
-  .watch .wcnt b{font-size:34px}.watch .wcnt small{font-size:15px}
-  .watch .wview .setbox small{font-size:13px}.watch .wview .setbox b{font-size:34px}
+  .watch .wcnt b{font-size:28px}.watch .wcnt small{font-size:14px}
+  .watch .wview .setbox small{font-size:12px}.watch .wview .setbox b{font-size:28px}
 }
 .watch .wview .wban{font-size:26px;padding:8px}
 .wban small{display:block;font-size:14px}
@@ -207,11 +204,11 @@ one("</style>","""/* ===== 11/28 觀看畫面：二裁、一裁站遠遠看 ====
 .watch .wview .lc b,.watch .wview .capbox b{font-size:clamp(28px,4.2vh,40px)}
 .watch .wview .capbox span,.watch .wview .lc .lno{font-size:14px}
 .watch .wcounts{gap:10px}
-.watch .wcnt{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border-width:3px;border-style:solid;border-radius:10px}
+.watch .wcnt{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px 6px;border-width:3px;border-style:solid;border-radius:10px}
 .watch .wcnt>div{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0}
 .watch .wcnt>.wsb{border-left:2px solid var(--line)}
-.watch .wcnt small{font-size:18px;font-weight:800;color:inherit;flex-basis:auto}
-.watch .wcnt b{font-size:clamp(40px,6vh,60px);line-height:1;font-family:var(--num)}
+.watch .wcnt small{font-size:16px;font-weight:800;color:inherit;flex-basis:auto}
+.watch .wcnt b{font-size:clamp(30px,4.4vh,42px);line-height:1;font-family:var(--num)}
 .watch .wcnt>p{grid-column:1/-1;margin:0;text-align:center;font-size:15px}
 .wres,.wwait{margin:auto;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:stretch;gap:14px;text-align:center}
 .wres-h{margin:0;font-size:30px;font-weight:900}
