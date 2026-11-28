@@ -2365,7 +2365,7 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .tg button,.pbtns button,.seg button:not([aria-pressed="true"]),.mgrid button,.sheet .mbtn,.sheet .pk3 button,.homefoot button,.shead .linkbtn,.histtools button,.fsbtn,.xpbtn,.rotb button,.sheet>.sheetback{box-shadow:inset 0 0 0 1px var(--btn-edge)}
 button:disabled,button.dim,.nav button:disabled,.nav button.dim{opacity:.55}
 /* 公正重打：虛線框、不填色，和兩側實心得分鍵分得開 */
-.rp{background:transparent!important;border:2px dashed var(--muted)!important;box-shadow:none!important;color:var(--ink)}
+.rp{background:transparent!important;border:2px solid var(--ink)!important;box-shadow:var(--lift)!important;color:var(--ink)}
 /* 觀看：暫停條固定位置；提醒教練移到下方 */
 .watch .wview .wtslot{flex:none;min-height:84px;display:flex;flex-direction:column;justify-content:center}
 @media (max-height:700px){.watch .wview .wtslot{min-height:58px}}
@@ -2373,6 +2373,12 @@ button:disabled,button.dim,.nav button:disabled,.nav button.dim{opacity:.55}
 /* 深色主題：站位格加淡色內框，深藍、黑色球衣分得出格子 */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pc:not(.srv){box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}}
 :root[data-theme="dark"] .pc:not(.srv){box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+/* 11/29 按鈕陰影：可以按的按鈕微微浮起來；不能按的平的 */
+:root{--lift:0 2px 0 rgba(60,50,40,.22),0 3px 6px rgba(60,50,40,.10)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lift:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.10)}}
+:root[data-theme="dark"]{--lift:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.10)}
+.tg button:not(.dim):not(:disabled),.pbtns button:not(:disabled),.rotb button:not(:disabled),.sheet .mbtn:not(:disabled),.homefoot button,.mgrid button:not(:disabled){box-shadow:inset 0 0 0 1px var(--btn-edge),var(--lift)}
+.sb:not(:disabled),.sv:not(:disabled),.primary:not(:disabled){box-shadow:var(--lift)}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2867,7 +2873,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.13';
+var BUILD='測試版 2026.11.29.1';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
