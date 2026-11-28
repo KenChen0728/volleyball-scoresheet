@@ -2347,6 +2347,17 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .rkpl{font-weight:800;color:#C77700}
 .rkno{font-weight:800;color:var(--muted)}
 .rksl small{flex-basis:100%;color:var(--muted);font-size:13px}
+/* 11/28 陣容轉一格：寫結果 */
+.rotb button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:52px;line-height:1.15}
+.rotb button b{font-size:16px}.rotb button small{font-size:12px;font-weight:600;color:var(--muted)}
+/* 11/28 記錄台直拿：局數寫在兩隊名稱中間（和觀看畫面一樣） */
+.board.rb{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:8px}
+.board.rb>.setbox{display:none}
+.board.rb>.wbar:first-child,.board.rb>.wbar+.wbar{grid-row:1;width:auto;margin:0;justify-self:stretch}
+.board.rb>.wbar:first-child{grid-column:1}.board.rb>.wbar+.wbar{grid-column:3}
+.board.rb>.rsets{grid-row:1;grid-column:2;font-family:var(--num);font-size:24px;font-weight:800;line-height:1;padding:3px 10px;border-radius:8px;background:var(--box,#3A4048);color:#fff}
+.board.rb>.ss{grid-column:1}.board.rb>.mid~.ss{grid-column:3}
+.board.rb>.mid{grid-row:2;grid-column:2}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2841,7 +2852,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.9';
+var BUILD='測試版 2026.11.28.10';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -5296,7 +5307,7 @@ function lineupHtml(s){
   }).join('')+'</div>';
   var form='<section class="lusheet '+k+'"><header><strong>第 '+n+' 局陣容單</strong><span>'+esc(tName(s,k))+(c.serve===k?'・本局先發球':'・本局接發球')+'</span></header>'+
     '<div class="sheetnet">網</div><div class="lugrid">'+[3,2,1,4,5,0].map(function(i){return cellHtml(s,k,i)}).join('')+'</div></section>';
-  var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb"><button data-act="lurot" data-team="'+k+'" data-v="ccw">↺ 全隊逆時針移一格</button><button data-act="lurot" data-team="'+k+'" data-v="cw">↻ 全隊順時針移一格</button></div>';
+  var rotb=c.locked[k]||c.started||c.lineups[k].indexOf(null)>=0?'':'<div class="rotb"><button data-act="lurot" data-team="'+k+'" data-v="cw" aria-label="全隊照輪轉方向移一格，改成 '+c.lineups[k][1]+' 號發球"><b>↻ 改成 '+c.lineups[k][1]+' 號發球</b><small>全隊照輪轉方向移一格</small></button><button data-act="lurot" data-team="'+k+'" data-v="ccw" aria-label="全隊反方向移一格，改成 '+c.lineups[k][5]+' 號發球"><b>↺ 改成 '+c.lineups[k][5]+' 號發球</b><small>全隊反方向移一格</small></button></div>';
   var copyb=n>1&&!c.locked[k]&&!c.started?'<button class="lucopy" data-act="copy" data-team="'+k+'">複製第 '+(n-1)+' 局陣容</button>':'';
   var hint=c.started?'':'<p class="stephint">照教練交的陣容單填。I 是第一位發球，兩隊都要填。</p>';
   return hint+tabs+'<div class="luwrap"><div class="lumain">'+form+'</div><div class="luside">'+copyb+rotb+'<div class="bench">'+benchHtml(s)+'</div></div></div><div class="foot">'+lineupFoot(s)+'</div>';
@@ -6267,7 +6278,8 @@ function playHtml(s){
   if(warn)warn='<div class="warnrow">'+warn+'</div>';
   var foot='<div class="foot">'+main+'</div>';
   if(isWide())return '<div class="wplay"><div class="whead">'+wideBar(s,L)+'<div class="mid">'+srvm+'</div>'+wideBar(s,R)+'</div>'+wideCol(s,L)+'<div class="wmid wtop">'+court+'</div>'+wideCol(s,R)+'<div class="wmid wctl">'+warn+timerBar(s)+foot+lock+tools+'</div><div class="wsheet" data-act="sheetopen" role="button" aria-label="放大記錄表">'+setSvg(s,n)+'</div></div>';
-  return '<div class="board">'+wideBar(s,L)+wideBar(s,R)+sideScore(s,L)+setBox(s,L)+'<div class="mid">'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+court+
+  var rsw=setsWon(s);
+  return '<div class="board rb">'+wideBar(s,L)+wideBar(s,R)+'<b class="rsets" aria-label="局數 '+rsw[L]+' 比 '+rsw[R]+'">'+rsw[L]+' : '+rsw[R]+'</b>'+sideScore(s,L)+setBox(s,L)+'<div class="mid">'+srvm+'</div>'+setBox(s,R)+sideScore(s,R)+'</div>'+court+
     '<div class="strips">'+libStrip(s,L)+libStrip(s,R,true)+'</div>'+
     /* 11/7 使用者：球在進行中只會按得分、公正、復原。其他按鈕藏起來（仍佔位置，球場不會跳），得分鍵蓋滿這一區 */
     '<div class="zone'+(c.live?' islive':'')+'">'+(c.live?'<div class="lvh" aria-hidden="true" inert>':'')+'<div class="tt"><div class="tg">'+teamTools(s,L)+'</div><div class="tg">'+teamTools(s,R)+'</div></div>'+warn+timerBar(s)+lock+tools+'<div class="foot'+(isTall()?' tallfoot':'')+'">'+(c.live?'<button class="sv" tabindex="-1">發球</button>':main)+'</div>'+(c.live?'</div><div class="liveover">'+main+'</div>':'')+'</div>'+(isTall()?'<div class="tallsheet">'+setSvg(s,n)+'</div>':'');
