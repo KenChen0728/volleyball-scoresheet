@@ -2335,6 +2335,18 @@ span.bxc{display:flex;align-items:center;justify-content:center;border-radius:8p
 .watch .wview .lc.empty b{visibility:hidden}
 .watch .wview .capbox{overflow:visible}
 .watch .wview .lc b,.watch .wview .capbox b{font-size:clamp(26px,4vh,36px)}
+/* 11/28 積分表看得懂 */
+.rkprog{margin-left:auto;font-size:17px;font-weight:800;color:var(--ink)}
+.rktmp{display:block;font-size:11px;font-weight:700;color:var(--muted)}
+.rksh{margin:14px 0 6px;font-size:17px}
+.rksl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rksl li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.rksl li.dn{opacity:.85}
+.rkvs{flex:1 1 auto;font-weight:700}
+.rkdn{font-weight:800;color:var(--ok-ink,var(--ok));font-family:var(--num)}
+.rkpl{font-weight:800;color:#C77700}
+.rkno{font-weight:800;color:var(--muted)}
+.rksl small{flex-basis:100%;color:var(--muted);font-size:13px}
 </style>
 
 <div class="statusband" aria-hidden="true"></div>
@@ -2829,7 +2841,7 @@ resetUi();
 /* 比賽進行中重新開啟時直接回到比賽，其他情況回主畫面 */
 (function(){var m=current();if(!m)return;var s=safeReduce(m);if(!s){db.currentId=null;return}if(s.sets[1].started&&!matchOver(s)){view='setup';ui.page=firstPage(s)}})();
 /* 個人偏好：外觀、是否隱藏安裝提示，不屬於比賽資料 */
-var BUILD='測試版 2026.11.28.7';
+var BUILD='測試版 2026.11.28.9';
 var PREF='volleyball-prefs',prefs={};
 try{prefs=JSON.parse(localStorage.getItem(PREF))||{}}catch(e){}
 function diagText(){
@@ -4613,20 +4625,26 @@ function rankPool(c,div,pool){var ids=pool.ids,rule=rankRule(c),gs=rankGames(c,d
     if(dr&&dr.length===grp.length&&grp.every(function(id){return dr.indexOf(id)>=0})){grp=dr.slice();draw=false;drawn=true}
     grp.forEach(function(id,k){out.push({id:id,st:S[id],rank:draw?i+1:i+k+1,draw:draw,from:i+1,to:j,key:key,drawn:drawn})});i=j}
   return {rows:out,games:gs,done:gs.length>0&&gs.every(function(g){return g.done})}}
-function rankFmt(v){return v===Infinity?'最大':v<0?'–':v.toFixed(3)}
+function rankFmt(v){return v===Infinity?'全勝':v<0?'–':v.toFixed(3)}
 function rankNeedDraw(R){return R.rows.some(function(q){return q.draw})}
 function rankTable(c,div,P,pool){var R=rankPool(c,div,pool),adv=rankAdv(c,div,P.list.length),done=R.games.filter(function(q){return q.done}).length;
-  var head='<div class="rkhead"><h2>'+esc(pool.name?poolLabel(pool.name):(P.list.length>1?'未分組':div))+'</h2>'+(rankNeedDraw(R)?'<span class="rktag">需抽籤</span>':'')+'<span class="muted">打完 '+done+'／'+R.games.length+' 場</span></div>';
+  var head='<div class="rkhead"><h2>'+esc(pool.name?poolLabel(pool.name):(P.list.length>1?'未分組':div))+'</h2>'+(rankNeedDraw(R)?'<span class="rktag">需抽籤</span>':'')+'<span class="rkprog">打完 '+done+' 場、還剩 '+(R.games.length-done)+' 場</span></div>';
   var rows=R.rows.map(function(q,ix){var t=schedTeam(c,q.id),st=q.st,pl=st.G>0,cut=adv>0&&ix===adv-1&&ix<R.rows.length-1,note='';
-    var rc=!pl?'–':q.draw?'<button class="rkdrawbtn" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.from+(q.to>q.from?' 到 '+q.to:'')+' 名抽籤，點了填抽籤結果"><b>'+q.from+(q.to>q.from?'–'+q.to:'')+'</b><small>抽籤</small></button>':q.drawn?'<button class="rkdrawbtn done" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.rank+' 名，抽籤決定，點了可以修改"><b>'+q.rank+'</b><small>抽籤</small></button>':q.rank;
+    var rc=!pl?'–':q.draw?'<button class="rkdrawbtn" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.from+(q.to>q.from?' 到 '+q.to:'')+' 名抽籤，點了填抽籤結果"><b>'+q.from+(q.to>q.from?'–'+q.to:'')+'</b><small>抽籤</small></button>':q.drawn?'<button class="rkdrawbtn done" data-act="rkdraw" data-key="'+esc(q.key)+'" aria-label="第 '+q.rank+' 名，抽籤決定，點了可以修改"><b>'+q.rank+'</b><small>抽籤</small></button>':q.rank+(R.done?'':'<small class="rktmp">暫定</small>');
     if(q.draw&&adv>0)note=q.from<=adv&&q.to>adv?'<small class="rkwarn">抽籤決定晉級</small>':q.to<=adv?'<small class="rkok">都晉級，抽籤排名次</small>':'';
     else if(R.done&&adv>0&&pl&&q.rank<=adv)note='<small class="rkok">晉級</small>';
     return '<tr class="'+(q.draw?'rkdraw':'')+(cut?' rkcut':'')+'"><td class="rkr">'+rc+'</td><td class="rkn"><strong>'+esc(t?t.team.name:'')+'</strong>'+note+'<button class="rkdet rkdet2" data-act="rkdet" data-id="'+esc(q.id)+'" aria-label="'+esc(t?t.team.name:'')+' 明細">明細 ›</button></td><td><b>'+st.W+'</b></td><td>'+st.G+'</td><td><b>'+st.P+'</b></td><td>'+st.SW+':'+st.SL+(pl?'<small>'+rankFmt(rankRatio(st.SW,st.SL))+'</small>':'')+'</td><td>'+st.PW+':'+st.PL+(pl?'<small>'+rankFmt(rankRatio(st.PW,st.PL))+'</small>':'')+'</td><td class="rkdc"><button class="rkdet" data-act="rkdet" data-id="'+esc(q.id)+'" aria-label="'+esc(t?t.team.name:'')+' 明細">明細</button></td></tr>'}).join('');
-  return '<section class="rksec">'+head+'<div class="rkwrap"><table class="rktable"><thead><tr><th>名次</th><th class="rkn">隊名</th><th>勝</th><th>場</th><th>積分</th><th>勝局:敗局<small>局數比</small></th><th>得分:失分<small>得失分比</small></th><th class="rkdc"><span class="vh">明細</span></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(adv>0?'<p class="muted rkfoot">每組取前 '+adv+' 名'+(R.done?'':'，整組打完才標晉級')+'。</p>':'')+'</section>'}
+  return '<section class="rksec">'+head+'<div class="rkwrap"><table class="rktable"><thead><tr><th>名次</th><th class="rkn">隊名</th><th>勝</th><th>已打</th><th>積分</th><th>勝局:敗局<small>局數比</small></th><th>得分:失分<small>得失分比</small></th><th class="rkdc"><span class="vh">明細</span></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(adv>0?'<p class="muted rkfoot">每組取前 '+adv+' 名'+(R.done?'':'，整組打完才標晉級')+'。</p>':'')+rankSchedHtml(c,R)+'</section>'}
+/* 11/28 本組賽程：哪幾場打完、哪幾場還沒打 */
+function rankSchedHtml(c,R){if(!R.games.length)return '';
+  var nm=function(id){var t=schedTeam(c,id);return esc(t?t.team.name:'')};
+  return '<h3 class="rksh">本組賽程</h3><ul class="rksl">'+R.games.map(function(g){var it=g.it,m=schedMatch(it),r=g.res;
+    var st=g.done?'<span class="rkdn">✓ '+(r?r.t1.s+' : '+r.t2.s:'打完')+'</span>':m?'<span class="rkpl">進行中</span>':'<span class="rkno">還沒打</span>';
+    return '<li class="'+(g.done?'dn':'')+'"><span class="rkvs">'+nm(g.a)+' VS '+nm(g.b)+'</span>'+st+(g.done?'':'<small>'+esc(schedDay(it.date))+' '+esc(it.time||'時間未定')+(it.court?'　'+esc(it.court):'')+'</small>')+'</li>'}).join('')+'</ul>'}
 function rankSecHtml(c){var div=CUP_DIVS.indexOf(cupView.div)>=0?cupView.div:CUP_DIVS[0],P=rankPools(c,div),rule=rankRule(c);
   var seg='<div class="seg">'+CUP_DIVS.map(function(d){return '<button data-act="cupdiv" data-v="'+d+'" aria-pressed="'+(div===d)+'">'+d+'</button>'}).join('')+'</div>';
   var ks=rule.keys.filter(function(q){return q.on}).map(function(q){return RANK_KEYS.filter(function(x){return x[0]===q.k})[0][1]}),tie=RANK_TIE.filter(function(x){return x[0]===rule.tie})[0][1];
-  var foot='<div class="rkrule"><p class="muted">名次：'+esc(ks.join(' → '))+'。'+esc(tie)+'。只算預賽打完的比賽。</p><div class="row"><button data-act="rkrule">名次規則</button><button data-act="rkgrp">分組</button></div></div>';
+  var foot='<div class="rkrule"><div class="row"><button data-act="rkrule">名次規則</button><button data-act="rkgrp">分組</button></div></div>';
   if(!P.list.length)return seg+'<p class="muted">'+esc(div)+'還沒有預賽的賽程。排好賽程、打完比賽，這裡就會算名次。</p>'+foot;
   var pn=P.list.map(function(g){return g.name});if(pn.indexOf(cupView.pool)<0)cupView.pool=pn[0];
   var pool=P.list.filter(function(g){return g.name===cupView.pool})[0];
